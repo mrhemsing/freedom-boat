@@ -40,6 +40,10 @@ export default async function LocationPage({
             <span className="badge">{loc.name}</span>
           </div>
           {loc.address ? <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
+          <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <a className={`seg ${id === 'port-moody' ? 'segActive' : ''}`} href="/location/port-moody">Port Moody</a>
+            <a className={`seg ${id === 'north-saanich' ? 'segActive' : ''}`} href="/location/north-saanich">North Saanich</a>
+          </div>
         </div>
         <div className="badge">{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</div>
       </header>
@@ -100,30 +104,41 @@ export default async function LocationPage({
           <TideList events={tides?.events ?? []} />
         </Card>
 
-        <Card title="Map" icon={Icons.map}>
-          <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
-            <iframe
-              title={`${loc.name} map`}
-              width="100%"
-              height="320"
-              style={{ border: 0, display: 'block' }}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-                `${loc.lon - 0.03},${loc.lat - 0.02},${loc.lon + 0.03},${loc.lat + 0.02}`
-              )}&layer=mapnik&marker=${encodeURIComponent(`${loc.lat},${loc.lon}`)}`}
-            />
+        <details>
+          <summary style={{ listStyle: 'none' }}>
+            <div style={{ cursor: 'pointer' }}>
+              <Card title="Map" icon={Icons.map} right={<span>click to expand</span>}>
+                <div className="miniNote">Tap to expand the embedded map.</div>
+              </Card>
+            </div>
+          </summary>
+          <div style={{ marginTop: 10 }}>
+            <Card title="Map" icon={Icons.map}>
+              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
+                <iframe
+                  title={`${loc.name} map`}
+                  width="100%"
+                  height="340"
+                  style={{ border: 0, display: 'block' }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
+                    `${loc.lon - 0.03},${loc.lat - 0.02},${loc.lon + 0.03},${loc.lat + 0.02}`
+                  )}&layer=mapnik&marker=${encodeURIComponent(`${loc.lat},${loc.lon}`)}`}
+                />
+              </div>
+              <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>
+                <a
+                  href={`https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lon}#map=13/${loc.lat}/${loc.lon}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open in OpenStreetMap
+                </a>
+              </div>
+            </Card>
           </div>
-          <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lon}#map=13/${loc.lat}/${loc.lon}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open in OpenStreetMap
-            </a>
-          </div>
-        </Card>
+        </details>
       </div>
     </main>
   );
