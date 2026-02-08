@@ -24,10 +24,12 @@ export function KpiRow({ items }: { items: Array<{ label: string; icon?: React.R
     <div className="kpiGrid">
       {items.map((it) => (
         <div key={it.label} className="kpi">
-          <div className="kpiLabel" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ opacity: 0.75 }}>{it.icon}</span>
-            {it.label}
-          </div>
+          {it.label ? (
+            <div className="kpiLabel" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {it.icon ? <span style={{ opacity: 0.75 }}>{it.icon}</span> : null}
+              {it.label}
+            </div>
+          ) : null}
           <div className="kpiValue">{it.value}</div>
           {it.sub ? <div className="kpiSub">{it.sub}</div> : null}
         </div>

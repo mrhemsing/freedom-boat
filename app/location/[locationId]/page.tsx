@@ -104,15 +104,21 @@ export default async function LocationPage({
           <KpiRow
             items={[
               {
-                label: 'Map',
-                icon: <IconMap />,
+                label: '',
                 value: (
-                  <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
+                  <div
+                    style={{
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      border: '1px solid rgba(11,18,32,0.10)',
+                      height: 180
+                    }}
+                  >
                     <iframe
                       title={`${loc.name} mini map`}
                       width="100%"
-                      height="92"
-                      style={{ border: 0, display: 'block' }}
+                      height="240"
+                      style={{ border: 0, display: 'block', transform: 'translateY(-22px)' }}
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                       src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
