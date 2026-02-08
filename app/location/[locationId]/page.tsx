@@ -38,7 +38,7 @@ export default async function LocationPage({
           {loc.address ? <div style={{ marginTop: 6, color: '#666', fontSize: 13 }}>{loc.address}</div> : null}
         </div>
         <div style={{ color: '#666', fontSize: 13 }}>
-          {now?.asOf ? `as of ${new Date(now.asOf).toLocaleString()}` : '—'}
+          {now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}
         </div>
       </header>
 
@@ -119,6 +119,18 @@ export default async function LocationPage({
 
 function baseUrl() {
   return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+}
+
+function formatAsOf(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  // Force stable formatting across server/client to avoid hydration mismatch.
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Vancouver',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(d);
 }
 
 function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) {
