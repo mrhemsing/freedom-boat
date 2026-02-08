@@ -3,7 +3,7 @@ import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { isoToLocalDay, round } from '../../../lib/format';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
-import { IconMap, IconRain, IconThermometer, IconTide, IconWind } from './icons';
+import { IconMap, IconRain, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
 
 export default async function LocationPage({
   params
@@ -46,7 +46,17 @@ export default async function LocationPage({
             <a className={`seg ${id === 'north-saanich' ? 'segActive' : ''}`} href="/location/north-saanich">North Saanich</a>
           </div>
         </div>
-        <div className="badge">{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span className="badge">{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</span>
+          <span className="badge" style={{ gap: 8 }}>
+            <span style={{ opacity: 0.9, display: 'inline-flex' }}><IconSunrise size={16} /></span>
+            {now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : '—'}
+          </span>
+          <span className="badge" style={{ gap: 8 }}>
+            <span style={{ opacity: 0.9, display: 'inline-flex' }}><IconSunset size={16} /></span>
+            {now?.sun?.sunset ? formatAsOf(now.sun.sunset) : '—'}
+          </span>
+        </div>
       </header>
 
       <div className="grid" style={{ marginTop: 14 }}>

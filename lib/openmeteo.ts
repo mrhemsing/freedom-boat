@@ -25,6 +25,13 @@ const OpenMeteoResponse = z.object({
       wind_gusts_10m: z.array(z.number()).optional(),
       wind_direction_10m: z.array(z.number()).optional()
     })
+    .optional(),
+  daily: z
+    .object({
+      time: z.array(z.string()),
+      sunrise: z.array(z.string()).optional(),
+      sunset: z.array(z.string()).optional()
+    })
     .optional()
 });
 
@@ -34,6 +41,7 @@ export type ConditionsNow = {
   wind: { speedKts: number; gustKts?: number; directionDeg?: number };
   tempC?: number;
   precipMmHr?: number;
+  sun?: { sunrise?: string; sunset?: string };
 };
 
 export type ForecastHour = {
@@ -78,6 +86,9 @@ export async function fetchOpenMeteo({
       'wind_direction_10m'
     ].join(',')
   );
+  url.searchParams.set('daily', ['sunrise', 'sunset'].join(','));
+  // Ensure daily arrays include today.
+  url.searchParams.set('forecast_days', '7');
   url.searchParams.set('forecast_hours', String(Math.min(Math.max(hours, 1), 168)));
 
   const res = await fetch(url.toString(), {
@@ -99,6 +110,12 @@ export function normalizeNow(locationId: string, data: unknown): ConditionsNow {
     throw new Error('Open-Meteo response missing current');
   }
 
+  const today = c.time.slice(0, 10);
+  const daily = parsed.daily;
+  const i = daily?.time?.findIndex((t) => t === today) ?? -1;
+  const sunrise = i >= 0 ? daily?.sunrise?.[i] : undefined;
+  const sunset = i >= 0 ? daily?.sunset?.[i] : undefined;
+
   return {
     locationId,
     asOf: c.time,
@@ -109,7 +126,11 @@ export function normalizeNow(locationId: string, data: unknown): ConditionsNow {
     },
     tempC: c.temperature_2m,
     // Open-Meteo current.precipitation is mm over the last hour for many models
-    precipMmHr: c.precipitation
+    precipMmHr: c.precipitation,
+    sun: {
+      sunrise,
+      sunset
+    }
   };
 }
 
