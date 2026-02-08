@@ -104,6 +104,25 @@ export default async function LocationPage({
           <KpiRow
             items={[
               {
+                label: 'Map',
+                icon: <IconMap />,
+                value: (
+                  <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
+                    <iframe
+                      title={`${loc.name} mini map`}
+                      width="100%"
+                      height="92"
+                      style={{ border: 0, display: 'block' }}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
+                        `${loc.lon - 0.015},${loc.lat - 0.01},${loc.lon + 0.015},${loc.lat + 0.01}`
+                      )}&layer=mapnik&marker=${encodeURIComponent(`${loc.lat},${loc.lon}`)}`}
+                    />
+                  </div>
+                )
+              },
+              {
                 label: 'Wind',
                 icon: <IconWind />,
                 value: `${round(windSpeed, 0) ?? '—'} kt`,
