@@ -1,0 +1,14 @@
+/* Global layout sanity */
+html, body {
+  padding: 0;
+  margin: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: #f6f7f8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a { color: inherit; }

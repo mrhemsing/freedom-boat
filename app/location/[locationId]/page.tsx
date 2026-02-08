@@ -87,6 +87,31 @@ export default async function LocationPage({
           </div>
           <TideList events={tides?.events ?? []} />
         </Card>
+
+        <Card title="Map">
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #eee' }}>
+            <iframe
+              title={`${loc.name} map`}
+              width="100%"
+              height="320"
+              style={{ border: 0, display: 'block' }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
+                `${loc.lon - 0.03},${loc.lat - 0.02},${loc.lon + 0.03},${loc.lat + 0.02}`
+              )}&layer=mapnik&marker=${encodeURIComponent(`${loc.lat},${loc.lon}`)}`}
+            />
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lon}#map=13/${loc.lat}/${loc.lon}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open in OpenStreetMap
+            </a>
+          </div>
+        </Card>
       </div>
     </main>
   );

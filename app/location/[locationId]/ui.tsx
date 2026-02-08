@@ -5,7 +5,15 @@ import { degToCardinal, isoToLocalDayTime, isoToLocalTime, round } from '../../.
 
 export function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ border: '1px solid #e5e5e5', borderRadius: 14, padding: 16, background: 'white' }}>
+    <section
+      style={{
+        border: '1px solid #e5e5e5',
+        borderRadius: 14,
+        padding: 16,
+        background: 'white',
+        minWidth: 0
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
         <h2 style={{ margin: 0, fontSize: 16 }}>{title}</h2>
       </div>
