@@ -86,7 +86,12 @@ export default async function LocationPage({
                         <div>precip chance: {round(d.maxPrecipProb, 0)}%</div>
                         <div>rain total: {round(d.totalPrecipMm, 1)} mm</div>
                       </div>
-                      {isBest ? <div style={{ marginTop: 10 }} className="pill sevInfo">Best day</div> : null}
+                      {isBest ? (
+                        <div style={{ marginTop: 10 }} className="pill sevInfo">
+                          <span style={{ fontWeight: 900 }}>⛵</span>
+                          Best day
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })}
