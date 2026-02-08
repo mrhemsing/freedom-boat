@@ -110,3 +110,24 @@ export function AlertFeed({ items }: { items: Array<{ t: string; severity: strin
     </div>
   );
 }
+
+export function TideList({ events }: { events: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }> }) {
+  if (!events?.length) {
+    return <div style={{ color: '#666' }}>No tide events returned.</div>;
+  }
+
+  const next = events.slice(0, 8);
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      {next.map((e) => (
+        <div key={e.t + e.kind} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, border: '1px solid #eee', borderRadius: 12, padding: 12 }}>
+          <div style={{ fontWeight: 650 }}>{e.kind === 'high' ? 'High tide' : 'Low tide'}</div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 12, color: '#666' }}>{isoToLocalDayTime(e.t)}</div>
+            <div style={{ marginTop: 4 }}>{e.heightM != null ? `${round(e.heightM, 2)} m` : '—'}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

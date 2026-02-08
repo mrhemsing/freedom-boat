@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { round } from '../../../lib/format';
-import { AlertFeed, Card, ForecastStrip, KpiRow, WindArrow } from './ui';
+import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 
 export default async function LocationPage({
   params
@@ -12,15 +12,17 @@ export default async function LocationPage({
   const loc = LOCATIONS[id];
   if (!loc) return notFound();
 
-  const [nowRes, forecastRes] = await Promise.all([
+  const [nowRes, forecastRes, tidesRes] = await Promise.all([
     fetch(`${baseUrl()}/api/${params.locationId}/now`, { cache: 'no-store' }),
     fetch(`${baseUrl()}/api/${params.locationId}/forecast?hours=24`, {
       cache: 'no-store'
-    })
+    }),
+    fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' })
   ]);
 
   const now = nowRes.ok ? await nowRes.json() : null;
   const forecast = forecastRes.ok ? await forecastRes.json() : null;
+  const tides = tidesRes.ok ? await tidesRes.json() : null;
 
   const alerts = computeDefaultAlerts({ now, forecast: forecast?.forecast ?? [] });
 
@@ -73,8 +75,17 @@ export default async function LocationPage({
           <AlertFeed items={alerts} />
         </Card>
 
-        <Card title="Tides">
-          <div style={{ color: '#666' }}>Tides integration next (provider TBD).</div>
+        <Card title="Tides (next 2 days)">
+          <div style={{ color: '#666', fontSize: 13, marginBottom: 10 }}>
+            {tides?.station?.name ? (
+              <span>
+                Nearest station: <b>{tides.station.name}</b> ({Math.round(tides.station.distanceKm)} km)
+              </span>
+            ) : (
+              '—'
+            )}
+          </div>
+          <TideList events={tides?.events ?? []} />
         </Card>
       </div>
     </main>
