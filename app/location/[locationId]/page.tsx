@@ -1,18 +1,15 @@
 import { notFound } from 'next/navigation';
-
-const LOCS = {
-  'port-moody': { name: 'Port Moody', lat: 49.282, lon: -122.86 },
-  'north-saanich': { name: 'North Saanich', lat: 48.65, lon: -123.43 }
-} as const;
+import { LOCATIONS, type LocationId } from '../../../lib/locations';
+import { round } from '../../../lib/format';
+import { AlertFeed, Card, ForecastStrip, KpiRow, WindArrow } from './ui';
 
 export default async function LocationPage({
   params
 }: {
   params: { locationId: string };
 }) {
-  const loc = (LOCS as Record<string, { name: string; lat: number; lon: number }>)[
-    params.locationId
-  ];
+  const id = params.locationId as LocationId;
+  const loc = LOCATIONS[id];
   if (!loc) return notFound();
 
   const [nowRes, forecastRes] = await Promise.all([
@@ -25,54 +22,126 @@ export default async function LocationPage({
   const now = nowRes.ok ? await nowRes.json() : null;
   const forecast = forecastRes.ok ? await forecastRes.json() : null;
 
+  const alerts = computeDefaultAlerts({ now, forecast: forecast?.forecast ?? [] });
+
+  const windSpeed = now?.wind?.speedKts;
+  const gust = now?.wind?.gustKts;
+  const dir = now?.wind?.directionDeg;
+
   return (
-    <main style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
-      <h1 style={{ marginTop: 0 }}>{loc.name}</h1>
+    <main style={{ padding: 18, maxWidth: 980, margin: '0 auto' }}>
+      <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ margin: 0 }}>{loc.name}</h1>
+          {loc.address ? <div style={{ marginTop: 6, color: '#666', fontSize: 13 }}>{loc.address}</div> : null}
+        </div>
+        <div style={{ color: '#666', fontSize: 13 }}>
+          {now?.asOf ? `as of ${new Date(now.asOf).toLocaleString()}` : '—'}
+        </div>
+      </header>
 
-      <section style={{ display: 'grid', gap: 12 }}>
-        <Panel title="Now">
-          <pre style={preStyle}>{JSON.stringify(now, null, 2)}</pre>
-        </Panel>
+      <div style={{ display: 'grid', gap: 12, marginTop: 14 }}>
+        <Card title="Now">
+          <KpiRow
+            items={[
+              {
+                label: 'Wind',
+                value: `${round(windSpeed, 0) ?? '—'} kt`,
+                sub: (
+                  <span>
+                    gust {round(gust, 0) ?? '—'} · <WindArrow deg={dir} />
+                  </span>
+                )
+              },
+              {
+                label: 'Temp',
+                value: now?.tempC != null ? `${round(now.tempC, 0)}°C` : '—'
+              },
+              {
+                label: 'Precip (mm/hr)',
+                value: now?.precipMmHr != null ? String(round(now.precipMmHr, 1)) : '—'
+              }
+            ]}
+          />
+        </Card>
 
-        <Panel title="Forecast (next 24h)">
-          <pre style={preStyle}>{JSON.stringify(forecast, null, 2)}</pre>
-        </Panel>
+        <Card title="Next 12 hours">
+          <ForecastStrip forecast={forecast?.forecast ?? []} />
+        </Card>
 
-        <Panel title="Alerts">
-          <p style={{ margin: 0, color: '#666' }}>
-            Coming next: compute and store alert feed.
-          </p>
-        </Panel>
+        <Card title="Alerts">
+          <AlertFeed items={alerts} />
+        </Card>
 
-        <Panel title="Tides">
-          <p style={{ margin: 0, color: '#666' }}>
-            Coming next: integrate a tide provider.
-          </p>
-        </Panel>
-      </section>
+        <Card title="Tides">
+          <div style={{ color: '#666' }}>Tides integration next (provider TBD).</div>
+        </Card>
+      </div>
     </main>
   );
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ border: '1px solid #ddd', borderRadius: 12, padding: 16 }}>
-      <h2 style={{ margin: '0 0 8px 0', fontSize: 18 }}>{title}</h2>
-      {children}
-    </div>
-  );
+function baseUrl() {
+  return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 }
 
-const preStyle: React.CSSProperties = {
-  margin: 0,
-  overflow: 'auto',
-  background: '#fafafa',
-  borderRadius: 8,
-  padding: 12
-};
+function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) {
+  const out: Array<{ t: string; severity: string; title: string; body?: string }> = [];
 
-function baseUrl() {
-  // Server Components need an absolute URL for server-side fetch.
-  // In local dev, default to localhost.
-  return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const gustNow = now?.wind?.gustKts ?? null;
+  const maxGustNext6 = Math.max(
+    ...(forecast || []).slice(0, 6).map((h) => (typeof h.windGustKts === 'number' ? h.windGustKts : 0))
+  );
+
+  // Conservative defaults; tune later.
+  if (gustNow != null && gustNow >= 25) {
+    out.push({
+      t: now.asOf,
+      severity: 'warning',
+      title: 'Strong gusts right now',
+      body: `Gusts around ${Math.round(gustNow)} kt.`
+    });
+  } else if (gustNow != null && gustNow >= 18) {
+    out.push({
+      t: now.asOf,
+      severity: 'caution',
+      title: 'Gusty conditions right now',
+      body: `Gusts around ${Math.round(gustNow)} kt.`
+    });
+  }
+
+  if (Number.isFinite(maxGustNext6) && maxGustNext6 >= 25) {
+    out.push({
+      t: forecast?.[0]?.t ?? new Date().toISOString(),
+      severity: 'warning',
+      title: 'Strong gusts expected (next 6h)',
+      body: `Max gust forecast ~${Math.round(maxGustNext6)} kt.`
+    });
+  } else if (Number.isFinite(maxGustNext6) && maxGustNext6 >= 18) {
+    out.push({
+      t: forecast?.[0]?.t ?? new Date().toISOString(),
+      severity: 'caution',
+      title: 'Gusts expected (next 6h)',
+      body: `Max gust forecast ~${Math.round(maxGustNext6)} kt.`
+    });
+  }
+
+  // Rain heads-up: first hour with precipProb >= 60%
+  const rain = (forecast || []).slice(0, 12).find((h) => typeof h.precipProbPct === 'number' && h.precipProbPct >= 60);
+  if (rain) {
+    out.push({
+      t: rain.t,
+      severity: 'info',
+      title: 'Rain likely soon',
+      body: `Precip chance ~${Math.round(rain.precipProbPct)}% within the next 12 hours.`
+    });
+  }
+
+  // De-dupe titles
+  const seen = new Set<string>();
+  return out.filter((a) => {
+    if (seen.has(a.title)) return false;
+    seen.add(a.title);
+    return true;
+  });
 }
