@@ -48,13 +48,17 @@ export default async function LocationPage({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <span className="badge">{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</span>
-          <span className="badge" style={{ gap: 8 }}>
-            <span style={{ opacity: 0.9, display: 'inline-flex' }}><IconSunrise size={16} /></span>
-            {now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : '—'}
-          </span>
-          <span className="badge" style={{ gap: 8 }}>
-            <span style={{ opacity: 0.9, display: 'inline-flex' }}><IconSunset size={16} /></span>
-            {now?.sun?.sunset ? formatAsOf(now.sun.sunset) : '—'}
+          <span className="badge" style={{ padding: 8, alignItems: 'stretch' }}>
+            <span style={{ display: 'grid', gap: 6 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(255, 206, 64, 0.95)' }}>
+                <span style={{ display: 'inline-flex' }}><IconSunrise size={16} /></span>
+                <span style={{ color: 'rgba(255,255,255,0.90)' }}>{now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : '—'}</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(251, 113, 133, 0.95)' }}>
+                <span style={{ display: 'inline-flex' }}><IconSunset size={16} /></span>
+                <span style={{ color: 'rgba(255,255,255,0.90)' }}>{now?.sun?.sunset ? formatAsOf(now.sun.sunset) : '—'}</span>
+              </span>
+            </span>
           </span>
         </div>
       </header>
