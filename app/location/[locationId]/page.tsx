@@ -48,7 +48,7 @@ export default async function LocationPage({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <span className="badge">{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</span>
-          <span className="badge" style={{ padding: 8, alignItems: 'stretch' }}>
+          <span className="badge" style={{ padding: 8, alignItems: 'stretch', borderRadius: 14 }}>
             <span style={{ display: 'grid', gap: 6 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(255, 206, 64, 0.95)' }}>
                 <span style={{ display: 'inline-flex' }}><IconSunrise size={16} /></span>
