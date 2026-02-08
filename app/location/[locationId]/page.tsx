@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { round } from '../../../lib/format';
-import { AlertFeed, Card, ForecastStrip, Icons, KpiRow, TideList, WindArrow } from './ui';
+import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
+import { IconMap, IconRain, IconThermometer, IconTide, IconWind } from './icons';
 
 export default async function LocationPage({
   params
@@ -49,12 +50,12 @@ export default async function LocationPage({
       </header>
 
       <div className="grid" style={{ marginTop: 14 }}>
-        <Card title="Now" icon={Icons.wind} right={<span>Wind · Temp · Rain</span>}>
+        <Card title="Now" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             items={[
               {
                 label: 'Wind',
-                icon: Icons.wind,
+                icon: <IconWind />,
                 value: `${round(windSpeed, 0) ?? '—'} kt`,
                 sub: (
                   <span>
@@ -64,19 +65,19 @@ export default async function LocationPage({
               },
               {
                 label: 'Temp',
-                icon: Icons.temp,
+                icon: <IconThermometer />,
                 value: now?.tempC != null ? `${round(now.tempC, 0)}°C` : '—'
               },
               {
                 label: 'Precip (mm/hr)',
-                icon: Icons.rain,
+                icon: <IconRain />,
                 value: now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'
               }
             ]}
           />
         </Card>
 
-        <Card title="Wind (next 24h)" icon={Icons.wind} right={<span>speed + gust</span>}>
+        <Card title="Wind (next 24h)" icon={<IconWind />} right={<span>speed + gust</span>}>
           <WindChart forecast={forecast?.forecast ?? []} />
           <hr className="soft" />
           <ForecastStrip forecast={forecast?.forecast ?? []} />
@@ -88,7 +89,7 @@ export default async function LocationPage({
 
         <Card
           title="Tides"
-          icon={Icons.tide}
+          icon={<IconTide />}
           right={
             tides?.station?.name ? (
               <span>
@@ -107,13 +108,13 @@ export default async function LocationPage({
         <details>
           <summary style={{ listStyle: 'none' }}>
             <div style={{ cursor: 'pointer' }}>
-              <Card title="Map" icon={Icons.map} right={<span>click to expand</span>}>
+              <Card title="Map" icon={<IconMap />} right={<span>click to expand</span>}>
                 <div className="miniNote">Tap to expand the embedded map.</div>
               </Card>
             </div>
           </summary>
           <div style={{ marginTop: 10 }}>
-            <Card title="Map" icon={Icons.map}>
+            <Card title="Map" icon={<IconMap />}>
               <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
                 <iframe
                   title={`${loc.name} map`}

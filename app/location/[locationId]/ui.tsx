@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { degToCardinal, isoToLocalDayTime, isoToLocalTime, round } from '../../../lib/format';
-import { IconMap, IconRain, IconThermometer, IconTide, IconWind } from './icons';
+// icons are rendered in the server component (page.tsx) to avoid RSC dev manifest issues
 
 export function Card({ title, icon, right, children }: { title: string; icon?: React.ReactNode; right?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -149,10 +149,4 @@ export function TideList({ events }: { events: Array<{ t: string; kind: 'high' |
   );
 }
 
-export const Icons = {
-  wind: <IconWind />,
-  temp: <IconThermometer />,
-  rain: <IconRain />,
-  tide: <IconTide />,
-  map: <IconMap />
-};
+// (Icons object removed)
