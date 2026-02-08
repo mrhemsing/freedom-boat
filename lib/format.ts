@@ -39,3 +39,16 @@ export function isoToLocalDayTime(iso: string) {
   if (Number.isNaN(d.getTime())) return iso;
   return fmtDayTime.format(d);
 }
+
+const fmtDay = new Intl.DateTimeFormat('en-US', {
+  timeZone: PNW_TZ,
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric'
+});
+
+export function isoToLocalDay(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return fmtDay.format(d);
+}

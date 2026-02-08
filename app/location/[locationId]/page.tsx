@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
-import { round } from '../../../lib/format';
+import { isoToLocalDay, round } from '../../../lib/format';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconRain, IconThermometer, IconTide, IconWind } from './icons';
@@ -50,6 +50,34 @@ export default async function LocationPage({
       </header>
 
       <div className="grid" style={{ marginTop: 14 }}>
+        <Card title="Weekly outlook (best boating day highlighted)" icon={<span style={{ fontWeight: 900 }}>★</span>} right={<span>daytime (8am–6pm)</span>}>
+          {(() => {
+            const week = buildWeeklyOutlook(forecast?.forecast ?? [], 5);
+            const best = week.reduce((acc, d) => (acc == null || d.score > acc.score ? d : acc), null as DailyOutlook | null);
+            if (!week.length) return <div className="miniNote">No forecast available.</div>;
+            return (
+              <div className="outlookGrid">
+                {week.map((d) => {
+                  const isBest = best?.day === d.day;
+                  return (
+                    <div key={d.day} className={`dayBox ${isBest ? 'dayBest' : ''}`}>
+                      <div className="dayTitle">{d.label}</div>
+                      <div className="dayScore">{d.score}/100</div>
+                      <div className="dayMeta">
+                        <div>max wind: {round(d.maxWind, 0)} kt</div>
+                        <div>max gust: {round(d.maxGust, 0)} kt</div>
+                        <div>precip chance: {round(d.maxPrecipProb, 0)}%</div>
+                        <div>rain total: {round(d.totalPrecipMm, 1)} mm</div>
+                      </div>
+                      {isBest ? <div style={{ marginTop: 10 }} className="pill sevInfo">Best day</div> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </Card>
+
         <Card title="Now" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             items={[
@@ -147,6 +175,61 @@ export default async function LocationPage({
 
 function baseUrl() {
   return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+}
+
+type DailyOutlook = {
+  day: string; // YYYY-MM-DD
+  label: string;
+  score: number;
+  maxWind: number;
+  maxGust: number;
+  maxPrecipProb: number;
+  totalPrecipMm: number;
+};
+
+function buildWeeklyOutlook(forecast: Array<{ t: string; windSpeedKts: number; windGustKts?: number; precipMm?: number; precipProbPct?: number }>, days = 5): DailyOutlook[] {
+  const byDay = new Map<string, any[]>();
+  for (const h of forecast || []) {
+    const day = typeof h.t === 'string' ? h.t.slice(0, 10) : null;
+    if (!day) continue;
+
+    // focus on "daytime" hours (local time string from Open-Meteo due to timezone param)
+    const hour = Number(h.t.slice(11, 13));
+    if (!Number.isFinite(hour)) continue;
+    if (hour < 8 || hour > 18) continue;
+
+    const arr = byDay.get(day) ?? [];
+    arr.push(h);
+    byDay.set(day, arr);
+  }
+
+  const daysSorted = [...byDay.keys()].sort().slice(0, days);
+  const out: DailyOutlook[] = [];
+
+  for (const day of daysSorted) {
+    const rows = byDay.get(day) ?? [];
+    const maxWind = Math.max(...rows.map((r) => (typeof r.windSpeedKts === 'number' ? r.windSpeedKts : 0)), 0);
+    const maxGust = Math.max(...rows.map((r) => (typeof r.windGustKts === 'number' ? r.windGustKts : r.windSpeedKts ?? 0)), 0);
+    const maxPrecipProb = Math.max(...rows.map((r) => (typeof r.precipProbPct === 'number' ? r.precipProbPct : 0)), 0);
+    const totalPrecipMm = rows.reduce((acc, r) => acc + (typeof r.precipMm === 'number' ? r.precipMm : 0), 0);
+
+    // Heuristic score: lower gust + lower precip probability + lower total precip wins.
+    // 100 is best, 0 is worst.
+    const raw = 100 - (maxGust * 2.2 + maxWind * 0.6 + maxPrecipProb * 0.6 + totalPrecipMm * 6);
+    const score = Math.max(0, Math.min(100, Math.round(raw)));
+
+    out.push({
+      day,
+      label: isoToLocalDay(`${day}T12:00:00`),
+      score,
+      maxWind,
+      maxGust,
+      maxPrecipProb,
+      totalPrecipMm
+    });
+  }
+
+  return out;
 }
 
 function formatAsOf(iso: string) {
