@@ -16,7 +16,7 @@ export default async function LocationPage({
 
   const [nowRes, forecastRes, tidesRes] = await Promise.all([
     fetch(`${baseUrl()}/api/${params.locationId}/now`, { cache: 'no-store' }),
-    fetch(`${baseUrl()}/api/${params.locationId}/forecast?hours=24`, {
+    fetch(`${baseUrl()}/api/${params.locationId}/forecast?hours=120`, {
       cache: 'no-store'
     }),
     fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' })
