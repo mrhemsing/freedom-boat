@@ -2,34 +2,34 @@
 
 import React from 'react';
 import { degToCardinal, isoToLocalDayTime, isoToLocalTime, round } from '../../../lib/format';
+import { IconMap, IconRain, IconThermometer, IconTide, IconWind } from './icons';
 
-export function Card({ title, children }: { title: string; children: React.ReactNode }) {
+export function Card({ title, icon, right, children }: { title: string; icon?: React.ReactNode; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section
-      style={{
-        border: '1px solid #e5e5e5',
-        borderRadius: 14,
-        padding: 16,
-        background: 'white',
-        minWidth: 0
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 16 }}>{title}</h2>
+    <section className="card" style={{ minWidth: 0 }}>
+      <div className="cardHeader">
+        <h2 style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
+          {title}
+        </h2>
+        {right ? <div className="miniNote">{right}</div> : null}
       </div>
-      <div style={{ marginTop: 12 }}>{children}</div>
+      <div className="cardBody">{children}</div>
     </section>
   );
 }
 
-export function KpiRow({ items }: { items: Array<{ label: string; value: React.ReactNode; sub?: React.ReactNode }> }) {
+export function KpiRow({ items }: { items: Array<{ label: string; icon?: React.ReactNode; value: React.ReactNode; sub?: React.ReactNode }> }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
+    <div className="kpiGrid">
       {items.map((it) => (
-        <div key={it.label} style={{ padding: 12, borderRadius: 12, background: '#fafafa', border: '1px solid #eee' }}>
-          <div style={{ fontSize: 12, color: '#666' }}>{it.label}</div>
-          <div style={{ fontSize: 18, fontWeight: 650, marginTop: 6 }}>{it.value}</div>
-          {it.sub ? <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{it.sub}</div> : null}
+        <div key={it.label} className="kpi">
+          <div className="kpiLabel" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ opacity: 0.75 }}>{it.icon}</span>
+            {it.label}
+          </div>
+          <div className="kpiValue">{it.value}</div>
+          {it.sub ? <div className="kpiSub">{it.sub}</div> : null}
         </div>
       ))}
     </div>
@@ -49,9 +49,9 @@ export function WindArrow({ deg }: { deg?: number | null }) {
           transform: `rotate(${angle}deg)`,
           transition: 'transform 120ms ease',
           borderRadius: 999,
-          border: '1px solid #ddd',
+          border: '1px solid rgba(11,18,32,0.20)',
           position: 'relative',
-          background: 'white'
+          background: 'rgba(255,255,255,0.9)'
         }}
       >
         <span
@@ -64,11 +64,11 @@ export function WindArrow({ deg }: { deg?: number | null }) {
             transform: 'translateX(-50%)',
             borderLeft: '5px solid transparent',
             borderRight: '5px solid transparent',
-            borderBottom: '9px solid #111'
+            borderBottom: '9px solid rgba(11,18,32,0.90)'
           }}
         />
       </span>
-      <span style={{ fontSize: 12, color: '#666' }}>{dir ?? '—'}</span>
+      <span style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{dir ?? '—'}</span>
     </span>
   );
 }
@@ -83,13 +83,13 @@ export function ForecastStrip({ forecast }: { forecast: any[] }) {
           const wg = h.windGustKts != null ? round(h.windGustKts, 0) : null;
           const pp = h.precipProbPct != null ? round(h.precipProbPct, 0) : null;
           return (
-            <div key={h.t} style={{ border: '1px solid #eee', borderRadius: 12, padding: 10, background: '#fafafa' }}>
-              <div style={{ fontSize: 12, color: '#666' }}>{isoToLocalTime(h.t)}</div>
-              <div style={{ marginTop: 6, fontWeight: 650 }}>{ws ?? '—'} kt</div>
-              <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+            <div key={h.t} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 10, background: 'rgba(255,255,255,0.70)' }}>
+              <div style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{isoToLocalTime(h.t)}</div>
+              <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{ws ?? '—'} kt</div>
+              <div style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
                 gust {wg ?? '—'}
               </div>
-              <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
                 precip {pp ?? '—'}%
               </div>
             </div>
@@ -100,19 +100,28 @@ export function ForecastStrip({ forecast }: { forecast: any[] }) {
   );
 }
 
+function severityClass(sev: string) {
+  if (sev === 'warning') return 'sevWarning';
+  if (sev === 'caution') return 'sevCaution';
+  return 'sevInfo';
+}
+
 export function AlertFeed({ items }: { items: Array<{ t: string; severity: string; title: string; body?: string }> }) {
   if (!items?.length) {
-    return <div style={{ color: '#666' }}>No alerts right now.</div>;
+    return <div className="miniNote">No alerts right now.</div>;
   }
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {items.map((a, idx) => (
-        <div key={idx} style={{ border: '1px solid #eee', borderRadius: 12, padding: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ fontWeight: 650 }}>{a.title}</div>
-            <div style={{ fontSize: 12, color: '#666' }}>{isoToLocalDayTime(a.t)}</div>
+        <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+            <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className={`pill ${severityClass(a.severity)}`}>{a.severity}</span>
+              {a.title}
+            </div>
+            <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
           </div>
-          {a.body ? <div style={{ marginTop: 6, color: '#444' }}>{a.body}</div> : null}
+          {a.body ? <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>{a.body}</div> : null}
         </div>
       ))}
     </div>
@@ -121,21 +130,29 @@ export function AlertFeed({ items }: { items: Array<{ t: string; severity: strin
 
 export function TideList({ events }: { events: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }> }) {
   if (!events?.length) {
-    return <div style={{ color: '#666' }}>No tide events returned.</div>;
+    return <div className="miniNote">No tide events returned.</div>;
   }
 
   const next = events.slice(0, 8);
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {next.map((e) => (
-        <div key={e.t + e.kind} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, border: '1px solid #eee', borderRadius: 12, padding: 12 }}>
-          <div style={{ fontWeight: 650 }}>{e.kind === 'high' ? 'High tide' : 'Low tide'}</div>
+        <div key={e.t + e.kind} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
+          <div style={{ fontWeight: 800 }}>{e.kind === 'high' ? 'High tide' : 'Low tide'}</div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>{isoToLocalDayTime(e.t)}</div>
-            <div style={{ marginTop: 4 }}>{e.heightM != null ? `${round(e.heightM, 2)} m` : '—'}</div>
+            <div className="miniNote">{isoToLocalDayTime(e.t)}</div>
+            <div style={{ marginTop: 4, fontWeight: 700 }}>{e.heightM != null ? `${round(e.heightM, 2)} m` : '—'}</div>
           </div>
         </div>
       ))}
     </div>
   );
 }
+
+export const Icons = {
+  wind: <IconWind />,
+  temp: <IconThermometer />,
+  rain: <IconRain />,
+  tide: <IconTide />,
+  map: <IconMap />
+};

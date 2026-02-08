@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { round } from '../../../lib/format';
-import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
+import { AlertFeed, Card, ForecastStrip, Icons, KpiRow, TideList, WindArrow } from './ui';
+import { TideMiniChart, WindChart } from './charts';
 
 export default async function LocationPage({
   params
@@ -31,23 +32,25 @@ export default async function LocationPage({
   const dir = now?.wind?.directionDeg;
 
   return (
-    <main style={{ padding: 18, maxWidth: 980, margin: '0 auto' }}>
-      <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+    <main className="container">
+      <header className="topbar">
         <div>
-          <h1 style={{ margin: 0 }}>{loc.name}</h1>
-          {loc.address ? <div style={{ marginTop: 6, color: '#666', fontSize: 13 }}>{loc.address}</div> : null}
+          <div className="brand">
+            <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 18 }}>Freedom Boat</div>
+            <span className="badge">{loc.name}</span>
+          </div>
+          {loc.address ? <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
         </div>
-        <div style={{ color: '#666', fontSize: 13 }}>
-          {now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}
-        </div>
+        <div className="badge">{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</div>
       </header>
 
-      <div style={{ display: 'grid', gap: 12, marginTop: 14 }}>
-        <Card title="Now">
+      <div className="grid" style={{ marginTop: 14 }}>
+        <Card title="Now" icon={Icons.wind} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             items={[
               {
                 label: 'Wind',
+                icon: Icons.wind,
                 value: `${round(windSpeed, 0) ?? '—'} kt`,
                 sub: (
                   <span>
@@ -57,39 +60,48 @@ export default async function LocationPage({
               },
               {
                 label: 'Temp',
+                icon: Icons.temp,
                 value: now?.tempC != null ? `${round(now.tempC, 0)}°C` : '—'
               },
               {
                 label: 'Precip (mm/hr)',
-                value: now?.precipMmHr != null ? String(round(now.precipMmHr, 1)) : '—'
+                icon: Icons.rain,
+                value: now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'
               }
             ]}
           />
         </Card>
 
-        <Card title="Next 12 hours">
+        <Card title="Wind (next 24h)" icon={Icons.wind} right={<span>speed + gust</span>}>
+          <WindChart forecast={forecast?.forecast ?? []} />
+          <hr className="soft" />
           <ForecastStrip forecast={forecast?.forecast ?? []} />
         </Card>
 
-        <Card title="Alerts">
+        <Card title="Alerts" icon={<span style={{ fontWeight: 900 }}>!</span>}>
           <AlertFeed items={alerts} />
         </Card>
 
-        <Card title="Tides (next 2 days)">
-          <div style={{ color: '#666', fontSize: 13, marginBottom: 10 }}>
-            {tides?.station?.name ? (
+        <Card
+          title="Tides"
+          icon={Icons.tide}
+          right={
+            tides?.station?.name ? (
               <span>
-                Nearest station: <b>{tides.station.name}</b> ({Math.round(tides.station.distanceKm)} km)
+                {tides.station.name} · {Math.round(tides.station.distanceKm)} km
               </span>
             ) : (
               '—'
-            )}
-          </div>
+            )
+          }
+        >
+          <TideMiniChart events={tides?.events ?? []} />
+          <hr className="soft" />
           <TideList events={tides?.events ?? []} />
         </Card>
 
-        <Card title="Map">
-          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #eee' }}>
+        <Card title="Map" icon={Icons.map}>
+          <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
             <iframe
               title={`${loc.name} map`}
               width="100%"
@@ -102,7 +114,7 @@ export default async function LocationPage({
               )}&layer=mapnik&marker=${encodeURIComponent(`${loc.lat},${loc.lon}`)}`}
             />
           </div>
-          <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+          <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>
             <a
               href={`https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lon}#map=13/${loc.lat}/${loc.lon}`}
               target="_blank"
