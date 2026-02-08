@@ -11,18 +11,31 @@ export function degToCardinal(deg: number | undefined | null) {
   return dirs[i];
 }
 
+const PNW_TZ = 'America/Vancouver';
+
+const fmtTime = new Intl.DateTimeFormat('en-US', {
+  timeZone: PNW_TZ,
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true
+});
+
+const fmtDayTime = new Intl.DateTimeFormat('en-US', {
+  timeZone: PNW_TZ,
+  weekday: 'short',
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true
+});
+
 export function isoToLocalTime(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return fmtTime.format(d);
 }
 
 export function isoToLocalDayTime(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString([], {
-    weekday: 'short',
-    hour: 'numeric',
-    minute: '2-digit'
-  });
+  return fmtDayTime.format(d);
 }
