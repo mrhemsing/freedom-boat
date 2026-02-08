@@ -14,9 +14,9 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'port-moody',
     name: 'Port Moody',
     address: '850 Barnet Hwy, Port Moody, BC V3H 1V6',
-    // TODO: confirm exact anchor lat/lon (marina entrance preferred)
-    lat: 49.282,
-    lon: -122.86
+    // Marina anchor (Burrard Inlet)
+    lat: 49.291406,
+    lon: -122.884611
   },
   'north-saanich': {
     id: 'north-saanich',
