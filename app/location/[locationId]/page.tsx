@@ -38,7 +38,11 @@ export default async function LocationPage({
         <div>
           <div className="brand">
             <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 18 }}>Freedom Boat</div>
-            <span className="badge">{loc.name}</span>
+            <span className="badge" style={{ gap: 10 }}>
+              <span>{loc.name}</span>
+              <span style={{ opacity: 0.65 }}>•</span>
+              <span style={{ opacity: 0.9 }}>{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</span>
+            </span>
           </div>
           {loc.address ? <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
           <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -47,7 +51,6 @@ export default async function LocationPage({
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <span className="badge">{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</span>
           <span className="badge" style={{ padding: 8, alignItems: 'stretch', borderRadius: 14 }}>
             <span style={{ display: 'grid', gap: 6 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(255, 206, 64, 0.95)' }}>
