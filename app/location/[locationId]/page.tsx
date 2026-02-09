@@ -37,7 +37,7 @@ export default async function LocationPage({
       <header className="topbar">
         <div>
           <div className="brand">
-            <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 18 }}>Freedom Boat</div>
+            <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 27 }}>Freedom Boat Planner</div>
             <span className="badge" style={{ gap: 10 }}>
               <span>{loc.name}</span>
               <span style={{ opacity: 0.65 }}>•</span>
@@ -66,7 +66,7 @@ export default async function LocationPage({
         </div>
       </header>
 
-      <div className="grid" style={{ marginTop: 14 }}>
+      <div className="grid" style={{ marginTop: 24 }}>
         <Card title="Weekly outlook (best boating day highlighted)" icon={<span style={{ fontWeight: 900 }}>★</span>} right={<span>daytime (8am–6pm)</span>}>
           {(() => {
             const week = buildWeeklyOutlook(forecast?.forecast ?? [], 5);
