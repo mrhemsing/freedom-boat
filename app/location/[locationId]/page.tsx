@@ -291,55 +291,92 @@ function formatAsOf(iso: string) {
   }).format(d);
 }
 
+function envCanadaWindCategory(speedKts: number | null | undefined) {
+  const v = typeof speedKts === 'number' && Number.isFinite(speedKts) ? speedKts : null;
+  if (v == null) return null;
+
+  // Environment Canada marine wind warning categories (sustained wind, excluding gusts)
+  if (v >= 64) {
+    return { code: 'hurricane', title: 'Hurricane Force Wind', severity: 'warning' as const };
+  }
+  if (v >= 48) {
+    return { code: 'storm', title: 'Storm', severity: 'warning' as const };
+  }
+  if (v >= 34) {
+    return { code: 'gale', title: 'Gale', severity: 'warning' as const };
+  }
+  if (v >= 20) {
+    return { code: 'strong', title: 'Strong Wind', severity: 'caution' as const };
+  }
+  return null;
+}
+
 function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) {
   const out: Array<{ t: string; severity: string; title: string; body?: string }> = [];
 
+  const sustainedNow = now?.wind?.speedKts ?? null;
   const gustNow = now?.wind?.gustKts ?? null;
-  const maxGustNext6 = Math.max(
-    ...(forecast || []).slice(0, 6).map((h) => (typeof h.windGustKts === 'number' ? h.windGustKts : 0))
+
+  const next6 = (forecast || []).slice(0, 6);
+  const next24 = (forecast || []).slice(0, 24);
+
+  const maxSustainedNext6 = Math.max(
+    ...(next6 || []).map((h) => (typeof h.windSpeedKts === 'number' ? h.windSpeedKts : 0))
+  );
+  const maxSustainedNext24 = Math.max(
+    ...(next24 || []).map((h) => (typeof h.windSpeedKts === 'number' ? h.windSpeedKts : 0))
   );
 
-  // Conservative defaults; tune later.
-  if (gustNow != null && gustNow >= 25) {
+  const maxGustNext6 = Math.max(
+    ...(next6 || []).map((h) => (typeof h.windGustKts === 'number' ? h.windGustKts : 0))
+  );
+  const maxGustNext24 = Math.max(
+    ...(next24 || []).map((h) => (typeof h.windGustKts === 'number' ? h.windGustKts : 0))
+  );
+
+  // Live look category (sustained)
+  const catNow = envCanadaWindCategory(sustainedNow);
+  if (catNow) {
     out.push({
-      t: now.asOf,
-      severity: 'warning',
-      title: 'Strong gusts right now',
-      body: `Gusts around ${Math.round(gustNow)} kt.`
-    });
-  } else if (gustNow != null && gustNow >= 18) {
-    out.push({
-      t: now.asOf,
-      severity: 'caution',
-      title: 'Gusty conditions right now',
-      body: `Gusts around ${Math.round(gustNow)} kt.`
+      t: now?.asOf ?? new Date().toISOString(),
+      severity: catNow.severity,
+      title: `${catNow.title} (live)`,
+      body: `Sustained ~${Math.round(sustainedNow)} kt${gustNow != null ? ` (gusts ~${Math.round(gustNow)} kt)` : ''}.`
     });
   }
 
-  if (Number.isFinite(maxGustNext6) && maxGustNext6 >= 25) {
+  // Next 6 hours category (sustained)
+  const cat6 = envCanadaWindCategory(Number.isFinite(maxSustainedNext6) ? maxSustainedNext6 : null);
+  if (cat6) {
     out.push({
-      t: forecast?.[0]?.t ?? new Date().toISOString(),
-      severity: 'warning',
-      title: 'Strong gusts expected (next 6h)',
-      body: `Max gust forecast ~${Math.round(maxGustNext6)} kt.`
+      t: next6?.[0]?.t ?? new Date().toISOString(),
+      severity: cat6.severity,
+      title: `${cat6.title} expected (next 6h)`,
+      body: `Max sustained ~${Math.round(maxSustainedNext6)} kt${Number.isFinite(maxGustNext6) && maxGustNext6 > 0 ? ` (max gust ~${Math.round(maxGustNext6)} kt)` : ''}.`
     });
-  } else if (Number.isFinite(maxGustNext6) && maxGustNext6 >= 18) {
+  }
+
+  // Next 24 hours category (sustained)
+  const cat24 = envCanadaWindCategory(Number.isFinite(maxSustainedNext24) ? maxSustainedNext24 : null);
+  if (cat24) {
     out.push({
-      t: forecast?.[0]?.t ?? new Date().toISOString(),
-      severity: 'caution',
-      title: 'Gusts expected (next 6h)',
-      body: `Max gust forecast ~${Math.round(maxGustNext6)} kt.`
+      t: next24?.[0]?.t ?? new Date().toISOString(),
+      severity: cat24.severity,
+      title: `${cat24.title} possible (next 24h)`,
+      body: `Max sustained ~${Math.round(maxSustainedNext24)} kt${Number.isFinite(maxGustNext24) && maxGustNext24 > 0 ? ` (max gust ~${Math.round(maxGustNext24)} kt)` : ''}.`
     });
   }
 
   // Rain heads-up: first hour with precipProb >= 60%
-  const rain = (forecast || []).slice(0, 12).find((h) => typeof h.precipProbPct === 'number' && h.precipProbPct >= 60);
+  const rain = (forecast || [])
+    .slice(0, 24)
+    .find((h) => typeof h.precipProbPct === 'number' && h.precipProbPct >= 60);
   if (rain) {
     out.push({
       t: rain.t,
       severity: 'info',
       title: 'Rain likely soon',
-      body: `Precip chance ~${Math.round(rain.precipProbPct)}% within the next 12 hours.`
+      body: `Precip chance ~${Math.round(rain.precipProbPct)}% within the next 24 hours.`
     });
   }
 
