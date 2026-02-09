@@ -100,7 +100,7 @@ export default async function LocationPage({
           })()}
         </Card>
 
-        <Card title="Now" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
+        <Card title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             items={[
               {
