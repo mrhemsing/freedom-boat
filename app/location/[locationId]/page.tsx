@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { isoToLocalDay, round } from '../../../lib/format';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
@@ -220,7 +221,22 @@ export default async function LocationPage({
 }
 
 function baseUrl() {
-  return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  // In prod (Vercel), never call back to localhost. Build an absolute URL from forwarded headers.
+  const h = headers();
+  const forwardedHost = h.get('x-forwarded-host');
+  const host = forwardedHost || h.get('host');
+  const proto = h.get('x-forwarded-proto') || 'https';
+
+  // Optional explicit override (useful for local dev or unusual proxies)
+  const envBase = process.env.NEXT_PUBLIC_BASE_URL;
+  if (envBase) return envBase;
+
+  if (host) return `${proto}://${host}`;
+
+  // Vercel fallback
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+
+  return 'http://localhost:3000';
 }
 
 type DailyOutlook = {
