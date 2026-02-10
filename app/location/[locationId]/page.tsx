@@ -36,13 +36,12 @@ export default async function LocationPage({
     <main className="container">
       <header className="topbar">
         <div>
-          <div className="brand">
+          <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
             <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 27 }}>Freedom Boat Planner</div>
-            <span className="badge" style={{ gap: 10 }}>
-              <span>{loc.name}</span>
-              <span style={{ opacity: 0.65 }}>•</span>
-              <span style={{ opacity: 0.9 }}>{now?.asOf ? `as of ${formatAsOf(now.asOf)}` : '—'}</span>
-            </span>
+          </div>
+          <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.78)', fontSize: 13 }}>
+            <b style={{ color: 'rgba(255,255,255,0.92)' }}>{loc.name}</b>
+            {now?.asOf ? <span style={{ opacity: 0.75 }}>{` • as of ${formatAsOf(now.asOf)}`}</span> : null}
           </div>
           {loc.address ? <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
           <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
