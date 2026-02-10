@@ -39,10 +39,11 @@ export default async function LocationPage({
           <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
             <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 27 }}>Freedom Boat Planner</div>
           </div>
-          <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.78)', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
-            <span style={{ color: 'rgba(255,255,255,0.92)', fontWeight: 700 }}>{loc.address ?? loc.name}</span>
-            {now?.asOf ? <span style={{ opacity: 0.75 }}>{` as of ${formatAsOf(now.asOf)}`}</span> : null}
+          <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.78)', fontSize: 13 }}>
+            <b style={{ color: 'rgba(255,255,255,0.92)' }}>{loc.name}</b>
+            {now?.asOf ? <span style={{ opacity: 0.75 }}>{` • as of ${formatAsOf(now.asOf)}`}</span> : null}
           </div>
+          {loc.address ? <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
           <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <a className={`seg ${id === 'port-moody' ? 'segActive' : ''}`} href="/location/port-moody">Port Moody</a>
             <a className={`seg ${id === 'north-saanich' ? 'segActive' : ''}`} href="/location/north-saanich">North Saanich</a>
