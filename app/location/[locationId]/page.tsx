@@ -175,7 +175,7 @@ export default async function LocationPage({
           <ForecastStrip forecast={forecast?.forecast ?? []} />
         </Card>
 
-        <Card title="Alerts" icon={<span style={{ fontWeight: 900 }}>!</span>}>
+        <Card className="alertsCard" title="Alerts" icon={<span style={{ fontWeight: 900 }}>!</span>}>
           <AlertFeed items={alerts} />
         </Card>
 

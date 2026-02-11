@@ -145,6 +145,11 @@ summary::-webkit-details-marker {
   .cardHeader h2{ gap: 8px !important; }
 }
 
+/* Alerts icon is optically centered already; don't apply the generic icon offset. */
+.alertsCard .cardIcon{
+  transform: none !important;
+}
+
 .cardBody {
   padding: 12px 16px 16px 16px;
 }
