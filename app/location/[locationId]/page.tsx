@@ -4,7 +4,7 @@ import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { isoToLocalDay, round } from '../../../lib/format';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
-import { IconMap, IconRain, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
+import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
 
 export default async function LocationPage({
   params
@@ -93,6 +93,39 @@ export default async function LocationPage({
                   return (
                     <div key={d.day} className={`dayBox ${isBest ? 'dayBest' : ''}`}>
                       <div className="dayTitle">{d.label}</div>
+
+                      {(() => {
+                        const rain = (d.totalPrecipMm ?? 0) >= 1 || (d.maxPrecipProb ?? 0) >= 50;
+                        const wind = (d.maxWind ?? 0) >= 20 || (d.maxGust ?? 0) >= 28;
+                        const sunKind = rain ? null : (d.maxPrecipProb ?? 0) <= 20 && (d.totalPrecipMm ?? 0) < 0.2 ? 'sun' : 'partly';
+
+                        return (
+                          <div className="dayIcons">
+                            {sunKind === 'sun' ? (
+                              <span className="dayIcon dayIconSun" title="Sunny-ish">
+                                <IconSun size={16} />
+                              </span>
+                            ) : sunKind === 'partly' ? (
+                              <span className="dayIcon dayIconSun" title="Partly cloudy-ish">
+                                <IconPartlyCloudy size={16} />
+                              </span>
+                            ) : null}
+
+                            {wind ? (
+                              <span className="dayIcon dayIconWind" title="Windy">
+                                <IconWind size={16} />
+                              </span>
+                            ) : null}
+
+                            {rain ? (
+                              <span className="dayIcon dayIconRain" title="Rain risk">
+                                <IconRain size={16} />
+                              </span>
+                            ) : null}
+                          </div>
+                        );
+                      })()}
+
                       <div className="dayScore">{d.score}/100</div>
                       <div className="dayMeta">
                         <div>max wind: {round(d.maxWind, 0)} kt</div>

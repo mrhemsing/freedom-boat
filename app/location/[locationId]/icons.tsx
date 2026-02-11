@@ -113,3 +113,30 @@ export function IconSunset({ size = 18 }: { size?: number }) {
     </svg>
   );
 }
+
+export function IconSun({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 2v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 19v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M2 12h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M19 12h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M4.2 4.2l2.1 2.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M17.7 17.7l2.1 2.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M19.8 4.2l-2.1 2.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M6.3 17.7l-2.1 2.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconPartlyCloudy({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M7 17a4 4 0 0 1 0-8 5 5 0 0 1 9.2-1.9" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M16 7V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
+      <path d="M18.8 8.2 21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
+      <path d="M15 20h-8a3 3 0 0 1 0-6 4 4 0 0 1 7.7-1.4A3 3 0 0 1 15 20Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}

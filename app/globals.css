@@ -189,6 +189,27 @@ summary::-webkit-details-marker {
   font-weight: 900;
 }
 
+.dayIcons{
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dayIcon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(11, 18, 32, 0.10);
+  background: rgba(255,255,255,0.65);
+  color: rgba(11, 18, 32, 0.68);
+}
+.dayIconSun{ color: rgba(202, 138, 4, 0.95); background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.25); }
+.dayIconWind{ color: rgba(14, 165, 164, 0.95); background: rgba(14, 165, 164, 0.10); border-color: rgba(14, 165, 164, 0.22); }
+.dayIconRain{ color: rgba(37, 99, 235, 0.92); background: rgba(37, 99, 235, 0.10); border-color: rgba(37, 99, 235, 0.22); }
+
 .dayMeta {
   margin-top: 6px;
   font-size: 12px;
