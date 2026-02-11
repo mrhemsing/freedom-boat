@@ -268,14 +268,18 @@ hr.soft {
     align-items: flex-start;
   }
 
-  /* Weekly outlook: tighter header spacing (mobile only) */
+  /* Weekly outlook header (mobile):
+     - smaller horizontal gap between ★ and "Weekly"
+     - a touch more space between title and subtitle
+     - less space between subtitle and "daytime" line
+  */
   .weeklyCard .cardHeaderStackMobile {
-    gap: 6px;
+    gap: 2px;
   }
 
   /* Weekly header: keep the star snug + vertically centered with "Weekly outlook" */
   .weeklyCard h2{
-    gap: 6px !important;
+    gap: 4px !important;
     align-items: center;
   }
   .weeklyCard .cardIcon{
@@ -284,14 +288,16 @@ hr.soft {
     justify-content: center;
     line-height: 1;
     margin-top: 0;
+    width: 20px;
+    flex: 0 0 20px;
   }
 
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
-    gap: 1px;
+    gap: 3px;
   }
 
   .weeklyCard .cardHeaderStackMobile .cardSubtitle{
-    margin-top: -2px;
+    margin-top: 0;
   }
 
   .cardTitleNoWrap {
