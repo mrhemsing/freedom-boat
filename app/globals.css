@@ -3,6 +3,7 @@
 :root {
   --bg0: #061826;
   --bg1: #0b2c3b;
+  --sun: #ff8a1f;
   --card: rgba(255, 255, 255, 0.92);
   --card2: rgba(255, 255, 255, 0.82);
   --text: #0b1220;
@@ -92,8 +93,8 @@ a:hover {
 }
 
 .segActive {
-  border-color: rgba(56, 189, 248, 0.45);
-  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(255, 178, 64, 0.55);
+  background: rgba(255, 138, 31, 0.18);
   color: rgba(255, 255, 255, 0.95);
 }
 
