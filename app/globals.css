@@ -25,9 +25,17 @@ body {
   margin: 0;
   max-width: 100vw;
   overflow-x: hidden;
-  background: radial-gradient(1200px 600px at 10% 0%, rgba(14, 165, 164, 0.35), transparent 60%),
+  background:
+    /* subtle ocean waves overlay */
+    url('/waves.svg'),
+    /* existing teal/blue glow */
+    radial-gradient(1200px 600px at 10% 0%, rgba(14, 165, 164, 0.35), transparent 60%),
     radial-gradient(900px 500px at 85% 10%, rgba(56, 189, 248, 0.22), transparent 55%),
     linear-gradient(180deg, var(--bg0), var(--bg1));
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 1200px 400px, auto, auto, auto;
+  background-position: top center, 10% 0%, 85% 10%, 0% 0%;
+  background-blend-mode: soft-light, normal, normal, normal;
   color: white;
 }
 

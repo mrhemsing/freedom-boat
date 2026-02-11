@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- soft layered waves; intended to be used as a subtle overlay -->
+  <g fill="none" stroke="url(#fade)" stroke-width="2">
+    <path d="M0 90 C 160 50, 320 130, 480 90 C 640 50, 800 130, 960 90 C 1080 60, 1140 70, 1200 90"/>
+    <path d="M0 135 C 170 95, 330 175, 500 135 C 670 95, 830 175, 1000 135 C 1100 110, 1150 115, 1200 135"/>
+    <path d="M0 180 C 160 140, 320 220, 480 180 C 640 140, 800 220, 960 180 C 1080 150, 1140 160, 1200 180"/>
+    <path d="M0 225 C 170 185, 330 265, 500 225 C 670 185, 830 265, 1000 225 C 1100 200, 1150 205, 1200 225"/>
+    <path d="M0 270 C 160 230, 320 310, 480 270 C 640 230, 800 310, 960 270 C 1080 240, 1140 250, 1200 270"/>
+    <path d="M0 315 C 170 275, 330 355, 500 315 C 670 275, 830 355, 1000 315 C 1100 290, 1150 295, 1200 315"/>
+  </g>
+</svg>
