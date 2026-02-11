@@ -68,6 +68,7 @@ export default async function LocationPage({
 
       <div className="grid" style={{ marginTop: 24 }}>
         <Card
+          className="weeklyCard"
           title={<span className="weeklyTitleMain">Weekly outlook</span>}
           subtitle={<span className="weeklyTitleSub">(best boating day highlighted)</span>}
           icon={<span style={{ fontWeight: 900 }}>★</span>}

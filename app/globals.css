@@ -262,18 +262,22 @@ hr.soft {
     align-self: flex-end;
   }
 
-  /* Some cards (e.g., Weekly outlook) should show the right-side meta on the next line on mobile. */
+  /* Some cards should show the right-side meta on the next line on mobile. */
   .cardHeaderStackMobile {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  /* Weekly outlook: tighter header spacing (mobile only) */
+  .weeklyCard .cardHeaderStackMobile {
     gap: 6px;
   }
 
-  .cardHeaderStackMobile .cardHeaderLeft{
+  .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
     gap: 1px;
   }
 
-  .cardHeaderStackMobile .cardSubtitle{
+  .weeklyCard .cardHeaderStackMobile .cardSubtitle{
     margin-top: -2px;
   }
 

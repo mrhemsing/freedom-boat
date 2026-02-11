@@ -11,6 +11,7 @@ export function Card({
   right,
   headerStackOnMobile,
   titleNoWrap,
+  className,
   children
 }: {
   title: React.ReactNode;
@@ -19,10 +20,11 @@ export function Card({
   right?: React.ReactNode;
   headerStackOnMobile?: boolean;
   titleNoWrap?: boolean;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="card" style={{ minWidth: 0 }}>
+    <section className={`card ${className || ''}`.trim()} style={{ minWidth: 0 }}>
       <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
         <div className="cardHeaderLeft">
           <h2
