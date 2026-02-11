@@ -258,6 +258,12 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
+  /* Header logo: ~30% smaller on mobile */
+  .fbLogo{
+    width: 50px;
+    height: 50px;
+  }
+
   /* Header: align the sunrise/sunset badge to the bottom edge on mobile (like earlier iterations). */
   .sunBadgeWrap {
     align-self: flex-end;
