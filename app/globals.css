@@ -243,4 +243,17 @@ hr.soft {
   .kpiGrid {
     grid-template-columns: 1fr;
   }
+
+  /* Some cards (e.g., Weekly outlook) should show the right-side meta on the next line on mobile. */
+  .cardHeaderStackMobile {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardTitleNoWrap {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
 }

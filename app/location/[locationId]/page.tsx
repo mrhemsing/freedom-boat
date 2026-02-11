@@ -67,7 +67,12 @@ export default async function LocationPage({
       </header>
 
       <div className="grid" style={{ marginTop: 24 }}>
-        <Card title="Weekly outlook (best boating day highlighted)" icon={<span style={{ fontWeight: 900 }}>★</span>} right={<span>daytime (8am–6pm)</span>}>
+        <Card
+          title="Weekly outlook (best boating day highlighted)"
+          icon={<span style={{ fontWeight: 900 }}>★</span>}
+          right={<span>daytime (8am–6pm)</span>}
+          headerStackOnMobile
+        >
           {(() => {
             const week = buildWeeklyOutlook(forecast?.forecast ?? [], 5);
             const best = week.reduce((acc, d) => (acc == null || d.score > acc.score ? d : acc), null as DailyOutlook | null);

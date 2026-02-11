@@ -4,11 +4,23 @@ import React from 'react';
 import { degToCardinal, isoToLocalDayTime, isoToLocalTime, round } from '../../../lib/format';
 // icons are rendered in the server component (page.tsx) to avoid RSC dev manifest issues
 
-export function Card({ title, icon, right, children }: { title: string; icon?: React.ReactNode; right?: React.ReactNode; children: React.ReactNode }) {
+export function Card({
+  title,
+  icon,
+  right,
+  headerStackOnMobile,
+  children
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  right?: React.ReactNode;
+  headerStackOnMobile?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <section className="card" style={{ minWidth: 0 }}>
-      <div className="cardHeader">
-        <h2 style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
+        <h2 className={headerStackOnMobile ? 'cardTitleNoWrap' : undefined} style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
           {title}
         </h2>
