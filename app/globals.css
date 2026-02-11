@@ -65,7 +65,7 @@ a:hover {
 
 .headerBrand{ grid-column: 1 / -1; grid-row: 1; }
 .headerInfo{ grid-column: 1; grid-row: 2; }
-.sunBadgeWrap{ grid-column: 2; grid-row: 2; justify-self: end; align-self: start; }
+.sunBadgeWrap{ grid-column: 2; grid-row: 2; justify-self: end; align-self: end; }
 
 .brand {
   display: flex;
