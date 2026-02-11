@@ -295,8 +295,27 @@ function buildWeeklyOutlook(forecast: Array<{ t: string; windSpeedKts: number; w
 }
 
 function formatAsOf(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
+  // Open-Meteo returns timestamps *without* a timezone suffix when you pass `timezone=...`.
+  // If we parse those with `new Date()` on the server (UTC) vs client (local), you can get wrong hours.
+  // So: if there's no timezone designator, treat it as a local clock time and format it manually.
+  const s = String(iso || '');
+  const hasTz = /([zZ]|[+-]\d{2}:?\d{2})$/.test(s);
+  if (!hasTz) {
+    const m = s.match(/T(\d{2}):(\d{2})/);
+    if (m) {
+      let hh = Number(m[1]);
+      const mm = m[2];
+      if (!Number.isFinite(hh)) return s;
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      hh = hh % 12;
+      if (hh === 0) hh = 12;
+      return `${hh}:${mm} ${ampm}`;
+    }
+    return s;
+  }
+
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return s;
   // Force stable formatting across server/client to avoid hydration mismatch.
   return new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Vancouver',
