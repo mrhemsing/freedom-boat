@@ -29,7 +29,7 @@ export function Card({
         <div className="cardHeaderLeft">
           <h2
             className={titleNoWrap ? 'cardTitleNoWrap' : undefined}
-            style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}
+            style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
           >
             <span className="cardIcon" style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
             {title}

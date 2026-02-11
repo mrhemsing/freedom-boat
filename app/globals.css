@@ -140,6 +140,11 @@ summary::-webkit-details-marker {
   line-height: 1.2;
 }
 
+/* Desktop: tighten icon-to-title gap a touch */
+@media (min-width: 721px){
+  .cardHeader h2{ gap: 8px !important; }
+}
+
 .cardBody {
   padding: 12px 16px 16px 16px;
 }
