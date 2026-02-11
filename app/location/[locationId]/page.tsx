@@ -127,7 +127,7 @@ export default async function LocationPage({
                         );
                       })()}
 
-                      <div className="dayScore">{d.score}/100</div>
+                      <div className="dayScorePill" title="Boating score (higher is better)">{d.score}/100</div>
                       <div className="dayMeta">
                         <div>max wind: {round(d.maxWind, 0)} kt</div>
                         <div>max gust: {round(d.maxGust, 0)} kt</div>
