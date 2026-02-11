@@ -92,16 +92,14 @@ export default async function LocationPage({
                   const isBest = best?.day === d.day;
                   return (
                     <div key={d.day} className={`dayBox ${isBest ? 'dayBest' : ''}`}>
-                      <div className="dayTitle">{d.label}</div>
-
                       {(() => {
                         const rain = (d.totalPrecipMm ?? 0) >= 1 || (d.maxPrecipProb ?? 0) >= 50;
                         const wind = (d.maxWind ?? 0) >= 20 || (d.maxGust ?? 0) >= 28;
                         const sunKind = rain ? null : (d.maxPrecipProb ?? 0) <= 20 && (d.totalPrecipMm ?? 0) < 0.2 ? 'sun' : 'partly';
 
                         return (
-                          <div className="dayScoreRow">
-                            <div className="dayScore" style={{ marginTop: 0 }}>{d.score}/100</div>
+                          <div className="dayTitleRow">
+                            <div className="dayTitle">{d.label}</div>
                             <div className="dayIcons" style={{ marginTop: 0 }}>
                               {sunKind === 'sun' ? (
                                 <span className="dayIcon dayIconSun" title="Sunny-ish">
@@ -128,6 +126,8 @@ export default async function LocationPage({
                           </div>
                         );
                       })()}
+
+                      <div className="dayScore">{d.score}/100</div>
                       <div className="dayMeta">
                         <div>max wind: {round(d.maxWind, 0)} kt</div>
                         <div>max gust: {round(d.maxGust, 0)} kt</div>
