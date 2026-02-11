@@ -273,6 +273,19 @@ hr.soft {
     gap: 6px;
   }
 
+  /* Weekly header: keep the star snug + vertically centered with "Weekly outlook" */
+  .weeklyCard h2{
+    gap: 6px !important;
+    align-items: center;
+  }
+  .weeklyCard .cardIcon{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin-top: 0;
+  }
+
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
     gap: 1px;
   }

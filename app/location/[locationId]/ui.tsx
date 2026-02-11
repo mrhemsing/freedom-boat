@@ -31,7 +31,7 @@ export function Card({
             className={titleNoWrap ? 'cardTitleNoWrap' : undefined}
             style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}
           >
-            <span style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
+            <span className="cardIcon" style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
             {title}
           </h2>
           {subtitle ? <div className="cardSubtitle">{subtitle}</div> : null}
