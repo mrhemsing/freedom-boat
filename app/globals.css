@@ -325,6 +325,11 @@ hr.soft {
     transform: translateY(3px);
   }
 
+  /* Weekly outlook star is already tuned; don't apply the generic +3px. */
+  .weeklyCard .cardIcon{
+    transform: translateY(-1px);
+  }
+
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
     gap: 3px;
   }
