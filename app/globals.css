@@ -289,8 +289,8 @@ hr.soft {
     line-height: 1;
     width: 16px;
     flex: 0 0 16px;
-    /* The star glyph sits a touch high; nudge it down for better optical centering. */
-    transform: translateY(1px);
+    /* Fine-tune optical centering (mobile) */
+    transform: translateY(-2px);
   }
 
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
