@@ -51,12 +51,21 @@ a:hover {
 }
 
 .topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  /* Use grid so the header has a predictable 2-row layout:
+     Row 1: logo + title
+     Row 2: location/as-of + address + tabs (left) AND sun badge (right)
+  */
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: start;
+  column-gap: 16px;
+  row-gap: 10px;
 }
+
+.headerBrand{ grid-column: 1 / -1; grid-row: 1; }
+.headerInfo{ grid-column: 1; grid-row: 2; }
+.sunBadgeWrap{ grid-column: 2; grid-row: 2; justify-self: end; align-self: start; }
 
 .brand {
   display: flex;
@@ -263,20 +272,11 @@ hr.soft {
     font-size: 18px !important;
   }
 
-  /* Header (mobile):
-     Row 1: brand spans full width
-     Row 2: info+tabs on left, sunrise/sunset badge on right
-  */
+  /* Header (mobile): just tighten spacing a bit */
   .topbar{
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
-    align-items: start;
-    gap: 8px;
+    column-gap: 12px;
+    row-gap: 8px;
   }
-
-  .headerBrand{ grid-column: 1 / -1; grid-row: 1; }
-  .headerInfo{ grid-column: 1; grid-row: 2; }
 
   /* Header logo: ~30% smaller on mobile */
   .fbLogo{
@@ -285,10 +285,6 @@ hr.soft {
   }
 
   .sunBadgeWrap {
-    grid-column: 2;
-    grid-row: 2;
-    justify-self: end;
-    align-self: start;
     margin-top: 0 !important;
     padding-top: 0 !important;
   }
