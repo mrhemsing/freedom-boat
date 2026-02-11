@@ -320,7 +320,7 @@ hr.soft {
     transform: translateY(-1px);
   }
 
-  /* Card header icons (mobile): push down so they align with the text */
+  /* Card header icons: push down so they align with the text */
   .cardHeader .cardIcon{
     transform: translateY(3px);
   }
