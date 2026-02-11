@@ -258,6 +258,11 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
+  /* Mobile: make card/container titles bigger */
+  .cardHeader h2{
+    font-size: 18px !important;
+  }
+
   /* Header (mobile):
      Row 1: brand spans full width
      Row 2: info+tabs on left, sunrise/sunset badge on right
