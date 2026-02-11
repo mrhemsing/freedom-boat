@@ -258,16 +258,24 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
+  /* Header: use a 2-col grid so the sun badge sits to the RIGHT of the title block,
+     while the location tabs stay under the logo/text. */
+  .topbar{
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 12px;
+  }
+
   /* Header logo: ~30% smaller on mobile */
   .fbLogo{
     width: 50px;
     height: 50px;
   }
 
-  /* Header: keep the sunrise/sunset badge on the far right on mobile (even when the header wraps). */
   .sunBadgeWrap {
-    margin-left: auto;
-    align-self: flex-end;
+    justify-self: end;
+    align-self: start;
   }
 
   /* Some cards should show the right-side meta on the next line on mobile. */
