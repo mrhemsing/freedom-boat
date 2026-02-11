@@ -261,4 +261,16 @@ hr.soft {
     text-overflow: ellipsis;
     max-width: 100%;
   }
+
+  /* Weekly outlook: put the "(best boating...)" subtitle on its own line on mobile only. */
+  .weeklyTitleSub{
+    display: block;
+  }
 }
+
+@media (min-width: 721px){
+  .weeklyTitleSub{
+    display: inline;
+  }
+}
+

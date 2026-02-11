@@ -9,18 +9,23 @@ export function Card({
   icon,
   right,
   headerStackOnMobile,
+  titleNoWrap,
   children
 }: {
-  title: string;
+  title: React.ReactNode;
   icon?: React.ReactNode;
   right?: React.ReactNode;
   headerStackOnMobile?: boolean;
+  titleNoWrap?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section className="card" style={{ minWidth: 0 }}>
       <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
-        <h2 className={headerStackOnMobile ? 'cardTitleNoWrap' : undefined} style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <h2
+          className={titleNoWrap ? 'cardTitleNoWrap' : undefined}
+          style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10 }}
+        >
           <span style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
           {title}
         </h2>
