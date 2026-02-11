@@ -129,6 +129,7 @@ export default async function LocationPage({
 
                       <div className="dayScorePill" title="Boating score (higher is better)">{d.score}/100</div>
                       <div className="dayMeta">
+                        <div>temp: {round(d.minTempC, 0) ?? '—'}–{round(d.maxTempC, 0) ?? '—'}°C</div>
                         <div>max wind: {round(d.maxWind, 0)} kt</div>
                         <div>max gust: {round(d.maxGust, 0)} kt</div>
                         <div>precip chance: {round(d.maxPrecipProb, 0)}%</div>
@@ -298,9 +299,11 @@ type DailyOutlook = {
   maxGust: number;
   maxPrecipProb: number;
   totalPrecipMm: number;
+  minTempC?: number;
+  maxTempC?: number;
 };
 
-function buildWeeklyOutlook(forecast: Array<{ t: string; windSpeedKts: number; windGustKts?: number; precipMm?: number; precipProbPct?: number }>, days = 5): DailyOutlook[] {
+function buildWeeklyOutlook(forecast: Array<{ t: string; tempC?: number; windSpeedKts: number; windGustKts?: number; precipMm?: number; precipProbPct?: number }>, days = 5): DailyOutlook[] {
   const byDay = new Map<string, any[]>();
   for (const h of forecast || []) {
     const day = typeof h.t === 'string' ? h.t.slice(0, 10) : null;
@@ -326,6 +329,12 @@ function buildWeeklyOutlook(forecast: Array<{ t: string; windSpeedKts: number; w
     const maxPrecipProb = Math.max(...rows.map((r) => (typeof r.precipProbPct === 'number' ? r.precipProbPct : 0)), 0);
     const totalPrecipMm = rows.reduce((acc, r) => acc + (typeof r.precipMm === 'number' ? r.precipMm : 0), 0);
 
+    const temps = rows
+      .map((r) => (typeof r.tempC === 'number' && Number.isFinite(r.tempC) ? r.tempC : null))
+      .filter((v) => v != null) as number[];
+    const minTempC = temps.length ? Math.min(...temps) : undefined;
+    const maxTempC = temps.length ? Math.max(...temps) : undefined;
+
     // Heuristic score: lower gust + lower precip probability + lower total precip wins.
     // 100 is best, 0 is worst.
     const raw = 100 - (maxGust * 2.2 + maxWind * 0.6 + maxPrecipProb * 0.6 + totalPrecipMm * 6);
@@ -338,7 +347,9 @@ function buildWeeklyOutlook(forecast: Array<{ t: string; windSpeedKts: number; w
       maxWind,
       maxGust,
       maxPrecipProb,
-      totalPrecipMm
+      totalPrecipMm,
+      minTempC,
+      maxTempC
     });
   }
 

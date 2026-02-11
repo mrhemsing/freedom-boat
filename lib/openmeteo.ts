@@ -19,6 +19,7 @@ const OpenMeteoResponse = z.object({
   hourly: z
     .object({
       time: z.array(z.string()),
+      temperature_2m: z.array(z.number()).optional(),
       precipitation_probability: z.array(z.number()).optional(),
       precipitation: z.array(z.number()).optional(),
       wind_speed_10m: z.array(z.number()).optional(),
@@ -46,6 +47,7 @@ export type ConditionsNow = {
 
 export type ForecastHour = {
   t: string;
+  tempC?: number;
   windSpeedKts: number;
   windGustKts?: number;
   windDirDeg?: number;
@@ -79,6 +81,7 @@ export async function fetchOpenMeteo({
   url.searchParams.set(
     'hourly',
     [
+      'temperature_2m',
       'precipitation_probability',
       'precipitation',
       'wind_speed_10m',
@@ -147,6 +150,7 @@ export function normalizeForecast(
   for (let i = 0; i < n; i++) {
     out.push({
       t: h.time[i],
+      tempC: h.temperature_2m?.[i],
       windSpeedKts: msToKnots(h.wind_speed_10m?.[i] ?? 0),
       windGustKts: h.wind_gusts_10m?.[i] !== undefined ? msToKnots(h.wind_gusts_10m[i]!) : undefined,
       windDirDeg: h.wind_direction_10m?.[i],
