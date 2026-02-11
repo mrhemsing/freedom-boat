@@ -189,6 +189,14 @@ summary::-webkit-details-marker {
   font-weight: 900;
 }
 
+.dayScoreRow{
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .dayIcons{
   margin-top: 8px;
   display: flex;

@@ -100,33 +100,34 @@ export default async function LocationPage({
                         const sunKind = rain ? null : (d.maxPrecipProb ?? 0) <= 20 && (d.totalPrecipMm ?? 0) < 0.2 ? 'sun' : 'partly';
 
                         return (
-                          <div className="dayIcons">
-                            {sunKind === 'sun' ? (
-                              <span className="dayIcon dayIconSun" title="Sunny-ish">
-                                <IconSun size={16} />
-                              </span>
-                            ) : sunKind === 'partly' ? (
-                              <span className="dayIcon dayIconSun" title="Partly cloudy-ish">
-                                <IconPartlyCloudy size={16} />
-                              </span>
-                            ) : null}
+                          <div className="dayScoreRow">
+                            <div className="dayScore" style={{ marginTop: 0 }}>{d.score}/100</div>
+                            <div className="dayIcons" style={{ marginTop: 0 }}>
+                              {sunKind === 'sun' ? (
+                                <span className="dayIcon dayIconSun" title="Sunny-ish">
+                                  <IconSun size={16} />
+                                </span>
+                              ) : sunKind === 'partly' ? (
+                                <span className="dayIcon dayIconSun" title="Partly cloudy-ish">
+                                  <IconPartlyCloudy size={16} />
+                                </span>
+                              ) : null}
 
-                            {wind ? (
-                              <span className="dayIcon dayIconWind" title="Windy">
-                                <IconWind size={16} />
-                              </span>
-                            ) : null}
+                              {wind ? (
+                                <span className="dayIcon dayIconWind" title="Windy">
+                                  <IconWind size={16} />
+                                </span>
+                              ) : null}
 
-                            {rain ? (
-                              <span className="dayIcon dayIconRain" title="Rain risk">
-                                <IconRain size={16} />
-                              </span>
-                            ) : null}
+                              {rain ? (
+                                <span className="dayIcon dayIconRain" title="Rain risk">
+                                  <IconRain size={16} />
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                         );
                       })()}
-
-                      <div className="dayScore">{d.score}/100</div>
                       <div className="dayMeta">
                         <div>max wind: {round(d.maxWind, 0)} kt</div>
                         <div>max gust: {round(d.maxGust, 0)} kt</div>
