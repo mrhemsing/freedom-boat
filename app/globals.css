@@ -264,7 +264,7 @@ hr.soft {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: start;
-    gap: 12px;
+    gap: 8px;
   }
 
   /* Header logo: ~30% smaller on mobile */
@@ -276,6 +276,8 @@ hr.soft {
   .sunBadgeWrap {
     justify-self: end;
     align-self: start;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
 
   /* Some cards should show the right-side meta on the next line on mobile. */
