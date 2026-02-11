@@ -39,7 +39,9 @@ export function WindChart({ forecast }: { forecast: any[] }) {
 
   return (
     <div style={{ overflowX: 'auto' }}>
-      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none">
+      {/* Use a fixed SVG width and allow horizontal scroll on small screens.
+          Avoid preserveAspectRatio="none" because it stretches text/axes and makes labels hard to read. */}
+      <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
         <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(14, 165, 164, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
 
         {/* grid */}
@@ -104,7 +106,7 @@ export function TideMiniChart({ events }: { events: Array<{ t: string; kind: str
 
   return (
     <div style={{ overflowX: 'auto' }}>
-      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none">
+      <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
         <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(34, 197, 94, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
         <path d={pathFromPoints(pts)} fill="none" stroke="rgba(34, 197, 94, 0.95)" strokeWidth="2" />
         {rows.map((r, i) => (
