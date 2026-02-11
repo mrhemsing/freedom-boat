@@ -266,6 +266,15 @@ hr.soft {
   .cardHeaderStackMobile {
     flex-direction: column;
     align-items: flex-start;
+    gap: 6px;
+  }
+
+  .cardHeaderStackMobile .cardHeaderLeft{
+    gap: 1px;
+  }
+
+  .cardHeaderStackMobile .cardSubtitle{
+    margin-top: -2px;
   }
 
   .cardTitleNoWrap {
