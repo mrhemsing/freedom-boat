@@ -117,6 +117,19 @@ summary::-webkit-details-marker {
   padding: 14px 16px 0 16px;
 }
 
+.cardHeaderLeft{
+  display:flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cardSubtitle{
+  font-size: 12px;
+  color: rgba(11, 18, 32, 0.62);
+  line-height: 1.2;
+}
+
 .cardBody {
   padding: 12px 16px 16px 16px;
 }
@@ -262,12 +275,7 @@ hr.soft {
     max-width: 100%;
   }
 
-  /* Weekly outlook title: keep star + "Weekly outlook" aligned; subtitle on the next line (mobile only). */
-  .weeklyTitleWrap{
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+  /* Weekly outlook subtitle: a touch tighter on mobile. */
   .weeklyTitleSub{
     line-height: 1.05;
     margin-top: -2px;
@@ -275,13 +283,9 @@ hr.soft {
 }
 
 @media (min-width: 721px){
-  .weeklyTitleWrap{
-    flex-direction: row;
-    align-items: baseline;
-    gap: 6px;
-  }
   .weeklyTitleSub{
     margin-top: 0;
+    line-height: 1.2;
   }
 }
 
