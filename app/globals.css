@@ -290,7 +290,7 @@ hr.soft {
     width: 16px;
     flex: 0 0 16px;
     /* Fine-tune optical centering (mobile) */
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
