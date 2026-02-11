@@ -195,7 +195,7 @@ summary::-webkit-details-marker {
   justify-content: center;
   margin-top: 10px;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 4px; /* square-ish */
   border: 1px solid rgba(11, 18, 32, 0.12);
   background: rgba(255,255,255,0.82);
   font-weight: 950;
