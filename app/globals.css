@@ -264,8 +264,9 @@ hr.soft {
     height: 50px;
   }
 
-  /* Header: align the sunrise/sunset badge to the bottom edge on mobile (like earlier iterations). */
+  /* Header: keep the sunrise/sunset badge on the far right on mobile (even when the header wraps). */
   .sunBadgeWrap {
+    margin-left: auto;
     align-self: flex-end;
   }
 
