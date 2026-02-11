@@ -258,14 +258,20 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
-  /* Header: use a 2-col grid so the sun badge sits to the RIGHT of the title block,
-     while the location tabs stay under the logo/text. */
+  /* Header (mobile):
+     Row 1: brand spans full width
+     Row 2: info+tabs on left, sunrise/sunset badge on right
+  */
   .topbar{
     display: grid;
     grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
     align-items: start;
     gap: 8px;
   }
+
+  .headerBrand{ grid-column: 1 / -1; grid-row: 1; }
+  .headerInfo{ grid-column: 1; grid-row: 2; }
 
   /* Header logo: ~30% smaller on mobile */
   .fbLogo{
@@ -274,6 +280,8 @@ hr.soft {
   }
 
   .sunBadgeWrap {
+    grid-column: 2;
+    grid-row: 2;
     justify-self: end;
     align-self: start;
     margin-top: 0 !important;

@@ -36,13 +36,16 @@ export default async function LocationPage({
   return (
     <main className="container">
       <header className="topbar">
-        <div>
+        <div className="headerBrand">
           <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <img className="fbLogo" src="/fb-logo.svg" alt="Freedom Boat Planner" width={72} height={72} style={{ display: 'block' }} />
               <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 27 }}>Freedom Boat Planner</div>
             </div>
           </div>
+        </div>
+
+        <div className="headerInfo">
           <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.78)', fontSize: 13 }}>
             <b style={{ color: 'rgba(255,255,255,0.92)' }}>{loc.name}</b>
             {now?.asOf ? <span style={{ opacity: 0.75 }}>{` • as of ${formatAsOf(now.asOf)}`}</span> : null}
@@ -53,6 +56,7 @@ export default async function LocationPage({
             <a className={`seg ${id === 'north-saanich' ? 'segActive' : ''}`} href="/location/north-saanich">North Saanich</a>
           </div>
         </div>
+
         <div className="sunBadgeWrap" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <span className="badge" style={{ padding: 8, alignItems: 'stretch', borderRadius: 14 }}>
             <span style={{ display: 'grid', gap: 6 }}>
