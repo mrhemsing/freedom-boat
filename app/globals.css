@@ -262,18 +262,26 @@ hr.soft {
     max-width: 100%;
   }
 
-  /* Weekly outlook: put the "(best boating...)" subtitle on its own line on mobile only.
-     Since the title is rendered inside a flex container, force a wrap by giving the subtitle a full row. */
+  /* Weekly outlook title: keep star + "Weekly outlook" aligned; subtitle on the next line (mobile only). */
+  .weeklyTitleWrap{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
   .weeklyTitleSub{
-    flex-basis: 100%;
     line-height: 1.05;
     margin-top: -2px;
   }
 }
 
 @media (min-width: 721px){
+  .weeklyTitleWrap{
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+  }
   .weeklyTitleSub{
-    flex-basis: auto;
+    margin-top: 0;
   }
 }
 
