@@ -279,7 +279,7 @@ hr.soft {
 
   /* Weekly header: keep the star snug + vertically centered with "Weekly outlook" */
   .weeklyCard h2{
-    gap: 4px !important;
+    gap: 3px !important;
     align-items: center;
   }
   .weeklyCard .cardIcon{
@@ -287,9 +287,10 @@ hr.soft {
     align-items: center;
     justify-content: center;
     line-height: 1;
-    margin-top: 0;
-    width: 20px;
-    flex: 0 0 20px;
+    width: 16px;
+    flex: 0 0 16px;
+    /* The star glyph sits a touch high; nudge it down for better optical centering. */
+    transform: translateY(1px);
   }
 
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
