@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
-import { isoToLocalDay, round } from '../../../lib/format';
+import { isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
@@ -15,19 +15,29 @@ export default async function LocationPage({
   const loc = LOCATIONS[id];
   if (!loc) return notFound();
 
-  const [nowRes, forecastRes, tidesRes] = await Promise.all([
+  const [nowRes, forecastRes, tidesRes, marineRes] = await Promise.all([
     fetch(`${baseUrl()}/api/${params.locationId}/now`, { cache: 'no-store' }),
     fetch(`${baseUrl()}/api/${params.locationId}/forecast?hours=120`, {
       cache: 'no-store'
     }),
-    fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' })
+    fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' }),
+    fetch(`${baseUrl()}/api/${params.locationId}/marine-warnings`, { cache: 'no-store' })
   ]);
 
   const now = nowRes.ok ? await nowRes.json() : null;
   const forecast = forecastRes.ok ? await forecastRes.json() : null;
   const tides = tidesRes.ok ? await tidesRes.json() : null;
+  const marine = marineRes.ok ? await marineRes.json() : null;
 
-  const alerts = computeDefaultAlerts({ now, forecast: forecast?.forecast ?? [] });
+  const alerts = [
+    ...((marine?.items || []).map((it: any) => ({
+      t: now?.asOf ?? new Date().toISOString(),
+      severity: it.severity || 'info',
+      title: it.title,
+      body: it.body
+    })) as any[]),
+    ...computeDefaultAlerts({ now, forecast: forecast?.forecast ?? [] })
+  ];
 
   const windSpeed = now?.wind?.speedKts;
   const gust = now?.wind?.gustKts;
@@ -217,15 +227,24 @@ export default async function LocationPage({
         <Card
           title="Tides"
           icon={<IconTide />}
-          right={
-            tides?.station?.name ? (
-              <span>
-                {tides.station.name} · {Math.round(tides.station.distanceKm)} km
-              </span>
-            ) : (
-              '—'
-            )
-          }
+          right={(() => {
+            const next = getNextTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
+            if (next && tides?.station?.name) {
+              return (
+                <span>
+                  Next: {next.label}{tides.station.name ? ` · ${tides.station.name}` : ''}
+                </span>
+              );
+            }
+            if (tides?.station?.name) {
+              return (
+                <span>
+                  {tides.station.name} · {Math.round(tides.station.distanceKm)} km
+                </span>
+              );
+            }
+            return '—';
+          })()}
         >
           <TideMiniChart events={tides?.events ?? []} />
           <hr className="soft" />
@@ -270,6 +289,29 @@ export default async function LocationPage({
       </div>
     </main>
   );
+}
+
+function getNextTideSummary({
+  nowIso,
+  events
+}: {
+  nowIso?: string | null;
+  events: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }>;
+}) {
+  const nowMs = nowIso ? new Date(nowIso).getTime() : Date.now();
+  const future = (events || [])
+    .map((e) => ({ ...e, ms: new Date(e.t).getTime() }))
+    .filter((e) => Number.isFinite(e.ms) && e.ms >= nowMs - 60 * 1000)
+    .sort((a, b) => a.ms - b.ms);
+
+  const n = future[0];
+  if (!n) return null;
+
+  const kind = n.kind === 'high' ? 'High' : 'Low';
+  const h = typeof n.heightM === 'number' ? `${round(n.heightM, 2)}m` : '';
+  const t = isoToLocalTime(n.t);
+  const label = `${kind} ${h ? h + ' ' : ''}@ ${t}`;
+  return { label };
 }
 
 function baseUrl() {
