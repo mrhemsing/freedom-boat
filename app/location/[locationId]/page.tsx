@@ -94,7 +94,10 @@ export default async function LocationPage({
                         <div>rain total: {round(d.totalPrecipMm, 1)} mm</div>
                       </div>
                       {isBest ? (
-                        <div style={{ marginTop: 10 }} className="pill sevInfo">
+                        <div
+                          style={{ marginTop: 10, gap: 6, padding: '5px 8px' }}
+                          className="pill sevInfo"
+                        >
                           <span style={{ fontWeight: 900 }}>⛵</span>
                           Best day
                         </div>
