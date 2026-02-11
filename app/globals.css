@@ -313,5 +313,16 @@ hr.soft {
     margin-top: 0;
     line-height: 1.2;
   }
+
+  /* Desktop: no indent needed. */
+  .weeklyCard .cardSubtitle,
+  .weeklyCard .miniNote{
+    margin-left: 0;
+  }
+
+  .weeklyCard .cardIcon{
+    width: auto;
+    flex: 0 0 auto;
+  }
 }
 
