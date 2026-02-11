@@ -38,8 +38,8 @@ export default async function LocationPage({
       <header className="topbar">
         <div>
           <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img src="/fb-logo.svg" alt="Freedom Boat Planner" width={36} height={36} style={{ display: 'block' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img src="/fb-logo.svg" alt="Freedom Boat Planner" width={72} height={72} style={{ display: 'block' }} />
               <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 27 }}>Freedom Boat Planner</div>
             </div>
           </div>
