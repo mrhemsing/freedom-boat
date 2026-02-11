@@ -262,15 +262,16 @@ hr.soft {
     max-width: 100%;
   }
 
-  /* Weekly outlook: put the "(best boating...)" subtitle on its own line on mobile only. */
+  /* Weekly outlook: put the "(best boating...)" subtitle on its own line on mobile only.
+     Since the title is rendered inside a flex container, force a wrap by giving the subtitle a full row. */
   .weeklyTitleSub{
-    display: block;
+    flex-basis: 100%;
   }
 }
 
 @media (min-width: 721px){
   .weeklyTitleSub{
-    display: inline;
+    flex-basis: auto;
   }
 }
 

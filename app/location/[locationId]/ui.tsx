@@ -24,7 +24,7 @@ export function Card({
       <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
         <h2
           className={titleNoWrap ? 'cardTitleNoWrap' : undefined}
-          style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10 }}
+          style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}
         >
           <span style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
           {title}
