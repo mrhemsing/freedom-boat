@@ -244,6 +244,11 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
+  /* Header: align the sunrise/sunset badge to the bottom edge on mobile (like earlier iterations). */
+  .sunBadgeWrap {
+    align-self: flex-end;
+  }
+
   /* Some cards (e.g., Weekly outlook) should show the right-side meta on the next line on mobile. */
   .cardHeaderStackMobile {
     flex-direction: column;
