@@ -79,7 +79,7 @@ export default async function LocationPage({
           title={<span className="weeklyTitleMain">Weekly outlook</span>}
           subtitle={<span className="weeklyTitleSub">(best boating day highlighted)</span>}
           icon={<span style={{ fontWeight: 900 }}>★</span>}
-          right={<span>Daytime (8am–6pm)</span>}
+          right={null}
           headerStackOnMobile
         >
           {(() => {
