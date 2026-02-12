@@ -160,9 +160,24 @@ summary::-webkit-details-marker {
   .cardHeader h2{ gap: 8px !important; }
 }
 
-/* Alerts icon is optically centered already; don't apply the generic icon offset. */
+/* Alerts card styling + icon alignment */
+.alertsCard{
+  border-color: rgba(239, 68, 68, 0.34);
+  background: linear-gradient(180deg, rgba(255, 244, 244, 0.96), rgba(255, 236, 236, 0.92));
+}
+
+.alertsCard .cardHeader{
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.18);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding-top: 12px;
+  padding-bottom: 10px;
+}
+
 .alertsCard .cardIcon{
   transform: none !important;
+  color: rgba(185, 28, 28, 0.92) !important;
 }
 
 .cardBody {

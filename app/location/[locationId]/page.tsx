@@ -84,6 +84,10 @@ export default async function LocationPage({
       </header>
 
       <div className="grid" style={{ marginTop: 24 }}>
+        <Card className="alertsCard" title="Alerts" icon={<span style={{ fontWeight: 900 }}>!</span>}>
+          <AlertFeed items={alerts} />
+        </Card>
+
         <Card
           className="weeklyCard"
           title={<span className="weeklyTitleMain">Weekly outlook</span>}
@@ -219,10 +223,6 @@ export default async function LocationPage({
           <WindChart forecast={forecast?.forecast ?? []} />
           <hr className="soft" />
           <ForecastStrip forecast={forecast?.forecast ?? []} />
-        </Card>
-
-        <Card className="alertsCard" title="Alerts" icon={<span style={{ fontWeight: 900 }}>!</span>}>
-          <AlertFeed items={alerts} />
         </Card>
 
         <Card
