@@ -365,6 +365,10 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
+  .container{
+    padding-bottom: calc(42px + env(safe-area-inset-bottom));
+  }
+
   .liveLookGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 8px;
