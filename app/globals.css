@@ -322,6 +322,23 @@ summary::-webkit-details-marker {
   color: rgba(11, 18, 32, 0.62);
 }
 
+.tideGrid{
+  display: grid;
+  gap: 10px;
+}
+
+.tideItem{
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(11,18,32,0.10);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,0.70);
+}
+
+.tideItemRight{ text-align: right; }
+
 hr.soft {
   border: 0;
   border-top: 1px solid rgba(11, 18, 32, 0.10);
@@ -420,6 +437,14 @@ hr.soft {
 
   .weeklyCard .cardHeaderStackMobile .cardSubtitle{
     margin-top: 0;
+  }
+
+  .tideGrid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tideItem{
+    min-width: 0;
   }
 
   .cardTitleNoWrap {

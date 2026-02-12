@@ -165,13 +165,13 @@ export function TideList({ events }: { events: Array<{ t: string; kind: 'high' |
     return <div className="miniNote">No tide events returned.</div>;
   }
 
-  const next = events.slice(0, 8);
+  const next = events.slice(0, 4);
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
+    <div className="tideGrid">
       {next.map((e) => (
-        <div key={e.t + e.kind} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
+        <div key={e.t + e.kind} className="tideItem">
           <div style={{ fontWeight: 800 }}>{e.kind === 'high' ? 'High tide' : 'Low tide'}</div>
-          <div style={{ textAlign: 'right' }}>
+          <div className="tideItemRight">
             <div className="miniNote">{isoToLocalDayTime(e.t)}</div>
             <div style={{ marginTop: 4, fontWeight: 700 }}>{e.heightM != null ? `${round(e.heightM, 2)} m` : '—'}</div>
           </div>
