@@ -87,7 +87,7 @@ export default async function LocationPage({
         <Card
           className="alertsCard"
           title={
-            <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
               <span>Alerts</span>
               <span className="alertsAsOfTop">{now?.asOf ? formatAsOf(now.asOf) : '—'}</span>
             </span>
