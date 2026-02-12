@@ -152,7 +152,7 @@ export function AlertFeed({
     <div style={{ display: 'grid', gap: 10 }}>
       {items.map((a, idx) => (
         <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
-          {idx === 0 && topLine ? <div style={{ fontWeight: 800, marginBottom: 8 }}>{topLine}</div> : null}
+          {idx === 0 && topLine ? <div style={{ marginBottom: 8 }}>{topLine}</div> : null}
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
             <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
               <span className={`pill ${severityClass(a.severity)}`}>{a.severity}</span>
