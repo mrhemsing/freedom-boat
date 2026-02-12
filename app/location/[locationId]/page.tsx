@@ -89,7 +89,7 @@ export default async function LocationPage({
           title="Alerts"
           icon={<span style={{ fontWeight: 900 }}>!</span>}
         >
-          <AlertFeed items={alerts} topLine={now?.asOf ? formatAsOf(now.asOf) : '—'} />
+          <AlertFeed items={alerts} topLine={now?.asOf ? formatAsOfWithDay(now.asOf) : '—'} />
         </Card>
 
         <Card
@@ -401,6 +401,41 @@ function buildWeeklyOutlook(forecast: Array<{ t: string; tempC?: number; windSpe
   }
 
   return out;
+}
+
+function formatAsOfWithDay(iso: string) {
+  const s = String(iso || '');
+  const hasTz = /([zZ]|[+-]\d{2}:?\d{2})$/.test(s);
+
+  if (!hasTz) {
+    const m = s.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]);
+      const d = Number(m[3]);
+      const hhRaw = Number(m[4]);
+      const mm = m[5];
+      if ([y, mo, d, hhRaw].every(Number.isFinite)) {
+        const dt = new Date(y, mo - 1, d);
+        const day = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Vancouver', weekday: 'short' }).format(dt);
+        let hh = hhRaw;
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        hh = hh % 12;
+        if (hh === 0) hh = 12;
+        return `${day} ${hh}:${mm} ${ampm}`;
+      }
+    }
+  }
+
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return s;
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Vancouver',
+    weekday: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(d);
 }
 
 function formatAsOf(iso: string) {

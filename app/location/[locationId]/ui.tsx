@@ -158,7 +158,7 @@ export function AlertFeed({
               <span className={`pill ${severityClass(a.severity)}`}>{a.severity}</span>
               {a.title}
             </div>
-            <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
+            {idx === 0 && topLine ? null : <div className="miniNote">{isoToLocalDayTime(a.t)}</div>}
           </div>
           {a.body ? <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>{a.body}</div> : null}
         </div>
