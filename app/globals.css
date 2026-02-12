@@ -186,6 +186,13 @@ summary::-webkit-details-marker {
   color: rgba(127, 29, 29, 0.85);
 }
 
+.alertsAsOfInBody{
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(127, 29, 29, 0.85);
+  margin-bottom: 8px;
+}
+
 .cardBody {
   padding: 12px 16px 16px 16px;
 }
