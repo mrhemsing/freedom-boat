@@ -138,12 +138,23 @@ function severityClass(sev: string) {
   return 'sevInfo';
 }
 
-export function AlertFeed({ items }: { items: Array<{ t: string; severity: string; title: string; body?: string }> }) {
+export function AlertFeed({
+  items,
+  topLine
+}: {
+  items: Array<{ t: string; severity: string; title: string; body?: string }>;
+  topLine?: string;
+}) {
   if (!items?.length) {
     return <div className="miniNote">No alerts right now.</div>;
   }
   return (
     <div style={{ display: 'grid', gap: 10 }}>
+      {topLine ? (
+        <div style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
+          <div style={{ fontWeight: 800 }}>{topLine}</div>
+        </div>
+      ) : null}
       {items.map((a, idx) => (
         <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>

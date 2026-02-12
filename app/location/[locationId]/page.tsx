@@ -89,8 +89,7 @@ export default async function LocationPage({
           title="Alerts"
           icon={<span style={{ fontWeight: 900 }}>!</span>}
         >
-          <div className="alertsAsOfInBody">{now?.asOf ? formatAsOf(now.asOf) : '—'}</div>
-          <AlertFeed items={alerts} />
+          <AlertFeed items={alerts} topLine={now?.asOf ? formatAsOf(now.asOf) : '—'} />
         </Card>
 
         <Card
