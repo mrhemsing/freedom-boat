@@ -334,12 +334,21 @@ hr.soft {
   }
 
   .liveLookGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 8px;
   }
 
   .liveLookGrid > .kpi:first-child {
     grid-column: 1 / -1;
+  }
+
+  .liveLookGrid > .kpi {
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .liveLookGrid .kpiValue {
+    font-size: 18px;
   }
 
   /* Mobile: make card/container titles bigger */
