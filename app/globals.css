@@ -333,6 +333,15 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
+  .liveLookGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .liveLookGrid > .kpi:first-child {
+    grid-column: 1 / -1;
+  }
+
   /* Mobile: make card/container titles bigger */
   .cardHeader h2{
     font-size: 18px !important;

@@ -43,9 +43,15 @@ export function Card({
   );
 }
 
-export function KpiRow({ items }: { items: Array<{ label: string; icon?: React.ReactNode; value: React.ReactNode; sub?: React.ReactNode }> }) {
+export function KpiRow({
+  items,
+  className
+}: {
+  items: Array<{ label: string; icon?: React.ReactNode; value: React.ReactNode; sub?: React.ReactNode }>;
+  className?: string;
+}) {
   return (
-    <div className="kpiGrid">
+    <div className={`kpiGrid ${className || ''}`.trim()}>
       {items.map((it) => (
         <div key={it.label} className="kpi">
           {it.label ? (
