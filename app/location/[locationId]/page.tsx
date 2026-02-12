@@ -84,7 +84,12 @@ export default async function LocationPage({
       </header>
 
       <div className="grid" style={{ marginTop: 24 }}>
-        <Card className="alertsCard" title="Alerts" icon={<span style={{ fontWeight: 900 }}>!</span>}>
+        <Card
+          className="alertsCard"
+          title="Alerts"
+          icon={<span style={{ fontWeight: 900 }}>!</span>}
+          right={<span>{now?.asOf ? formatAsOf(now.asOf) : '—'}</span>}
+        >
           <AlertFeed items={alerts} />
         </Card>
 
