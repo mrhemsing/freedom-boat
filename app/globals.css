@@ -616,14 +616,13 @@ hr.soft {
     transform: translateY(-1px);
   }
 
-  /* Card header icons: push down so they align with the text */
+  /* Mobile: keep title icons baseline-aligned (no push-down). */
   .cardHeader .cardIcon{
-    transform: translateY(3px);
+    transform: translateY(0);
   }
 
-  /* Weekly outlook star is already tuned; don't apply the generic +3px. */
   .weeklyCard .cardIcon{
-    transform: translateY(-1px);
+    transform: translateY(0);
   }
 
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
