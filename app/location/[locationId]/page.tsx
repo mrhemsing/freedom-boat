@@ -47,8 +47,12 @@ export default async function LocationPage({
   const tidePhase = getTidePhaseSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
   const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
   const rainEta = getRainEtaSummary(forecast?.forecast ?? []);
-  const goNow = getGoNoGoSummary({ now, marineItems: marine?.items ?? [] });
   const advisoryText = getAdvisorySummary(marine?.items ?? []);
+  const launchWindow = getBestLaunchWindowSummary({
+    forecast: forecast?.forecast ?? [],
+    sunriseIso: now?.sun?.sunrise,
+    sunsetIso: now?.sun?.sunset
+  });
 
   return (
     <main className="container">
@@ -57,7 +61,10 @@ export default async function LocationPage({
           <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <img className="fbLogo" src="/fb-logo.svg" alt="Freedom Boat Planner" width={72} height={72} style={{ display: 'block' }} />
-              <div style={{ fontWeight: 900, letterSpacing: 0.2, fontSize: 27 }}>Freedom Boat Planner</div>
+              <div style={{ fontWeight: 900, letterSpacing: 0.2, lineHeight: 1.04 }}>
+                <div style={{ fontSize: 29 }}>FREEDOM</div>
+                <div style={{ fontSize: 23, color: '#60a5fa' }}>Boat Planner</div>
+              </div>
             </div>
           </div>
         </div>
@@ -185,13 +192,7 @@ export default async function LocationPage({
           icon={<span style={{ fontWeight: 900 }}>◎</span>}
           right={<span>at-a-glance guidance</span>}
         >
-          <div className="quickLookGrid">
-            <div className="quickItem">
-              <div className="quickLabel">Go now</div>
-              <div className={`quickValue ${goNow.tone}`}>{goNow.label}</div>
-              <div className="miniNote">{goNow.reason}</div>
-            </div>
-            <div className="quickItem">
+          <div className="quickLookGrid"><div className="quickItem">
               <div className="quickLabel">Wind trend (3h)</div>
               <div className="quickValue">{windTrend.label}</div>
               <div className="miniNote">{windTrend.detail}</div>
@@ -200,6 +201,11 @@ export default async function LocationPage({
               <div className="quickLabel">Rain ETA</div>
               <div className="quickValue">{rainEta.label}</div>
               <div className="miniNote">{rainEta.detail}</div>
+            </div>
+            <div className="quickItem">
+              <div className="quickLabel">Best launch window</div>
+              <div className="quickValue">{launchWindow.label}</div>
+              <div className="miniNote">{launchWindow.detail}</div>
             </div>
             <div className="quickItem">
               <div className="quickLabel">Advisory</div>
@@ -293,7 +299,7 @@ export default async function LocationPage({
                       Precip: {now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'} mm/hr
                     </span>
                     <span className="conditionsDetailLine">
-                      Tide: {nextTide ? nextTide.label : '—'}
+                      Tide: {nextTide ? `${nextTide.kindLabel} ${nextTide.etaLabel}` : '—'}
                     </span>
                     {tidePhase ? (
                       <div className="tidePhaseRow" style={{ marginTop: 2 }}>
@@ -310,6 +316,7 @@ export default async function LocationPage({
                           <div className="miniNote" style={{ fontWeight: 700 }}>
                             {tidePhase.phase} · {Math.round(tidePhase.progress * 100)}%
                           </div>
+                          <div className="miniNote">Next turn {tidePhase.etaLabel}</div>
                         </div>
                       </div>
                     ) : null}
@@ -375,10 +382,8 @@ function getNextTideSummary({
   if (!n) return null;
 
   const kind = n.kind === 'high' ? 'High' : 'Low';
-  const h = typeof n.heightM === 'number' ? `${round(n.heightM, 2)}m` : '';
-  const t = isoToLocalTime(n.t);
-  const label = `${kind} ${h ? h + ' ' : ''}@ ${t}`;
-  return { label };
+  const etaMs = Math.max(0, n.ms - nowMs);
+  return { kindLabel: kind, etaLabel: formatEta(etaMs) };
 }
 
 function getTidePhaseSummary({
@@ -427,11 +432,21 @@ function getTidePhaseSummary({
   const kind = next.kind === 'high' ? 'High' : 'Low';
   const h = typeof next.heightM === 'number' ? `${round(next.heightM, 2)}m` : '';
   const t = isoToLocalTime(next.t);
+  const etaMs = Math.max(0, next.ms - nowMs);
   return {
     progress,
     phase,
-    nextLabel: `${kind} ${h ? h + ' ' : ''}@ ${t}`
+    nextLabel: `${kind} ${h ? h + ' ' : ''}@ ${t}`,
+    etaLabel: formatEta(etaMs)
   };
+}
+
+function formatEta(ms: number) {
+  const totalMin = Math.max(0, Math.round(ms / 60000));
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h <= 0) return `in ${m}m`;
+  return `in ${h}h ${m}m`;
 }
 
 function getWindTrendSummary(forecast: Array<{ windSpeedKts?: number }>) {
@@ -470,6 +485,60 @@ function getAdvisorySummary(items: Array<{ title?: string; severity?: string }>)
   if (!items?.length) return { label: 'No advisory', detail: 'No active marine warnings' };
   const top = items[0];
   return { label: top.title || 'Marine advisory', detail: `Severity: ${top.severity || 'info'}` };
+}
+
+function getBestLaunchWindowSummary({
+  forecast,
+  sunriseIso,
+  sunsetIso
+}: {
+  forecast: Array<{ t: string; windSpeedKts?: number; windGustKts?: number; precipProbPct?: number }>;
+  sunriseIso?: string;
+  sunsetIso?: string;
+}) {
+  const rows = (forecast || []).slice(0, 24);
+  if (!rows.length) return { label: '—', detail: 'No forecast data' };
+
+  const sunriseHour = sunriseIso ? new Date(sunriseIso).getHours() : 6;
+  const sunsetHour = sunsetIso ? new Date(sunsetIso).getHours() : 18;
+
+  const daylightRows = rows.filter((h) => {
+    const d = new Date(h.t);
+    const hour = d.getHours();
+    return Number.isFinite(hour) && hour >= sunriseHour && hour <= sunsetHour;
+  });
+
+  if (daylightRows.length < 3) {
+    return { label: '—', detail: 'No usable daylight window yet' };
+  }
+
+  const scored = daylightRows.map((h) => {
+    const wind = Number(h.windSpeedKts ?? 0);
+    const gust = Number(h.windGustKts ?? wind);
+    const rain = Number(h.precipProbPct ?? 0);
+    const score = Math.max(0, 100 - wind * 3 - gust * 1.2 - rain * 0.6);
+    return { ...h, score };
+  });
+
+  let bestStart = -1;
+  let bestAvg = -1;
+  for (let i = 0; i <= scored.length - 3; i += 1) {
+    const window = scored.slice(i, i + 3);
+    const avg = window.reduce((a, b) => a + b.score, 0) / window.length;
+    if (avg > bestAvg) {
+      bestAvg = avg;
+      bestStart = i;
+    }
+  }
+
+  if (bestStart < 0) return { label: '—', detail: 'No suitable window found' };
+
+  const start = scored[bestStart];
+  const end = scored[Math.min(bestStart + 2, scored.length - 1)];
+  return {
+    label: `${isoToLocalTime(start.t)}–${isoToLocalTime(end.t)}`,
+    detail: 'Best 3-hour window between sunrise and sunset'
+  };
 }
 
 function baseUrl() {
@@ -719,4 +788,7 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
     return true;
   });
 }
+
+
+
 
