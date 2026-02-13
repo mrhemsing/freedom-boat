@@ -102,7 +102,7 @@ export default async function LocationPage({
           <Card
             className="alertsCard"
             title="Alerts"
-            icon={<span style={{ fontWeight: 900 }}>!</span>}
+            icon={<span style={{ fontWeight: 900, fontSize: 16 }}>⚠</span>}
           >
             <AlertFeed items={alerts} topLine={now?.asOf ? formatAsOfWithDay(now.asOf) : '—'} />
           </Card>
@@ -112,7 +112,7 @@ export default async function LocationPage({
           className="weeklyCard"
           title={<span className="weeklyTitleMain">Weekly outlook</span>}
           subtitle={<span className="weeklyTitleSub">(best boating day highlighted)</span>}
-          icon={<span style={{ fontWeight: 900 }}>★</span>}
+          icon={<span style={{ fontWeight: 900, fontSize: 17, color: 'rgba(11,18,32,0.92)' }}>◉</span>}
           right={null}
           headerStackOnMobile
         >
@@ -189,7 +189,7 @@ export default async function LocationPage({
         <Card
           className="desktopIconDrop2 quickLookCard"
           title="Boating quick look"
-          icon={<span style={{ fontWeight: 900 }}>◎</span>}
+          icon={<span style={{ fontWeight: 900, fontSize: 16, color: 'rgba(11,18,32,0.92)' }}>📌</span>}
           right={<span>at-a-glance guidance</span>}
         >
           <div className="quickLookGrid"><div className="quickItem">

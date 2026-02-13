@@ -150,6 +150,21 @@ summary::-webkit-details-marker {
   min-width: 0;
 }
 
+.cardHeader h2{
+  align-items: center !important;
+}
+
+.cardHeader .cardIcon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  line-height: 1;
+  transform: none !important;
+}
+
 .cardSubtitle{
   font-size: 12px;
   color: rgba(11, 18, 32, 0.62);
@@ -159,13 +174,6 @@ summary::-webkit-details-marker {
 /* Desktop: tighten icon-to-title gap a touch */
 @media (min-width: 721px){
   .cardHeader h2{ gap: 8px !important; }
-  .cardHeader .cardIcon{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Alerts card styling + icon alignment */
@@ -186,6 +194,10 @@ summary::-webkit-details-marker {
 .alertsCard .cardHeader h2,
 .alertsCard .cardHeader h2 .cardIcon{
   color: rgba(185, 28, 28, 0.92) !important;
+}
+
+.alertsCard .cardHeader h2{
+  gap: 5px !important;
 }
 
 .alertsCard .pill{
@@ -501,6 +513,7 @@ summary::-webkit-details-marker {
   font-size: 12px !important;
 }
 
+
 .tideGrid{
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -626,29 +639,10 @@ hr.soft {
     gap: 2px;
   }
 
-  /* Weekly header: keep the star snug + vertically centered with "Weekly outlook" */
+  /* Weekly header: keep spacing snug while using shared icon alignment */
   .weeklyCard h2{
     gap: 3px !important;
     align-items: center;
-  }
-  .weeklyCard .cardIcon{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    width: 16px;
-    flex: 0 0 16px;
-    /* Fine-tune optical centering (mobile) */
-    transform: translateY(-1px);
-  }
-
-  /* Mobile: keep title icons baseline-aligned (no push-down). */
-  .cardHeader .cardIcon{
-    transform: translateY(0);
-  }
-
-  .weeklyCard .cardIcon{
-    transform: translateY(0);
   }
 
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
@@ -753,10 +747,6 @@ hr.soft {
   .weeklyCard .miniNote{
     margin-left: 0;
   }
-
-  .weeklyCard .cardIcon{
-    width: auto;
-    flex: 0 0 auto;
-  }
 }
+
 
