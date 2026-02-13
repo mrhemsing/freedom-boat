@@ -77,6 +77,18 @@ a:hover {
   gap: 10px;
 }
 
+.brandTitle{
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  line-height: 1.04;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+.brandFreedom{ font-size: 27px; }
+.brandBoat{ font-size: 27px; color: #60a5fa; }
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -477,6 +489,7 @@ summary::-webkit-details-marker {
 
 .tideGrid{
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -563,8 +576,8 @@ hr.soft {
 
   /* Header logo: ~30% smaller on mobile */
   .fbLogo{
-    width: 50px;
-    height: 50px;
+    width: 77px;
+    height: 77px;
   }
 
   .sunBadgeWrap {
@@ -627,6 +640,12 @@ hr.soft {
 
   .tideItem{
     min-width: 0;
+    display: block;
+  }
+
+  .tideItemRight{
+    text-align: left;
+    margin-top: 6px;
   }
 
   .cardTitleNoWrap {
@@ -640,6 +659,18 @@ hr.soft {
   .weeklyTitleSub{
     line-height: 1.05;
     margin-top: -2px;
+  }
+
+  .brandTitle{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    line-height: 1.04;
+  }
+
+  .brandFreedom,
+  .brandBoat{
+    font-size: 24px;
   }
 }
 
