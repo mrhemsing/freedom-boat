@@ -138,6 +138,17 @@ function severityClass(sev: string) {
   return 'sevInfo';
 }
 
+function alertIconFromTitle(title: string, fallbackSeverity: string) {
+  const t = String(title || '').toLowerCase();
+  if (t.includes('rain')) return '☔';
+  if (t.includes('wind')) return '💨';
+  if (t.includes('tide')) return '🌊';
+  if (t.includes('fog')) return '🌫️';
+  if ((fallbackSeverity || '').toLowerCase() === 'warning') return '⚠️';
+  if ((fallbackSeverity || '').toLowerCase() === 'caution') return '⚠';
+  return 'ℹ️';
+}
+
 export function AlertFeed({
   items,
   topLine
@@ -152,13 +163,11 @@ export function AlertFeed({
     <div style={{ display: 'grid', gap: 10 }}>
       {items.map((a, idx) => (
         <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
-          {idx === 0 && topLine ? <div style={{ marginBottom: 8 }}>{topLine}</div> : null}
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
             <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span className={`pill ${severityClass(a.severity)}`}>{a.severity}</span>
-              {a.title}
+              <span className={`pill ${severityClass(a.severity)}`}>{alertIconFromTitle(a.title, a.severity)}</span>
             </div>
-            {idx === 0 && topLine ? null : <div className="miniNote">{isoToLocalDayTime(a.t)}</div>}
+            <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
           </div>
           {a.body ? <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>{a.body}</div> : null}
         </div>
@@ -189,3 +198,4 @@ export function TideList({ events }: { events: Array<{ t: string; kind: 'high' |
 }
 
 // (Icons object removed)
+

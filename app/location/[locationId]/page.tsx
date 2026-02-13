@@ -43,8 +43,8 @@ export default async function LocationPage({
   const gust = now?.wind?.gustKts;
   const dir = now?.wind?.directionDeg;
   const webcamVideoId = id === 'north-saanich' ? 'zeKV78ULlpY' : 'T0oUufecXeE';
-  const nextTide = getNextTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
-  const tidePhase = getTidePhaseSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
+  const nextTide = getNextTideSummary({ events: tides?.events ?? [] });
+  const tidePhase = getTidePhaseSummary({ events: tides?.events ?? [] });
   const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
   const rainEta = getRainEtaSummary(forecast?.forecast ?? []);
   const advisoryText = getAdvisorySummary(marine?.items ?? []);
@@ -408,8 +408,15 @@ function getTidePhaseSummary({
   for (let i = 0; i < sorted.length; i += 1) {
     if (sorted[i].ms > nowMs) {
       if (i === 0) {
-        prev = sorted[0];
-        next = sorted[1] ?? sorted[0];
+        const first = sorted[0];
+        const second = sorted[1] ?? sorted[0];
+        const interval = Math.max(1, second.ms - first.ms);
+        prev = {
+          ...first,
+          kind: first.kind === 'high' ? 'low' : 'high',
+          ms: first.ms - interval
+        };
+        next = first;
       } else {
         prev = sorted[i - 1];
         next = sorted[i];

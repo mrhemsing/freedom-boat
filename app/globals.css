@@ -175,15 +175,16 @@ summary::-webkit-details-marker {
 }
 
 .alertsCard .cardHeader{
-  background: rgba(239, 68, 68, 0.08);
-  border-bottom: 1px solid rgba(239, 68, 68, 0.18);
+  background: transparent;
+  border-bottom: 0;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
-  padding-top: 12px;
-  padding-bottom: 10px;
+  padding-top: 14px;
+  padding-bottom: 0;
 }
 
-.alertsCard .cardIcon{
+.alertsCard .cardHeader h2,
+.alertsCard .cardHeader h2 .cardIcon{
   color: rgba(185, 28, 28, 0.92) !important;
 }
 
@@ -295,7 +296,7 @@ summary::-webkit-details-marker {
 .dayMeta {
   margin-top: 6px;
   font-size: 12px;
-  color: rgba(11, 18, 32, 0.62);
+  color: rgba(11, 18, 32, 0.92);
   display: grid;
   gap: 4px;
 }
@@ -548,6 +549,11 @@ hr.soft {
     padding: 10px;
   }
 
+  /* Mobile: extra breathing room at bottom of Conditions tile */
+  .liveLookGrid > .kpi:nth-child(3) {
+    padding-bottom: 22px;
+  }
+
   .liveLookGrid .kpiValue {
     font-size: 18px;
   }
@@ -665,6 +671,49 @@ hr.soft {
   .weeklyTitleSub{
     line-height: 1.05;
     margin-top: -2px;
+  }
+
+  /* Mobile weekly cards: larger text + 2-column meta layout */
+  .dayBox{
+    padding-bottom: 16px;
+  }
+
+  .dayScorePill{
+    margin-bottom: 6px;
+  }
+
+  .dayMeta {
+    font-size: 15px;
+    line-height: 1.16;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 10px;
+    row-gap: 4px;
+    align-items: start;
+  }
+  .dayMeta > :nth-child(1) { grid-column: 1; grid-row: 1; } /* temp */
+  .dayMeta > :nth-child(2) { grid-column: 1; grid-row: 2; } /* max wind */
+  .dayMeta > :nth-child(3) { grid-column: 1; grid-row: 3; } /* max gust */
+  .dayMeta > :nth-child(4) { grid-column: 2; grid-row: 1; } /* precip chance */
+  .dayMeta > :nth-child(5) { grid-column: 2; grid-row: 2; } /* rain total */
+
+  .quickValue{
+    margin-bottom: 4px;
+    font-size: 16px;
+  }
+
+  .quickLabel{
+    font-size: 16px;
+    line-height: 1.16;
+  }
+
+  .quickLookCard .miniNote{
+    font-size: 15px;
+    line-height: 1.16;
+  }
+
+  .quickLookCard .quickItem{
+    padding: 12px;
   }
 
   .brandTitle{
