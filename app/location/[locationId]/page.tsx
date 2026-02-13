@@ -44,6 +44,11 @@ export default async function LocationPage({
   const dir = now?.wind?.directionDeg;
   const webcamVideoId = id === 'north-saanich' ? 'zeKV78ULlpY' : 'T0oUufecXeE';
   const nextTide = getNextTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
+  const tidePhase = getTidePhaseSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
+  const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
+  const rainEta = getRainEtaSummary(forecast?.forecast ?? []);
+  const goNow = getGoNoGoSummary({ now, marineItems: marine?.items ?? [] });
+  const advisoryText = getAdvisorySummary(marine?.items ?? []);
 
   return (
     <main className="container">
@@ -174,6 +179,36 @@ export default async function LocationPage({
           })()}
         </Card>
 
+        <Card
+          className="desktopIconDrop2 quickLookCard"
+          title="Boating quick look"
+          icon={<span style={{ fontWeight: 900 }}>◎</span>}
+          right={<span>at-a-glance guidance</span>}
+        >
+          <div className="quickLookGrid">
+            <div className="quickItem">
+              <div className="quickLabel">Go now</div>
+              <div className={`quickValue ${goNow.tone}`}>{goNow.label}</div>
+              <div className="miniNote">{goNow.reason}</div>
+            </div>
+            <div className="quickItem">
+              <div className="quickLabel">Wind trend (3h)</div>
+              <div className="quickValue">{windTrend.label}</div>
+              <div className="miniNote">{windTrend.detail}</div>
+            </div>
+            <div className="quickItem">
+              <div className="quickLabel">Rain ETA</div>
+              <div className="quickValue">{rainEta.label}</div>
+              <div className="miniNote">{rainEta.detail}</div>
+            </div>
+            <div className="quickItem">
+              <div className="quickLabel">Advisory</div>
+              <div className="quickValue">{advisoryText.label}</div>
+              <div className="miniNote">{advisoryText.detail}</div>
+            </div>
+          </div>
+        </Card>
+
         <Card className="desktopIconDrop2" title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             className="liveLookGrid"
@@ -260,6 +295,24 @@ export default async function LocationPage({
                     <span className="conditionsDetailLine">
                       Tide: {nextTide ? nextTide.label : '—'}
                     </span>
+                    {tidePhase ? (
+                      <div className="tidePhaseRow" style={{ marginTop: 2 }}>
+                        <div
+                          className="tidePhaseRing"
+                          style={{
+                            background: `conic-gradient(rgba(14,165,164,0.95) ${Math.round(tidePhase.progress * 360)}deg, rgba(11,18,32,0.16) 0deg)`
+                          }}
+                          title={`Tide phase: ${tidePhase.phase}`}
+                        >
+                          <span className="tidePhaseInner" />
+                        </div>
+                        <div className="tidePhaseText">
+                          <div className="miniNote" style={{ fontWeight: 700 }}>
+                            {tidePhase.phase} · {Math.round(tidePhase.progress * 100)}%
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 )
               }
@@ -300,42 +353,6 @@ export default async function LocationPage({
           <hr className="soft" />
           <TideList events={tides?.events ?? []} />
         </Card>
-
-        <details>
-          <summary style={{ listStyle: 'none' }}>
-            <div style={{ cursor: 'pointer' }}>
-              <Card className="desktopIconDrop2" title="Map" icon={<IconMap />} right={<span>click to expand</span>}>
-                <div className="miniNote">Tap to expand the embedded map.</div>
-              </Card>
-            </div>
-          </summary>
-          <div style={{ marginTop: 10 }}>
-            <Card className="desktopIconDrop2" title="Map" icon={<IconMap />}>
-              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
-                <iframe
-                  title={`${loc.name} map`}
-                  width="100%"
-                  height="340"
-                  style={{ border: 0, display: 'block' }}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-                    `${loc.lon - 0.03},${loc.lat - 0.02},${loc.lon + 0.03},${loc.lat + 0.02}`
-                  )}&layer=mapnik&marker=${encodeURIComponent(`${loc.lat},${loc.lon}`)}`}
-                />
-              </div>
-              <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>
-                <a
-                  href={`https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lon}#map=13/${loc.lat}/${loc.lon}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open in OpenStreetMap
-                </a>
-              </div>
-            </Card>
-          </div>
-        </details>
       </div>
     </main>
   );
@@ -362,6 +379,97 @@ function getNextTideSummary({
   const t = isoToLocalTime(n.t);
   const label = `${kind} ${h ? h + ' ' : ''}@ ${t}`;
   return { label };
+}
+
+function getTidePhaseSummary({
+  nowIso,
+  events
+}: {
+  nowIso?: string | null;
+  events: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }>;
+}) {
+  const nowMs = nowIso ? new Date(nowIso).getTime() : Date.now();
+  const sorted = (events || [])
+    .map((e) => ({ ...e, ms: new Date(e.t).getTime() }))
+    .filter((e) => Number.isFinite(e.ms))
+    .sort((a, b) => a.ms - b.ms);
+
+  if (sorted.length < 2) return null;
+
+  let prev = sorted[0];
+  let next = sorted[sorted.length - 1];
+  let foundBracket = false;
+
+  for (let i = 0; i < sorted.length; i += 1) {
+    if (sorted[i].ms > nowMs) {
+      if (i === 0) {
+        prev = sorted[0];
+        next = sorted[1] ?? sorted[0];
+      } else {
+        prev = sorted[i - 1];
+        next = sorted[i];
+      }
+      foundBracket = true;
+      break;
+    }
+  }
+
+  if (!foundBracket) {
+    prev = sorted[sorted.length - 2];
+    next = sorted[sorted.length - 1];
+  }
+
+  if (!prev || !next || next.ms <= prev.ms) return null;
+
+  const progressRaw = (nowMs - prev.ms) / (next.ms - prev.ms);
+  const progress = Math.max(0, Math.min(1, progressRaw));
+  const phase = next.kind === 'high' ? 'Rising' : 'Falling';
+  const kind = next.kind === 'high' ? 'High' : 'Low';
+  const h = typeof next.heightM === 'number' ? `${round(next.heightM, 2)}m` : '';
+  const t = isoToLocalTime(next.t);
+  return {
+    progress,
+    phase,
+    nextLabel: `${kind} ${h ? h + ' ' : ''}@ ${t}`
+  };
+}
+
+function getWindTrendSummary(forecast: Array<{ windSpeedKts?: number }>) {
+  const rows = (forecast || []).slice(0, 4);
+  if (rows.length < 2) return { label: '—', detail: 'Not enough data' };
+  const first = Number(rows[0]?.windSpeedKts ?? 0);
+  const last = Number(rows[rows.length - 1]?.windSpeedKts ?? 0);
+  const delta = last - first;
+  if (delta >= 4) return { label: 'Increasing ↑', detail: `~${Math.round(delta)} kt higher than now` };
+  if (delta <= -4) return { label: 'Easing ↓', detail: `~${Math.abs(Math.round(delta))} kt lower than now` };
+  return { label: 'Steady →', detail: 'Little change expected' };
+}
+
+function getRainEtaSummary(forecast: Array<{ t: string; precipProbPct?: number }>) {
+  const hit = (forecast || []).slice(0, 24).find((h) => (h?.precipProbPct ?? 0) >= 60);
+  if (!hit) return { label: 'None soon', detail: 'No strong rain signal in next 24h' };
+  return { label: isoToLocalTime(hit.t), detail: `Precip chance ~${Math.round(hit.precipProbPct ?? 0)}%` };
+}
+
+function getGoNoGoSummary({
+  now,
+  marineItems
+}: {
+  now: any;
+  marineItems: Array<{ severity?: string }>;
+}) {
+  const wind = Number(now?.wind?.speedKts ?? 0);
+  const gust = Number(now?.wind?.gustKts ?? wind);
+  const severe = (marineItems || []).some((m) => ['warning', 'danger'].includes(String(m?.severity || '').toLowerCase()));
+  if (severe || wind >= 25 || gust >= 32) return { label: 'No-go', tone: 'toneBad', reason: 'Strong wind/warning right now' };
+  if (wind >= 16 || gust >= 24) return { label: 'Caution', tone: 'toneWarn', reason: 'Choppy conditions likely' };
+  return { label: 'Go', tone: 'toneGood', reason: 'Within calmer operating range' };
+}
+
+function getAdvisorySummary(items: Array<{ title?: string; severity?: string }>) {
+  if (!items?.length) return { label: 'No advisory', detail: 'No active marine warnings' };
+  const top = items[0];
+  return { label: top.title || 'Marine advisory', detail: `Severity: ${top.severity || 'info'}` };
 }
 
 function baseUrl() {
@@ -611,3 +719,4 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
     return true;
   });
 }
+
