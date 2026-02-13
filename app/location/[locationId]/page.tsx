@@ -342,7 +342,7 @@ export default async function LocationPage({
             if (next && tides?.station?.name) {
               return (
                 <span>
-                  Next: {next.label}{tides.station.name ? ` · ${tides.station.name}` : ''}
+                  Next: {next.kindLabel} {next.etaLabel}{tides.station.name ? ` · ${tides.station.name}` : ''}
                 </span>
               );
             }
