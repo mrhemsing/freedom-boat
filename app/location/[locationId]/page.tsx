@@ -172,19 +172,19 @@ export default async function LocationPage({
           })()}
         </Card>
 
-        <Card title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
+        <Card title="Live look" icon={<IconWind />} right={<span>Cam · Wind · Temp · Rain</span>}>
           <KpiRow
             className="liveLookGrid"
             items={[
               {
-                label: '',
+                label: 'Map',
                 value: (
                   <div
                     style={{
                       borderRadius: 12,
                       overflow: 'hidden',
                       border: '1px solid rgba(11,18,32,0.10)',
-                      height: 180
+                      height: 185
                     }}
                   >
                     <iframe
@@ -202,24 +202,61 @@ export default async function LocationPage({
                 )
               },
               {
-                label: 'Wind',
-                icon: <IconWind />,
-                value: `${round(windSpeed, 0) ?? '—'} kt`,
-                sub: (
-                  <span>
-                    gust {round(gust, 0) ?? '—'} · <WindArrow deg={dir} />
-                  </span>
+                label: 'Webcam',
+                value: (
+                  <div
+                    style={{
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      border: '1px solid rgba(11,18,32,0.10)',
+                      height: 185,
+                      position: 'relative'
+                    }}
+                  >
+                    <iframe
+                      title="Port Moody YouTube webcam"
+                      src="https://www.youtube.com/embed/T0oUufecXeE?autoplay=1&mute=1&playsinline=1&controls=0&modestbranding=1&iv_load_policy=3&rel=0"
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        width: '100%',
+                        height: '100%',
+                        border: 0,
+                        transform: 'scale(1.8)',
+                        transformOrigin: 'center center'
+                      }}
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                    />
+                  </div>
                 )
               },
               {
-                label: 'Temp',
-                icon: <IconThermometer />,
-                value: now?.tempC != null ? `${round(now.tempC, 0)}°C` : '—'
-              },
-              {
-                label: 'Precip (mm/hr)',
-                icon: <IconRain />,
-                value: now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'
+                label: 'Conditions',
+                icon: <IconWind />,
+                value: (
+                  <div className="conditionsWindRow">
+                    <span className="conditionsWindSpeed">{round(windSpeed, 0) ?? '—'} kt</span>
+                    <span className="conditionsWindDir">
+                      <WindArrow deg={dir} />
+                    </span>
+                  </div>
+                ),
+                sub: (
+                  <div className="conditionsDetailGrid">
+                    <span className="conditionsDetailLine">
+                      Gust: {round(gust, 0) ?? '—'} kt
+                    </span>
+                    <span className="conditionsDetailLine">
+                      Temp: {now?.tempC != null ? `${round(now.tempC, 0)}°C` : '—'}
+                    </span>
+                    <span className="conditionsDetailLine">
+                      Precip: {now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'} mm/hr
+                    </span>
+                  </div>
+                )
               }
             ]}
           />

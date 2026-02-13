@@ -62,7 +62,7 @@ a:hover {
 .container {
   max-width: 980px;
   margin: 0 auto;
-  padding: 26px 18px 18px 18px;
+  padding: 26px 18px 44px 18px;
 }
 
 .topbar {
@@ -293,6 +293,27 @@ summary::-webkit-details-marker {
   gap: 12px;
 }
 
+.liveLookGrid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 0.8fr) !important;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.liveLookGrid > .kpi {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.liveLookGrid > .kpi:first-child,
+.liveLookGrid > .kpi:nth-child(2) {
+  padding: 10px;
+}
+
+.liveLookGrid > .kpi:nth-child(3) {
+  padding: 8px;
+}
+
 .kpi {
   border-radius: 14px;
   border: 1px solid rgba(10, 20, 25, 0.08);
@@ -316,6 +337,44 @@ summary::-webkit-details-marker {
   font-size: 12px;
   color: rgba(11, 18, 32, 0.62);
   margin-top: 4px;
+}
+
+.conditionsWindRow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.conditionsWindSpeed {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.conditionsWindDir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.conditionsWindDir :global(svg),
+.conditionsWindDir svg {
+  width: 20px;
+  height: 20px;
+}
+
+.conditionsDetailGrid {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.conditionsDetailLine {
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .pill {
@@ -383,13 +442,20 @@ hr.soft {
   }
 
   .liveLookGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: 1fr !important;
     gap: 8px;
   }
 
-  .liveLookGrid > .kpi:first-child {
+  .liveLookGrid > .kpi:first-child,
+  .liveLookGrid > .kpi:nth-child(2),
+  .liveLookGrid > .kpi:nth-child(3) {
     grid-column: 1 / -1;
   }
+
+  /* Mobile-only order: webcam, map, then conditions */
+  .liveLookGrid > .kpi:nth-child(2) { order: 1; }
+  .liveLookGrid > .kpi:first-child { order: 2; }
+  .liveLookGrid > .kpi:nth-child(3) { order: 3; }
 
   .liveLookGrid > .kpi {
     min-width: 0;
@@ -398,6 +464,24 @@ hr.soft {
 
   .liveLookGrid .kpiValue {
     font-size: 18px;
+  }
+
+  .conditionsWindSpeed {
+    font-size: 30px;
+  }
+
+  .conditionsWindDir {
+    font-size: 18px;
+  }
+
+  .conditionsWindDir :global(svg),
+  .conditionsWindDir svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .conditionsDetailLine {
+    font-size: 16px;
   }
 
   /* Mobile: make card/container titles bigger */
