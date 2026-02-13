@@ -42,6 +42,8 @@ export default async function LocationPage({
   const windSpeed = now?.wind?.speedKts;
   const gust = now?.wind?.gustKts;
   const dir = now?.wind?.directionDeg;
+  const webcamVideoId = id === 'north-saanich' ? 'zeKV78ULlpY' : 'T0oUufecXeE';
+  const nextTide = getNextTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
 
   return (
     <main className="container">
@@ -172,7 +174,7 @@ export default async function LocationPage({
           })()}
         </Card>
 
-        <Card title="Live look" icon={<IconWind />} right={<span>Cam · Wind · Temp · Rain</span>}>
+        <Card className="desktopIconDrop2" title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             className="liveLookGrid"
             items={[
@@ -215,7 +217,7 @@ export default async function LocationPage({
                   >
                     <iframe
                       title="Port Moody YouTube webcam"
-                      src="https://www.youtube.com/embed/T0oUufecXeE?autoplay=1&mute=1&playsinline=1&controls=0&modestbranding=1&iv_load_policy=3&rel=0"
+                      src={`https://www.youtube.com/embed/${webcamVideoId}?autoplay=1&mute=1&playsinline=1&controls=0&modestbranding=1&iv_load_policy=3&rel=0`}
                       style={{
                         position: 'absolute',
                         inset: 0,
@@ -255,6 +257,9 @@ export default async function LocationPage({
                     <span className="conditionsDetailLine">
                       Precip: {now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'} mm/hr
                     </span>
+                    <span className="conditionsDetailLine">
+                      Tide: {nextTide ? nextTide.label : '—'}
+                    </span>
                   </div>
                 )
               }
@@ -262,13 +267,14 @@ export default async function LocationPage({
           />
         </Card>
 
-        <Card title="Wind (next 24h)" icon={<IconWind />} right={<span>speed + gust</span>}>
+        <Card className="desktopIconDrop2" title="Wind (next 24h)" icon={<IconWind />} right={<span>speed + gust</span>}>
           <WindChart forecast={forecast?.forecast ?? []} />
           <hr className="soft" />
           <ForecastStrip forecast={forecast?.forecast ?? []} />
         </Card>
 
         <Card
+          className="desktopIconDrop2"
           title="Tides"
           icon={<IconTide />}
           right={(() => {
@@ -298,13 +304,13 @@ export default async function LocationPage({
         <details>
           <summary style={{ listStyle: 'none' }}>
             <div style={{ cursor: 'pointer' }}>
-              <Card title="Map" icon={<IconMap />} right={<span>click to expand</span>}>
+              <Card className="desktopIconDrop2" title="Map" icon={<IconMap />} right={<span>click to expand</span>}>
                 <div className="miniNote">Tap to expand the embedded map.</div>
               </Card>
             </div>
           </summary>
           <div style={{ marginTop: 10 }}>
-            <Card title="Map" icon={<IconMap />}>
+            <Card className="desktopIconDrop2" title="Map" icon={<IconMap />}>
               <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(11,18,32,0.10)' }}>
                 <iframe
                   title={`${loc.name} map`}

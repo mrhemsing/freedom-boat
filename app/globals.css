@@ -158,6 +158,7 @@ summary::-webkit-details-marker {
 /* Desktop: tighten icon-to-title gap a touch */
 @media (min-width: 721px){
   .cardHeader h2{ gap: 8px !important; }
+  .desktopIconDrop2 .cardIcon{ transform: translateY(4px); }
 }
 
 /* Alerts card styling + icon alignment */
