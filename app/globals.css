@@ -394,7 +394,11 @@ summary::-webkit-details-marker {
 
 .conditionsDetailLine {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
+}
+
+.conditionsDetailGrid .conditionsDetailLine:nth-child(4){
+  margin-bottom: 4px;
 }
 
 .tidePhaseRow {
