@@ -516,8 +516,12 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
-  .liveLookCard{ order: 40; }
-  .quickLookCard{ order: 41; }
+  .alertsCard{ order: 10; }
+  .weeklyCard{ order: 20; }
+  .liveLookCard{ order: 30; }
+  .quickLookCard{ order: 31; }
+  .windCard{ order: 40; }
+  .tidesCard{ order: 50; }
 
   .container{
     padding-bottom: calc(42px + env(safe-area-inset-bottom));

@@ -327,14 +327,14 @@ export default async function LocationPage({
           />
         </Card>
 
-        <Card className="desktopIconDrop2" title="Wind (next 24h)" icon={<IconWind />} right={<span>speed + gust</span>}>
+        <Card className="desktopIconDrop2 windCard" title="Wind (next 24h)" icon={<IconWind />} right={<span>speed + gust</span>}>
           <WindChart forecast={forecast?.forecast ?? []} />
           <hr className="soft" />
           <ForecastStrip forecast={forecast?.forecast ?? []} />
         </Card>
 
         <Card
-          className="desktopIconDrop2"
+          className="desktopIconDrop2 tidesCard"
           title="Tides"
           icon={<IconTide />}
           right={(() => {
