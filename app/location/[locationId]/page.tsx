@@ -215,7 +215,7 @@ export default async function LocationPage({
           </div>
         </Card>
 
-        <Card className="desktopIconDrop2" title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
+        <Card className="desktopIconDrop2 liveLookCard" title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             className="liveLookGrid"
             items={[

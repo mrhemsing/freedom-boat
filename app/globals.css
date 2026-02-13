@@ -516,6 +516,9 @@ hr.soft {
     grid-template-columns: 1fr;
   }
 
+  .liveLookCard{ order: 40; }
+  .quickLookCard{ order: 41; }
+
   .container{
     padding-bottom: calc(42px + env(safe-area-inset-bottom));
   }
