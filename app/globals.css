@@ -181,6 +181,10 @@ summary::-webkit-details-marker {
   color: rgba(185, 28, 28, 0.92) !important;
 }
 
+.alertsCard .pill{
+  border-radius: 8px;
+}
+
 .alertsAsOfTop{
   font-size: 12px;
   font-weight: 700;
@@ -225,6 +229,7 @@ summary::-webkit-details-marker {
 .dayTitle {
   font-weight: 900;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .dayScore {
@@ -248,7 +253,7 @@ summary::-webkit-details-marker {
 
 .dayTitleRow{
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
@@ -256,8 +261,9 @@ summary::-webkit-details-marker {
 .dayIcons{
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  align-items: center;
 }
 .dayIcon{
   display: inline-flex;
