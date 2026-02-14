@@ -17,5 +17,10 @@ export async function GET(
 
   const data = await fetchOpenMeteo({ lat: loc.lat, lon: loc.lon, hours: hours + 1 });
   const out = normalizeForecast(data, { limitHours: hours });
-  return NextResponse.json({ locationId: id, hours, forecast: out });
+  const sunByDay = (data.daily?.time || []).map((day, i) => ({
+    day,
+    sunrise: data.daily?.sunrise?.[i],
+    sunset: data.daily?.sunset?.[i]
+  }));
+  return NextResponse.json({ locationId: id, hours, forecast: out, sunByDay });
 }

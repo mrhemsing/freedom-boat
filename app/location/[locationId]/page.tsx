@@ -117,7 +117,7 @@ export default async function LocationPage({
           headerStackOnMobile
         >
           {(() => {
-            const week = buildWeeklyOutlook(forecast?.forecast ?? [], 5);
+            const week = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5);
             const best = week.reduce((acc, d) => (acc == null || d.score > acc.score ? d : acc), null as DailyOutlook | null);
             if (!week.length) return <div className="miniNote">No forecast available.</div>;
             return (
@@ -567,6 +567,14 @@ function baseUrl() {
   return 'http://localhost:3000';
 }
 
+function extractHour(isoLike?: string) {
+  const s = String(isoLike || '');
+  const m = s.match(/T(\d{2}):/);
+  if (!m) return null;
+  const hh = Number(m[1]);
+  return Number.isFinite(hh) ? hh : null;
+}
+
 type DailyOutlook = {
   day: string; // YYYY-MM-DD
   label: string;
@@ -579,16 +587,30 @@ type DailyOutlook = {
   maxTempC?: number;
 };
 
-function buildWeeklyOutlook(forecast: Array<{ t: string; tempC?: number; windSpeedKts: number; windGustKts?: number; precipMm?: number; precipProbPct?: number }>, days = 5): DailyOutlook[] {
+function buildWeeklyOutlook(
+  forecast: Array<{ t: string; tempC?: number; windSpeedKts: number; windGustKts?: number; precipMm?: number; precipProbPct?: number }>,
+  sunByDay: Array<{ day: string; sunrise?: string; sunset?: string }> = [],
+  days = 5
+): DailyOutlook[] {
+  const daylightHoursByDay = new Map<string, { sunriseHour: number; sunsetHour: number }>();
+  for (const s of sunByDay || []) {
+    const day = String(s?.day || '');
+    if (!day) continue;
+    const sunriseHour = extractHour(s?.sunrise) ?? 8;
+    const sunsetHour = extractHour(s?.sunset) ?? 18;
+    daylightHoursByDay.set(day, { sunriseHour, sunsetHour });
+  }
+
   const byDay = new Map<string, any[]>();
   for (const h of forecast || []) {
     const day = typeof h.t === 'string' ? h.t.slice(0, 10) : null;
     if (!day) continue;
 
-    // focus on "daytime" hours (local time string from Open-Meteo due to timezone param)
+    // Keep lows/highs in true daylight for each day (sunrise -> sunset), not overnight.
     const hour = Number(h.t.slice(11, 13));
     if (!Number.isFinite(hour)) continue;
-    if (hour < 8 || hour > 18) continue;
+    const daylight = daylightHoursByDay.get(day) ?? { sunriseHour: 8, sunsetHour: 18 };
+    if (hour < daylight.sunriseHour || hour > daylight.sunsetHour) continue;
 
     const arr = byDay.get(day) ?? [];
     arr.push(h);
