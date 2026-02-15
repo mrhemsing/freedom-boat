@@ -108,7 +108,7 @@ export function WindArrow({ deg }: { deg?: number | null }) {
 export function ForecastStrip({ forecast }: { forecast: any[] }) {
   const rows = (forecast || []).slice(0, 12);
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', paddingBottom: 12 }}>
       <div style={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(110px, 1fr)', gap: 10 }}>
         {rows.map((h) => {
           const ws = round(h.windSpeedKts, 0);

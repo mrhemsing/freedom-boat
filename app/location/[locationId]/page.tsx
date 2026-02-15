@@ -171,7 +171,7 @@ export default async function LocationPage({
                       </div>
                       {isBest ? (
                         <div
-                          style={{ marginTop: 10, gap: 6, padding: '5px 8px' }}
+                          style={{ marginTop: 12, marginBottom: 4, gap: 6, padding: '5px 8px 7px' }}
                           className="pill sevInfo"
                         >
                           <span style={{ fontWeight: 900 }}>⛵</span>
