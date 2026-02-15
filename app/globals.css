@@ -362,7 +362,7 @@ summary::-webkit-details-marker {
 }
 
 .liveLookGrid > .kpi:nth-child(3) {
-  padding: 8px;
+  padding: 14px 14px 16px;
 }
 
 .kpi {
