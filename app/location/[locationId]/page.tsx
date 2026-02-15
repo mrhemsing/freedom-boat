@@ -60,7 +60,7 @@ export default async function LocationPage({
         <div className="headerBrand">
           <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <img className="fbLogo" src="/fb-logo.svg" alt="Freedom Boat Planner" width={72} height={72} style={{ display: 'block' }} />
+              <img className="fbLogo" src="/fb-logo.svg?v=7" alt="Freedom Boat Planner" width={72} height={72} style={{ display: 'block' }} />
               <div className="brandTitle">
                 <span className="brandFreedom">FREEDOM</span>
                 <span className="brandBoat">BOAT PLANNER</span>
