@@ -171,7 +171,7 @@ export default async function LocationPage({
                         <div><span className="dayMetaIcon" style={{ fontSize: 11 }}>🌀</span>Max wind {round(d.maxWind, 0)} kt</div>
                         <div><span className="dayMetaIcon">💨</span>Max gust {round(d.maxGust, 0)} kt</div>
                         <div><span className="dayMetaIcon">☁</span>P.O.P. {round(d.maxPrecipProb, 0)}%</div>
-                        <div><span className="dayMetaIcon">💧</span>Rain {round(d.totalPrecipMm, 1)}mm</div>
+                        <div><span className="dayMetaIcon">💧</span>Rain {round(d.totalPrecipMm, 1)} mm</div>
                       </div>
                       {isBest ? (
                         <div
