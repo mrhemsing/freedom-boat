@@ -53,6 +53,9 @@ export default async function LocationPage({
     sunriseIso: now?.sun?.sunrise,
     sunsetIso: now?.sun?.sunset
   });
+  const slackTide = getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
+  const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
+  const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
 
   return (
     <main className="container">
@@ -110,7 +113,7 @@ export default async function LocationPage({
 
         <Card
           className="weeklyCard"
-          title={<span className="weeklyTitleMain">Weekly outlook</span>}
+          title={<span className="weeklyTitleMain">5-day outlook</span>}
           subtitle={<span className="weeklyTitleSub">(best boating day highlighted)</span>}
           icon={<span style={{ fontWeight: 900, fontSize: 17, color: 'rgba(11,18,32,0.62)' }}>◉</span>}
           right={null}
@@ -134,6 +137,7 @@ export default async function LocationPage({
                         return (
                           <div className="dayTitleRow">
                             <div className="dayTitle">{d.label}</div>
+                            <div className="dayTempTopMobile">{round(d.minTempC, 0) ?? '—'}/{round(d.maxTempC, 0) ?? '—'}°C</div>
                             <div className="dayIcons" style={{ marginTop: 0 }}>
                               {sunKind === 'sun' ? (
                                 <span className="dayIcon dayIconSun" title="Sunny-ish">
@@ -161,13 +165,13 @@ export default async function LocationPage({
                         );
                       })()}
 
+                      <div className="dayTempLine">{round(d.minTempC, 0) ?? '—'}/{round(d.maxTempC, 0) ?? '—'}°C</div>
                       <div className="dayScorePill" title="Boating score (higher is better)">{d.score}/100</div>
                       <div className="dayMeta">
-                        <div>temp: {round(d.minTempC, 0) ?? '—'}/{round(d.maxTempC, 0) ?? '—'}°C</div>
-                        <div>max wind: {round(d.maxWind, 0)} kt</div>
-                        <div>max gust: {round(d.maxGust, 0)} kt</div>
-                        <div>precip chance: {round(d.maxPrecipProb, 0)}%</div>
-                        <div>rain total: {round(d.totalPrecipMm, 1)} mm</div>
+                        <div><span className="dayMetaIcon" style={{ fontSize: 11 }}>🌀</span>Max wind {round(d.maxWind, 0)} kt</div>
+                        <div><span className="dayMetaIcon">💨</span>Max gust {round(d.maxGust, 0)} kt</div>
+                        <div><span className="dayMetaIcon">☁</span>P.O.P. {round(d.maxPrecipProb, 0)}%</div>
+                        <div><span className="dayMetaIcon">💧</span>Rain {round(d.totalPrecipMm, 1)}mm</div>
                       </div>
                       {isBest ? (
                         <div
@@ -206,6 +210,21 @@ export default async function LocationPage({
               <div className="quickLabel">Best launch window</div>
               <div className="quickValue">{launchWindow.label}</div>
               <div className="miniNote">{launchWindow.detail}</div>
+            </div>
+            <div className="quickItem">
+              <div className="quickLabel">Slack tide</div>
+              <div className="quickValue">{slackTide.label}</div>
+              <div className="miniNote">{slackTide.detail}</div>
+            </div>
+            <div className="quickItem">
+              <div className="quickLabel">Wind × tide risk</div>
+              <div className="quickValue">{windTideRisk.label}</div>
+              <div className="miniNote">{windTideRisk.detail}</div>
+            </div>
+            <div className="quickItem">
+              <div className="quickLabel">Visibility / fog</div>
+              <div className="quickValue">{visibility.label}</div>
+              <div className="miniNote">{visibility.detail}</div>
             </div>
             <div className="quickItem">
               <div className="quickLabel">Advisory</div>
@@ -492,6 +511,79 @@ function getAdvisorySummary(items: Array<{ title?: string; severity?: string }>)
   if (!items?.length) return { label: 'No advisory', detail: 'No active marine warnings' };
   const top = items[0];
   return { label: top.title || 'Marine advisory', detail: `Severity: ${top.severity || 'info'}` };
+}
+
+function getSlackTideSummary({
+  nowIso,
+  events
+}: {
+  nowIso?: string | null;
+  events: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }>;
+}) {
+  const next = getNextTideSummary({ nowIso, events });
+  if (!next) return { label: '—', detail: 'No upcoming tide turn available' };
+  return {
+    label: next.etaLabel,
+    detail: `Next slack near ${next.kindLabel.toLowerCase()} tide turn`
+  };
+}
+
+function getWindTideRiskSummary({
+  now,
+  tidePhase,
+  forecast
+}: {
+  now: any;
+  tidePhase: ReturnType<typeof getTidePhaseSummary>;
+  forecast: Array<{ windSpeedKts?: number; windGustKts?: number }>;
+}) {
+  const windNow = Number(now?.wind?.speedKts ?? 0);
+  const gustNow = Number(now?.wind?.gustKts ?? windNow);
+  const next6 = (forecast || []).slice(0, 6);
+  const maxWind6 = Math.max(...next6.map((h) => Number(h.windSpeedKts ?? 0)), windNow);
+  const maxGust6 = Math.max(...next6.map((h) => Number(h.windGustKts ?? h.windSpeedKts ?? 0)), gustNow);
+
+  const tideMoving = tidePhase ? Math.abs((tidePhase.progress ?? 0) - 0.5) > 0.18 : false;
+  const windy = maxWind6 >= 16 || maxGust6 >= 22;
+
+  if (tideMoving && (maxWind6 >= 22 || maxGust6 >= 30)) {
+    return { label: 'High', detail: 'Steeper chop possible in current flow' };
+  }
+  if ((tideMoving && windy) || maxWind6 >= 18 || maxGust6 >= 25) {
+    return { label: 'Moderate', detail: 'Expect some chop where current is strongest' };
+  }
+  return { label: 'Low', detail: 'Limited wind/current interaction signal' };
+}
+
+function getVisibilityRiskSummary({
+  now,
+  forecast,
+  marineItems
+}: {
+  now: any;
+  forecast: Array<{ precipProbPct?: number; precipMm?: number; t: string }>;
+  marineItems: Array<{ title?: string; body?: string }>;
+}) {
+  const marineText = (marineItems || [])
+    .map((m) => `${m.title || ''} ${m.body || ''}`.toLowerCase())
+    .join(' ');
+
+  if (marineText.includes('fog')) {
+    return { label: 'Watch', detail: 'Fog mentioned in marine advisory text' };
+  }
+
+  const next12 = (forecast || []).slice(0, 12);
+  const rainHit = next12.find((h) => Number(h.precipProbPct ?? 0) >= 70 || Number(h.precipMm ?? 0) >= 1.5);
+  if (rainHit) {
+    return { label: 'Reduced likely', detail: `Rain may reduce visibility around ${isoToLocalTime(rainHit.t)}` };
+  }
+
+  const precipNow = Number(now?.precipMmHr ?? 0);
+  if (precipNow >= 0.8) {
+    return { label: 'Reduced now', detail: 'Active rain can reduce visibility' };
+  }
+
+  return { label: 'Generally good', detail: 'No strong fog/rain visibility signal' };
 }
 
 function getBestLaunchWindowSummary({

@@ -19,8 +19,8 @@ export function WindChart({ forecast }: { forecast: any[] }) {
   const rows = (forecast || []).slice(0, 24);
   if (!rows.length) return <div className="miniNote">No forecast.</div>;
 
-  const w = 860;
-  const h = 180;
+  const w = 920;
+  const h = 210;
   const pad = 28;
 
   const speeds = rows.map((r) => (typeof r.windSpeedKts === 'number' ? r.windSpeedKts : 0));
@@ -38,10 +38,8 @@ export function WindChart({ forecast }: { forecast: any[] }) {
   const yTicks = [0, Math.round(max / 2), Math.round(max)];
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      {/* Use a fixed SVG width and allow horizontal scroll on small screens.
-          Avoid preserveAspectRatio="none" because it stretches text/axes and makes labels hard to read. */}
-      <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
+    <div className="chartScrollX">
+      <svg className="chartSvg" viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
         <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(14, 165, 164, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
 
         {/* grid */}
@@ -76,11 +74,11 @@ export function WindChart({ forecast }: { forecast: any[] }) {
 
         {/* legend */}
         <g>
-          <rect x={w - 190} y={12} width={170} height={44} rx={10} fill="rgba(255,255,255,0.65)" stroke="rgba(11,18,32,0.12)" />
+          <rect x={w - 190} y={12} width={170} height={50} rx={10} fill="rgba(255,255,255,0.65)" stroke="rgba(11,18,32,0.12)" />
           <line x1={w - 175} x2={w - 145} y1={28} y2={28} stroke="rgba(14, 165, 164, 0.95)" strokeWidth={3} />
           <text x={w - 135} y={32} fontSize="12" fill="rgba(11,18,32,0.70)">wind</text>
-          <line x1={w - 175} x2={w - 145} y1={46} y2={46} stroke="rgba(56, 189, 248, 0.95)" strokeWidth={3} />
-          <text x={w - 135} y={50} fontSize="12" fill="rgba(11,18,32,0.70)">gust</text>
+          <line x1={w - 175} x2={w - 145} y1={48} y2={48} stroke="rgba(56, 189, 248, 0.95)" strokeWidth={3} />
+          <text x={w - 135} y={52} fontSize="12" fill="rgba(11,18,32,0.70)">gust</text>
         </g>
       </svg>
     </div>
@@ -91,8 +89,8 @@ export function TideMiniChart({ events }: { events: Array<{ t: string; kind: str
   const rows = (events || []).filter((e) => typeof e.heightM === 'number').slice(0, 10);
   if (rows.length < 2) return <div className="miniNote">No tide heights yet.</div>;
 
-  const w = 860;
-  const h = 160;
+  const w = 920;
+  const h = 190;
   const pad = 28;
 
   const ys = rows.map((r) => r.heightM as number);
@@ -105,8 +103,8 @@ export function TideMiniChart({ events }: { events: Array<{ t: string; kind: str
   const pts = rows.map((r, i) => ({ x: sx(i), y: sy(r.heightM as number) }));
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
+    <div className="chartScrollX">
+      <svg className="chartSvg" viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
         <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(34, 197, 94, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
         <path d={pathFromPoints(pts)} fill="none" stroke="rgba(34, 197, 94, 0.95)" strokeWidth="2" />
         {rows.map((r, i) => (
