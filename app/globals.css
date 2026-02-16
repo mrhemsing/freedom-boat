@@ -129,7 +129,7 @@ summary::-webkit-details-marker {
 }
 
 .card {
-  background: var(--card);
+  background: #eef5ff;
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -570,6 +570,13 @@ summary::-webkit-details-marker {
 .quickLookCard .cardHeader > .miniNote{
   font-size: 12px !important;
 }
+
+.windCard,
+.tidesCard {
+  background: var(--card);
+}
+
+/* weeklyCard inherits shared .card background */
 
 
 .tideGrid{
