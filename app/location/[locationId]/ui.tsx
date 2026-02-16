@@ -160,7 +160,7 @@ export function AlertFeed({
     return <div className="miniNote">No alerts right now.</div>;
   }
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
+    <div className="alertsFeed">
       {items.map((a, idx) => (
         <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
@@ -169,7 +169,7 @@ export function AlertFeed({
             </div>
             <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
           </div>
-          {a.body ? <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>{a.body}</div> : null}
+          {a.body ? <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)', whiteSpace: 'pre-line' }}>{a.body}</div> : null}
         </div>
       ))}
     </div>

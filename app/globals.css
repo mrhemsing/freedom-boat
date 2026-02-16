@@ -218,6 +218,17 @@ summary::-webkit-details-marker {
   margin-bottom: 8px;
 }
 
+.alertsFeed {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 1024px) {
+  .alertsFeed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .cardBody {
   padding: 12px 16px 16px 16px;
 }
