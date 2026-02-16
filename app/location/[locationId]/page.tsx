@@ -125,10 +125,14 @@ export default async function LocationPage({
             if (!week.length) return <div className="miniNote">No forecast available.</div>;
             return (
               <div className="outlookGrid">
-                {week.map((d) => {
+                {week.map((d, idx) => {
                   const isBest = best?.day === d.day;
                   return (
-                    <div key={d.day} className={`dayBox ${isBest ? 'dayBest' : ''}`}>
+                    <div
+                      key={d.day}
+                      className={`dayBox dayBoxAnimate ${isBest ? 'dayBest' : ''}`}
+                      style={{ animationDelay: `${250 + idx * 220}ms` }}
+                    >
                       {(() => {
                         const rain = (d.totalPrecipMm ?? 0) >= 1 || (d.maxPrecipProb ?? 0) >= 50;
                         const wind = (d.maxWind ?? 0) >= 20 || (d.maxGust ?? 0) >= 28;
