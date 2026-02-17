@@ -563,6 +563,10 @@ summary::-webkit-details-marker {
   line-height: 1.1;
 }
 
+.desktopOnlyBr {
+  display: none;
+}
+
 .cardHeader > .miniNote{
   margin-top: 6px;
 }
@@ -825,6 +829,10 @@ hr.soft {
   .weeklyTitleSub{
     margin-top: 0;
     line-height: 1.2;
+  }
+
+  .desktopOnlyBr {
+    display: block;
   }
 
   /* scroll reveal disabled */

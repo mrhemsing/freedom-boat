@@ -169,7 +169,18 @@ export function AlertFeed({
             </div>
             <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
           </div>
-          {a.body ? <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)', whiteSpace: 'pre-line' }}>{a.body}</div> : null}
+          {a.body ? (
+            <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>
+              {String(a.body)
+                .split('\n')
+                .map((part, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 ? <br className="desktopOnlyBr" /> : null}
+                    {part}
+                  </React.Fragment>
+                ))}
+            </div>
+          ) : null}
         </div>
       ))}
     </div>
