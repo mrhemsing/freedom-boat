@@ -175,7 +175,12 @@ export function AlertFeed({
                 .split('\n')
                 .map((part, i) => (
                   <React.Fragment key={i}>
-                    {i > 0 ? <br className="desktopOnlyBr" /> : null}
+                    {i > 0 ? (
+                      <>
+                        <br className="desktopOnlyBr" />
+                        <span className="mobileOnlyInlineSpace"> </span>
+                      </>
+                    ) : null}
                     {part}
                   </React.Fragment>
                 ))}

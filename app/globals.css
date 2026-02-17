@@ -567,6 +567,10 @@ summary::-webkit-details-marker {
   display: none;
 }
 
+.mobileOnlyInlineSpace {
+  display: inline;
+}
+
 .cardHeader > .miniNote{
   margin-top: 6px;
 }
@@ -833,6 +837,10 @@ hr.soft {
 
   .desktopOnlyBr {
     display: block;
+  }
+
+  .mobileOnlyInlineSpace {
+    display: none;
   }
 
   /* scroll reveal disabled */
