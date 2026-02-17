@@ -161,19 +161,26 @@ export function AlertFeed({
   }
   return (
     <div className="alertsFeed">
-      {items.map((a, idx) => (
-        <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
-            <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span className={`pill ${severityClass(a.severity)}`}>{alertIconFromTitle(a.title, a.severity)}</span>
+      {items.map((a, idx) => {
+        const cleanBody = a.body
+          ? String(a.body)
+              .replace(/\./g, '')
+              .replace(/\s+/g, ' ')
+              .trim()
+          : '';
+        const bodyParts = cleanBody ? cleanBody.replace(/\s+\(max gust/i, '__MG__ (max gust').split('__MG__') : [];
+
+        return (
+          <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+              <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className={`pill ${severityClass(a.severity)}`}>{alertIconFromTitle(a.title, a.severity)}</span>
+              </div>
+              <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
             </div>
-            <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
-          </div>
-          {a.body ? (
-            <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>
-              {String(a.body)
-                .split('\n')
-                .map((part, i) => (
+            {cleanBody ? (
+              <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>
+                {bodyParts.map((part, i) => (
                   <React.Fragment key={i}>
                     {i > 0 ? (
                       <>
@@ -184,10 +191,11 @@ export function AlertFeed({
                     {part}
                   </React.Fragment>
                 ))}
-            </div>
-          ) : null}
-        </div>
-      ))}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
