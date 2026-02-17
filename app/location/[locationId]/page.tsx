@@ -876,7 +876,7 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
     out.push({
       t: next6?.[0]?.t ?? new Date().toISOString(),
       severity: cat6.severity,
-      title: `${cat6.title} expected (next 6h)`,
+      title: `[next 6h] ${cat6.title} expected`,
       body: `Max sustained ~${Math.round(maxSustainedNext6)} kt${Number.isFinite(maxGustNext6) && maxGustNext6 > 0 ? `\n(max gust ~${Math.round(maxGustNext6)} kt)` : ''}.`
     });
   }
@@ -887,7 +887,7 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
     out.push({
       t: next24?.[0]?.t ?? new Date().toISOString(),
       severity: cat24.severity,
-      title: `${cat24.title} possible (next 24h)`,
+      title: `[next 24h] ${cat24.title} possible`,
       body: `Max sustained ~${Math.round(maxSustainedNext24)} kt${Number.isFinite(maxGustNext24) && maxGustNext24 > 0 ? `\n(max gust ~${Math.round(maxGustNext24)} kt)` : ''}.`
     });
   }
