@@ -859,36 +859,25 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
     ...(next24 || []).map((h) => (typeof h.windGustKts === 'number' ? h.windGustKts : 0))
   );
 
-  // Live look category (sustained)
-  const catNow = envCanadaWindCategory(sustainedNow);
-  if (catNow) {
-    out.push({
-      t: now?.asOf ?? new Date().toISOString(),
-      severity: catNow.severity,
-      title: `${catNow.title} (live)`,
-      body: `Sustained ~${Math.round(sustainedNow)} kt${gustNow != null ? ` (gusts ~${Math.round(gustNow)} kt)` : ''}`
-    });
-  }
+  // Wind alert (single highest category only; no timeframe labels)
+  const maxSustainedOverall = Math.max(
+    typeof sustainedNow === 'number' ? sustainedNow : 0,
+    Number.isFinite(maxSustainedNext6) ? maxSustainedNext6 : 0,
+    Number.isFinite(maxSustainedNext24) ? maxSustainedNext24 : 0
+  );
+  const maxGustOverall = Math.max(
+    typeof gustNow === 'number' ? gustNow : 0,
+    Number.isFinite(maxGustNext6) ? maxGustNext6 : 0,
+    Number.isFinite(maxGustNext24) ? maxGustNext24 : 0
+  );
 
-  // Next 6 hours category (sustained)
-  const cat6 = envCanadaWindCategory(Number.isFinite(maxSustainedNext6) ? maxSustainedNext6 : null);
-  if (cat6) {
+  const catOverall = envCanadaWindCategory(maxSustainedOverall);
+  if (catOverall) {
     out.push({
-      t: next6?.[0]?.t ?? new Date().toISOString(),
-      severity: cat6.severity,
-      title: `[next 6h] ${cat6.title} expected`,
-      body: `Max sustained ~${Math.round(maxSustainedNext6)} kt${Number.isFinite(maxGustNext6) && maxGustNext6 > 0 ? `\n(max gust ~${Math.round(maxGustNext6)} kt)` : ''}`
-    });
-  }
-
-  // Next 24 hours category (sustained)
-  const cat24 = envCanadaWindCategory(Number.isFinite(maxSustainedNext24) ? maxSustainedNext24 : null);
-  if (cat24) {
-    out.push({
-      t: next24?.[0]?.t ?? new Date().toISOString(),
-      severity: cat24.severity,
-      title: `[next 24h] ${cat24.title} possible`,
-      body: `Max sustained ~${Math.round(maxSustainedNext24)} kt${Number.isFinite(maxGustNext24) && maxGustNext24 > 0 ? `\n(max gust ~${Math.round(maxGustNext24)} kt)` : ''}`
+      t: now?.asOf ?? next24?.[0]?.t ?? new Date().toISOString(),
+      severity: catOverall.severity,
+      title: catOverall.title,
+      body: `Max sustained ~${Math.round(maxSustainedOverall)} kt${maxGustOverall > 0 ? `\n(max gust ~${Math.round(maxGustOverall)} kt)` : ''}`
     });
   }
 
