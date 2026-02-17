@@ -901,7 +901,7 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
       t: rain.t,
       severity: 'info',
       title: 'Rain likely soon',
-      body: `~${Math.round(rain.precipProbPct)}% chance within the next 24 hours.`
+      body: `~${Math.round(rain.precipProbPct)}% chance the next 24 hours.`
     });
   }
 
