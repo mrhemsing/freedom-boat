@@ -384,6 +384,11 @@ export default async function LocationPage({
           <TideList events={tides?.events ?? []} />
         </Card>
       </div>
+
+      <footer className="siteFooter">
+        © 2026{' '}
+        <a href="https://www.b-average.com/" target="_blank" rel="noreferrer">B Average</a>
+      </footer>
     </main>
   );
 }

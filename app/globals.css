@@ -54,6 +54,18 @@ a:hover {
   padding: 26px 18px 44px 18px;
 }
 
+.siteFooter {
+  margin-top: 14px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 14px;
+}
+
+.siteFooter a {
+  color: rgba(255, 255, 255, 0.98);
+  text-decoration: underline;
+}
+
 .topbar {
   /* Use grid so the header has a predictable 2-row layout:
      Row 1: logo + title
