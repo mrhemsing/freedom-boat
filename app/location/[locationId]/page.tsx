@@ -386,7 +386,7 @@ export default async function LocationPage({
       </div>
 
       <footer className="siteFooter">
-        © 2026{' '}
+        © {new Date().getFullYear()}{' '}
         <a href="https://www.b-average.com/" target="_blank" rel="noreferrer">B Average</a>
       </footer>
     </main>
