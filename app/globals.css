@@ -680,6 +680,21 @@ hr.soft {
   .chartScrollX { overflow-x: auto; }
   .chartSvg { width: 920px; max-width: none; }
 
+  .badge,
+  .seg,
+  .cardSubtitle,
+  .alertsAsOfTop,
+  .alertsAsOfInBody,
+  .kpiLabel,
+  .kpiSub,
+  .pill,
+  .miniNote,
+  .windDirNote,
+  .forecastTimeText,
+  .forecastMetaText {
+    font-size: 13px !important;
+  }
+
   .alertsCard{ order: 10; }
   .weeklyCard{ order: 20; }
   .liveLookCard{ order: 30; }
