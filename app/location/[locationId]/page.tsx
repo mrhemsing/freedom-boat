@@ -894,18 +894,15 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
     });
   }
 
-  // Rain alert only if total precip over next 24h exceeds 5mm
+  // Rain alert only if any hourly precip in next 24h exceeds 5 mm/hr
   const next24ForRain = (forecast || []).slice(0, 24);
-  const totalPrecip24 = next24ForRain.reduce(
-    (acc, h) => acc + (typeof h.precipMm === 'number' ? h.precipMm : 0),
-    0
-  );
-  if (totalPrecip24 > 5) {
+  const heavyHour = next24ForRain.find((h) => typeof h.precipMm === 'number' && h.precipMm > 5);
+  if (heavyHour) {
     out.push({
-      t: now?.asOf ?? next24ForRain?.[0]?.t ?? new Date().toISOString(),
+      t: heavyHour.t,
       severity: 'info',
-      title: 'Rain expected',
-      body: `~${round(totalPrecip24, 1)} mm in the next 24 hours`
+      title: 'Heavy rain expected',
+      body: `~${round(heavyHour.precipMm, 1)} mm/hr around ${isoToLocalTime(heavyHour.t)}`
     });
   }
 
