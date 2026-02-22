@@ -100,7 +100,7 @@ export function WindArrow({ deg }: { deg?: number | null }) {
           }}
         />
       </span>
-      <span style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{dir ?? '—'}</span>
+      <span className="windDirNote" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{dir ?? '—'}</span>
     </span>
   );
 }
@@ -116,12 +116,12 @@ export function ForecastStrip({ forecast }: { forecast: any[] }) {
           const pp = h.precipProbPct != null ? round(h.precipProbPct, 0) : null;
           return (
             <div key={h.t} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 10, background: 'rgba(255,255,255,0.70)' }}>
-              <div style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{isoToLocalTime(h.t)}</div>
+              <div className="forecastTimeText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{isoToLocalTime(h.t)}</div>
               <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{ws ?? '—'} kt</div>
-              <div style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
+              <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
                 gust {wg ?? '—'}
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
+              <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
                 precip {pp ?? '—'}%
               </div>
             </div>

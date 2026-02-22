@@ -595,6 +595,30 @@ summary::-webkit-details-marker {
   font-size: 12px !important;
 }
 
+@media (min-width: 721px) {
+  .badge,
+  .seg,
+  .cardSubtitle,
+  .alertsAsOfTop,
+  .alertsAsOfInBody,
+  .dayMeta,
+  .kpiLabel,
+  .kpiSub,
+  .quickLabel,
+  .pill,
+  .miniNote,
+  .quickLookCard .cardHeader > .miniNote,
+  .windDirNote,
+  .forecastTimeText,
+  .forecastMetaText {
+    font-size: 13px !important;
+  }
+
+  .locationAddress {
+    font-size: 14px !important;
+  }
+}
+
 .windCard,
 .tidesCard {
   background: var(--card);
