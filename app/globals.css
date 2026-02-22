@@ -625,11 +625,11 @@ summary::-webkit-details-marker {
   }
 
   .conditionsDetailGrid {
-    gap: 4px;
+    gap: 5px;
   }
 
   .conditionsDetailLine {
-    line-height: 1.15;
+    line-height: 1.22;
   }
 
   .locationAddress {
