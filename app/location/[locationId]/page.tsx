@@ -894,16 +894,18 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
     });
   }
 
-  // Rain heads-up: first hour with precipProb >= 60%
-  const rain = (forecast || [])
-    .slice(0, 24)
-    .find((h) => typeof h.precipProbPct === 'number' && h.precipProbPct >= 60);
-  if (rain) {
+  // Rain alert only if total precip over next 24h exceeds 5mm
+  const next24ForRain = (forecast || []).slice(0, 24);
+  const totalPrecip24 = next24ForRain.reduce(
+    (acc, h) => acc + (typeof h.precipMm === 'number' ? h.precipMm : 0),
+    0
+  );
+  if (totalPrecip24 > 5) {
     out.push({
-      t: rain.t,
+      t: now?.asOf ?? next24ForRain?.[0]?.t ?? new Date().toISOString(),
       severity: 'info',
-      title: 'Rain likely soon',
-      body: `~${Math.round(rain.precipProbPct)}% chance the next 24 hours`
+      title: 'Rain expected',
+      body: `~${round(totalPrecip24, 1)} mm in the next 24 hours`
     });
   }
 
