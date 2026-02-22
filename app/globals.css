@@ -614,6 +614,16 @@ summary::-webkit-details-marker {
     font-size: 13px !important;
   }
 
+  .quickLookCard .quickItem {
+    line-height: 1.35;
+  }
+
+  .quickLookCard .quickLabel,
+  .quickLookCard .quickValue,
+  .quickLookCard .miniNote {
+    line-height: 1.4;
+  }
+
   .locationAddress {
     font-size: 14px !important;
   }
