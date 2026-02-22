@@ -744,11 +744,16 @@ function buildWeeklyOutlook(
 
     // Heuristic score: wind/gust matter most, small rain has light impact,
     // but rain totals over 5mm/day incur a steeper penalty.
+    // Tiered rain impact: <=5mm light, <=10mm moderate, <=20mm heavy, >20mm severe
     const rainPenalty =
       totalPrecipMm <= 5
-        ? totalPrecipMm * 2.2
-        : 5 * 2.2 + (totalPrecipMm - 5) * 8.5;
-    const popPenalty = maxPrecipProb * 0.12;
+        ? totalPrecipMm * 1.8
+        : totalPrecipMm <= 10
+          ? 5 * 1.8 + (totalPrecipMm - 5) * 4.5
+          : totalPrecipMm <= 20
+            ? 5 * 1.8 + 5 * 4.5 + (totalPrecipMm - 10) * 7.5
+            : 5 * 1.8 + 5 * 4.5 + 10 * 7.5 + (totalPrecipMm - 20) * 10.5;
+    const popPenalty = maxPrecipProb * 0.1;
     const raw = 100 - (maxGust * 1.65 + maxWind * 0.45 + popPenalty + rainPenalty);
     const score = Math.max(0, Math.min(100, Math.round(raw)));
 
