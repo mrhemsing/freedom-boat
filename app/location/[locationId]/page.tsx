@@ -742,9 +742,14 @@ function buildWeeklyOutlook(
     const minTempC = temps.length ? Math.min(...temps) : undefined;
     const maxTempC = temps.length ? Math.max(...temps) : undefined;
 
-    // Heuristic score: lower gust + lower precip probability + lower total precip wins.
-    // 100 is best, 0 is worst.
-    const raw = 100 - (maxGust * 2.2 + maxWind * 0.6 + maxPrecipProb * 0.6 + totalPrecipMm * 6);
+    // Heuristic score: wind/gust matter most, small rain has light impact,
+    // but rain totals over 5mm/day incur a steeper penalty.
+    const rainPenalty =
+      totalPrecipMm <= 5
+        ? totalPrecipMm * 2.2
+        : 5 * 2.2 + (totalPrecipMm - 5) * 8.5;
+    const popPenalty = maxPrecipProb * 0.12;
+    const raw = 100 - (maxGust * 1.65 + maxWind * 0.45 + popPenalty + rainPenalty);
     const score = Math.max(0, Math.min(100, Math.round(raw)));
 
     out.push({
