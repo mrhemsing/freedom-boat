@@ -758,6 +758,10 @@ hr.soft {
     font-size: 16px;
   }
 
+  .conditionsDetailLine:last-child {
+    margin-top: 2px;
+  }
+
   /* Mobile: make card/container titles bigger */
   .cardHeader h2{
     font-size: 18px !important;
