@@ -624,6 +624,14 @@ summary::-webkit-details-marker {
     line-height: 1.4;
   }
 
+  .conditionsDetailGrid {
+    gap: 4px;
+  }
+
+  .conditionsDetailLine {
+    line-height: 1.15;
+  }
+
   .locationAddress {
     font-size: 14px !important;
   }
