@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Freedom Boat – Port Moody',
-  description: 'Hyper-local boating conditions for Port Moody + North Saanich.'
+  title: 'Freedom Boat',
+  description: 'Hyper-local boating conditions for Port Moody, West Vancouver, and North Saanich.'
 };
 
 export default function RootLayout({

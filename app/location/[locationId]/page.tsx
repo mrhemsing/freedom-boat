@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
@@ -6,6 +7,21 @@ import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './u
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
 import MarinaJump from './MarinaJump';
+
+export async function generateMetadata({
+  params
+}: {
+  params: { locationId: string };
+}): Promise<Metadata> {
+  const id = params.locationId as LocationId;
+  const loc = LOCATIONS[id];
+  const name = loc?.name ?? 'Marina';
+
+  return {
+    title: `Freedom Boat – ${name}`,
+    description: `Hyper-local boating conditions for ${name}.`
+  };
+}
 
 export default async function LocationPage({
   params
