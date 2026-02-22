@@ -43,7 +43,12 @@ export default async function LocationPage({
   const windSpeed = now?.wind?.speedKts;
   const gust = now?.wind?.gustKts;
   const dir = now?.wind?.directionDeg;
-  const webcamVideoId = id === 'north-saanich' ? 'zeKV78ULlpY' : 'T0oUufecXeE';
+  const webcamVideoId =
+    id === 'north-saanich'
+      ? 'zeKV78ULlpY'
+      : id === 'west-vancouver'
+        ? 'MOKktH6RcpU'
+        : 'T0oUufecXeE';
   const nextTide = getNextTideSummary({ events: tides?.events ?? [] });
   const tidePhase = getTidePhaseSummary({ events: tides?.events ?? [] });
   const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
