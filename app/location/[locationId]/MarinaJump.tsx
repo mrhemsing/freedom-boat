@@ -18,8 +18,8 @@ export default function MarinaJump({ value }: { value: LocationId }) {
       }}
     >
       <option value="port-moody">Port Moody</option>
-      <option value="north-saanich">North Saanich</option>
       <option value="west-vancouver">West Vancouver</option>
+      <option value="north-saanich">North Saanich</option>
     </select>
   );
 }

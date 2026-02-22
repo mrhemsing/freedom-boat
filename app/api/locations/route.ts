@@ -10,16 +10,16 @@ export async function GET() {
       lon: -122.86
     },
     {
-      id: 'north-saanich',
-      name: 'North Saanich',
-      lat: 48.65,
-      lon: -123.43
-    },
-    {
       id: 'west-vancouver',
       name: 'West Vancouver',
       lat: 49.3293,
       lon: -123.1566
+    },
+    {
+      id: 'north-saanich',
+      name: 'North Saanich',
+      lat: 48.65,
+      lon: -123.43
     }
   ]);
 }
