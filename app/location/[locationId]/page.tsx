@@ -88,12 +88,12 @@ export default async function LocationPage({
           <span className="badge" style={{ padding: 8, alignItems: 'stretch', borderRadius: 14 }}>
             <span style={{ display: 'grid', gap: 6 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(255, 206, 64, 0.95)' }}>
-                <span style={{ display: 'inline-flex' }}><IconSunrise size={16} /></span>
-                <span style={{ color: 'rgba(255,255,255,0.90)' }}>{now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : '—'}</span>
+                <span style={{ display: 'inline-flex' }}><IconSunrise size={17} /></span>
+                <span style={{ color: 'rgba(255,255,255,0.90)', fontSize: 13 }}>{now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : '—'}</span>
               </span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(251, 113, 133, 0.95)' }}>
-                <span style={{ display: 'inline-flex' }}><IconSunset size={16} /></span>
-                <span style={{ color: 'rgba(255,255,255,0.90)' }}>{now?.sun?.sunset ? formatAsOf(now.sun.sunset) : '—'}</span>
+                <span style={{ display: 'inline-flex' }}><IconSunset size={17} /></span>
+                <span style={{ color: 'rgba(255,255,255,0.90)', fontSize: 13 }}>{now?.sun?.sunset ? formatAsOf(now.sun.sunset) : '—'}</span>
               </span>
             </span>
           </span>
