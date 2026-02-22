@@ -632,6 +632,10 @@ summary::-webkit-details-marker {
     line-height: 1.22;
   }
 
+  .dayMeta {
+    font-size: 14px !important;
+  }
+
   .locationAddress {
     font-size: 14px !important;
   }
