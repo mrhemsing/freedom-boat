@@ -140,6 +140,12 @@ a:hover {
   color: rgba(255, 255, 255, 0.95);
 }
 
+/* Ensure native select dropdown items stay readable on desktop/light popups. */
+#marinaJump option {
+  color: #1f2937;
+  background: #ffffff;
+}
+
 summary::-webkit-details-marker {
   display: none;
 }
