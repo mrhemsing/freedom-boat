@@ -122,7 +122,7 @@ a:hover {
   display: inline-flex;
   align-items: center;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 12px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
@@ -713,7 +713,16 @@ hr.soft {
   .tidesCard{ order: 50; }
 
   .container{
+    padding-top: 16px;
     padding-bottom: calc(42px + env(safe-area-inset-bottom));
+  }
+
+  .grid {
+    gap: 16px;
+  }
+
+  .grid > .card {
+    margin-bottom: 15px;
   }
 
   .liveLookGrid {
@@ -787,6 +796,11 @@ hr.soft {
   .fbLogo{
     width: 77px;
     height: 77px;
+  }
+
+  #marinaJump,
+  .seg {
+    border-radius: 8px !important;
   }
 
   .sunBadgeWrap {
