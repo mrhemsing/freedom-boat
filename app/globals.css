@@ -56,18 +56,39 @@ a:hover {
 
 .siteFooter {
   margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   text-align: left;
   color: rgba(209, 213, 219, 0.95);
   font-size: 14px;
 }
 
-.siteFooter a {
-  color: rgba(209, 213, 219, 0.95);
+.baBadge {
+  display: inline-block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.16px;
+  text-transform: uppercase;
   text-decoration: none;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 6px;
+  padding-right: 5px;
+  border-radius: 0;
+  line-height: 1;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
-.siteFooter a:hover {
-  color: rgba(255, 255, 255, 1);
+.baBadgeWhite {
+  background: #fff;
+  color: #000;
+}
+
+.baBadgeWhite:hover {
+  background: #000;
+  color: #fff;
 }
 
 .topbar {

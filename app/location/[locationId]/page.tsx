@@ -410,8 +410,8 @@ export default async function LocationPage({
       </div>
 
       <footer className="siteFooter">
-        © {new Date().getFullYear()}{' '}
-        <a href="https://www.b-average.com/" target="_blank" rel="noreferrer">B Average</a>
+        <span>© {new Date().getFullYear()}</span>
+        <a className="baBadge baBadgeWhite" href="https://www.b-average.com/" target="_blank" rel="noreferrer">B AVERAGE</a>
       </footer>
     </main>
   );
