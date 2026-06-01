@@ -7,6 +7,7 @@ import {
   type BoatLaunch,
   type Marina
 } from '../../lib/marinas';
+import { snapMarinaList } from '../../lib/marina-snap';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
 
 type TripMapProps = {
@@ -95,7 +96,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [shareText, setShareText] = useState('');
   const [shareMessage, setShareMessage] = useState('');
   const [dayIndex, setDayIndex] = useState(0);
-  const [activeMarinas, setActiveMarinas] = useState(marinas);
+  const [activeMarinas, setActiveMarinas] = useState(() => snapMarinaList(marinas));
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
   const [liveTides, setLiveTides] = useState<Record<number, LiveTide>>({});
   const [weeklyOutlooks, setWeeklyOutlooks] = useState<PlannerOutlooks>({});
@@ -123,7 +124,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const selectedLaunch = selectedLaunchId ? launches.find((launch) => launch.id === selectedLaunchId) ?? null : null;
 
   useEffect(() => {
-    setActiveMarinas(marinas);
+    setActiveMarinas(snapMarinaList(marinas));
   }, [marinas]);
 
   useEffect(() => {
@@ -1578,7 +1579,7 @@ async function loadOsmPlaces() {
 
   marinas.sort((a, b) => distanceFromHome(a) - distanceFromHome(b));
   launches.sort((a, b) => distanceFromHome(a) - distanceFromHome(b));
-  return marinas.length ? { marinas: marinas.map((m, index) => ({ ...m, id: index + 1 })), launches } : null;
+  return marinas.length ? { marinas: snapMarinaList(marinas).map((m, index) => ({ ...m, id: index + 1 })), launches } : null;
 }
 
 function osmAddress(tags: Record<string, string>) {
