@@ -1620,7 +1620,7 @@ hr.soft {
   line-height: 1.4;
 }
 
-.tripPlannerInfo {
+.tripPlannerMenu {
   display: none;
 }
 
@@ -2900,24 +2900,32 @@ hr.soft {
     display: block;
     overflow: hidden;
     color: #fff;
-    font-size: 21px;
+    font-size: 18px;
     text-overflow: ellipsis;
   }
 
-  .tripPlannerBrand .brandBoat,
   .tripPlannerKicker,
   .tripPlannerSubhead,
   .tripPlannerJumpLabel {
     display: none;
   }
 
-  .tripPlannerInfo {
+  .tripPlannerBrand .brandBoat {
+    display: block;
+    overflow: hidden;
+    color: #60a5fa;
+    font-size: 12px;
+    line-height: 1;
+    text-overflow: ellipsis;
+  }
+
+  .tripPlannerMenu {
     display: block;
     grid-column: 3;
     grid-row: 1;
   }
 
-  .tripPlannerInfo summary {
+  .tripPlannerMenu summary {
     width: 38px;
     height: 38px;
     display: grid;
@@ -2930,32 +2938,80 @@ hr.soft {
     list-style: none;
   }
 
-  .tripPlannerInfo summary::-webkit-details-marker {
+  .tripPlannerMenu summary::-webkit-details-marker {
     display: none;
   }
 
-  .tripPlannerInfo summary span {
+  .tripPlannerMenu summary span {
     width: 15px;
     height: 2px;
     border-radius: 999px;
     background: #fff;
   }
 
-  .tripPlannerInfo p {
+  .tripPlannerMenuPanel {
     position: absolute;
     z-index: 2600;
     top: calc(100% + 8px);
-    left: 0;
     right: 0;
+    width: min(330px, calc(100vw - 24px));
+    max-height: min(430px, calc(100dvh - 112px));
+    overflow-y: auto;
     margin: 0;
     border-radius: 12px;
-    padding: 12px 14px;
+    padding: 8px;
     background: rgba(12, 58, 76, 0.97);
     color: rgba(255, 255, 255, 0.94);
     box-shadow: 0 14px 32px rgba(2, 12, 27, 0.30);
+  }
+
+  .tripPlannerMenuTitle {
+    padding: 8px 10px 7px;
+    color: rgba(255, 255, 255, 0.72);
     font-size: 13px;
-    font-weight: 750;
-    line-height: 1.35;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .tripPlannerMenuPanel a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 9px;
+    padding: 9px 10px;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .tripPlannerMenuPanel a:hover {
+    background: rgba(255, 255, 255, 0.10);
+    text-decoration: none;
+  }
+
+  .tripPlannerMenuPanel a strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tripPlannerMenuPanel a span {
+    flex: 0 0 auto;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .tripPlannerMenuPanel .tripPlannerMenuAll {
+    margin-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0;
+    color: #bdefff;
+    font-weight: 900;
   }
 
   .tripPlannerNav {

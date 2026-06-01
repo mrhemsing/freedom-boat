@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
+import { seoSlugForMarina } from '../../lib/seo-slugs';
 import MarinaJump from '../location/[locationId]/MarinaJump';
 import TripMap from './TripMap';
 
@@ -9,6 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function PlanMyTripPage() {
+  const freedomMarinas = [...TRIP_MARINAS, ...FBC_PNW_MARINAS]
+    .filter((marina) => marina.freedomClub)
+    .sort((a, b) => a.area.localeCompare(b.area) || a.name.localeCompare(b.name));
+
   return (
     <main className="container tripPlannerPage">
       <header className="topbar tripPlannerHeader">
@@ -25,13 +30,22 @@ export default function PlanMyTripPage() {
         <div className="headerInfo">
           <div className="tripPlannerKicker">Plan my trip</div>
           <div className="tripPlannerSubhead">Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</div>
-          <details className="tripPlannerInfo">
-            <summary aria-label="Planner information">
+          <details className="tripPlannerMenu">
+            <summary aria-label="Open marina menu">
               <span />
               <span />
               <span />
             </summary>
-            <p>Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</p>
+            <div className="tripPlannerMenuPanel" aria-label="Freedom Club marinas">
+              <div className="tripPlannerMenuTitle">Freedom Club Marinas</div>
+              {freedomMarinas.map((marina) => (
+                <a key={marina.id} href={`/marina/${seoSlugForMarina(marina)}`}>
+                  <strong>{marina.name.replace('Freedom Boat Club ', '')}</strong>
+                  <span>{marina.area}</span>
+                </a>
+              ))}
+              <a className="tripPlannerMenuAll" href="/browse?type=marinas">Browse all marinas</a>
+            </div>
           </details>
           <div className="tripPlannerNav">
             <label htmlFor="marinaJump" className="miniNote tripPlannerJumpLabel">
