@@ -231,6 +231,9 @@ export default function TripMap({ marinas }: TripMapProps) {
         attributionControl: true,
         scrollWheelZoom: window.matchMedia('(min-width: 900px)').matches,
         zoomControl: false,
+        zoomAnimation: false,
+        fadeAnimation: false,
+        markerZoomAnimation: false,
         dragging: true,
         doubleClickZoom: true,
         touchZoom: true
@@ -286,10 +289,12 @@ export default function TripMap({ marinas }: TripMapProps) {
         });
       }
 
-      map.fitBounds(bounds.pad(0.18), { maxZoom: 10 });
+      map.fitBounds(bounds.pad(0.18), { animate: false, maxZoom: 10 });
 
       setTimeout(() => {
-        map.invalidateSize();
+        if (!disposed && leafletMapRef.current === map) {
+          map.invalidateSize();
+        }
       }, 0);
 
       cleanup = () => {
