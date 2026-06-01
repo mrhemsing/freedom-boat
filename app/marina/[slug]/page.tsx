@@ -15,14 +15,15 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const marina = getMarinaBySlug(params.slug);
   if (!marina) return {};
   const snapshot = await getMarinaSeoSnapshot(marina);
+  const title = marinaPageTitle(marina);
   return {
-    title: `${marina.name} Tides & Boating Conditions | Fairtide`,
+    title: `${title} | Fairtide`,
     description: snapshot.summary,
     alternates: {
       canonical: canonicalUrl(`/marina/${marina.slug}`)
     },
     openGraph: {
-      title: `${marina.name} Tides & Boating Conditions | Fairtide`,
+      title: `${title} | Fairtide`,
       description: snapshot.summary,
       url: canonicalUrl(`/marina/${marina.slug}`),
       type: 'website'
@@ -40,6 +41,7 @@ export default async function MarinaSeoPage({ params }: { params: { slug: string
   ]);
   const access = marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
   const area = areaHubForPlace(marina);
+  const title = marinaPageTitle(marina);
 
   return (
     <main className="container seoPage">
@@ -53,7 +55,7 @@ export default async function MarinaSeoPage({ params }: { params: { slug: string
           <span>/</span>
           <a href={`/area/${area.slug}`}>{area.name}</a>
         </nav>
-        <h1>{marina.name} Tides & Boating Conditions</h1>
+        <h1>{title}</h1>
         <p>{snapshot.summary}</p>
         <div className="seoActions">
           <a className="seoButton seoButtonPrimary" href={`/plan-my-trip?marina=${marina.slug}`}>Open in interactive map</a>
@@ -84,10 +86,17 @@ export default async function MarinaSeoPage({ params }: { params: { slug: string
         <dl className="seoFacts">
           <div><dt>Area</dt><dd>{marina.area}</dd></div>
           <div><dt>Address</dt><dd>{marina.address}</dd></div>
+          {marina.operator ? <div><dt>Operator</dt><dd>{marina.operator}</dd></div> : null}
           <div><dt>Access</dt><dd>{access?.access ?? 'Verify before arrival'}</dd></div>
           <div><dt>Guest moorage</dt><dd>{access ? transientLabel(access.transient) : 'Verify before arrival'}</dd></div>
           <div><dt>Fuel</dt><dd>{access?.fuel ?? 'Verify'}</dd></div>
           <div><dt>Boat launch</dt><dd>{access?.launch ?? 'Verify'}</dd></div>
+          {marina.sourceUrl ? (
+            <div>
+              <dt>Source</dt>
+              <dd><a href={marina.sourceUrl} target="_blank" rel="noreferrer">Official Freedom Boat Club page</a></dd>
+            </div>
+          ) : null}
         </dl>
 
         <h2>Marinas Near {marina.name}</h2>
@@ -120,6 +129,12 @@ function transientLabel(value: 'Y' | 'Limited' | 'N') {
   if (value === 'Y') return 'Yes';
   if (value === 'N') return 'No';
   return 'Limited';
+}
+
+function marinaPageTitle(marina: { name: string; waterType?: 'tidal' | 'lake' | 'river' }) {
+  if (marina.waterType === 'lake') return `${marina.name} Boating Conditions`;
+  if (marina.waterType === 'river') return `${marina.name} River Boating Conditions`;
+  return `${marina.name} Tides & Boating Conditions`;
 }
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {

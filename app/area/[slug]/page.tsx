@@ -44,7 +44,7 @@ export default function AreaHubPage({ params }: { params: { slug: string } }) {
         <p>{hub.description}</p>
         <div className="seoActions">
           <a className="seoButton seoButtonPrimary" href="/plan-my-trip">Open interactive map</a>
-          <a className="seoButton" href="/area/salish-sea">All Salish Sea areas</a>
+          <a className="seoButton" href="/area/pacific-northwest">All Pacific Northwest areas</a>
         </div>
       </header>
 

@@ -10,6 +10,9 @@ export type Marina = {
   freedomClub?: boolean;
   locationId?: 'port-moody' | 'north-saanich' | 'west-vancouver';
   accessInfo?: MarinaAccessInfo;
+  operator?: string;
+  sourceUrl?: string;
+  waterType?: 'tidal' | 'lake' | 'river';
 };
 
 export type MarinaAccessInfo = {
@@ -96,7 +99,9 @@ export const TRIP_MARINAS: Marina[] = [
     lon: -123.288,
     area: 'West Vancouver',
     freedomClub: true,
-    locationId: 'west-vancouver'
+    locationId: 'west-vancouver',
+    operator: 'Freedom Boat Club of British Columbia',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/freedom-boat-club-of-british-columbia-ltd/west-vancouver'
   },
   {
     id: 3,
@@ -134,7 +139,9 @@ export const TRIP_MARINAS: Marina[] = [
     lon: -122.8846,
     area: 'Port Moody',
     freedomClub: true,
-    locationId: 'port-moody'
+    locationId: 'port-moody',
+    operator: 'Freedom Boat Club of British Columbia',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/freedom-boat-club-of-british-columbia-ltd/port-moody'
   },
   {
     id: 7,
@@ -262,7 +269,9 @@ export const TRIP_MARINAS: Marina[] = [
     lon: -123.407,
     area: 'North Saanich',
     freedomClub: true,
-    locationId: 'north-saanich'
+    locationId: 'north-saanich',
+    operator: 'Freedom Boat Club of British Columbia',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/freedom-boat-club-of-british-columbia-ltd/northsaanich'
   }
 ];
 
@@ -383,6 +392,243 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     lat: 49.3585,
     lon: -123.2715,
     area: 'West Vancouver'
+  }
+];
+
+const FREEDOM_CLUB_ACCESS: MarinaAccessInfo = {
+  access: 'Members',
+  transient: 'N',
+  fuel: '?',
+  launch: '?',
+  moorage: 'Freedom Boat Club member access',
+  verified: true
+};
+
+export const FBC_PNW_MARINAS: Marina[] = [
+  {
+    id: 34,
+    osmId: 'fbc_oak_bay',
+    name: 'Freedom Boat Club Oak Bay',
+    address: 'Oak Bay Marina, Victoria, BC',
+    lat: 48.4249,
+    lon: -123.3025,
+    area: 'Oak Bay',
+    freedomClub: true,
+    operator: 'Freedom Boat Club of British Columbia',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/freedom-boat-club-of-british-columbia-ltd/oak-bay',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 35,
+    osmId: 'fbc_bellingham',
+    name: 'Freedom Boat Club Bellingham',
+    address: 'Squalicum Harbor Marina, Bellingham, WA',
+    lat: 48.7531,
+    lon: -122.5014,
+    area: 'Bellingham',
+    freedomClub: true,
+    operator: 'FBC of San Juan Islands',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/san-juan-boat-club/bellingham',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 36,
+    osmId: 'fbc_anacortes',
+    name: 'Freedom Boat Club Anacortes',
+    address: 'Anacortes, WA',
+    lat: 48.5126,
+    lon: -122.6127,
+    area: 'Anacortes',
+    freedomClub: true,
+    operator: 'FBC of San Juan Islands',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/san-juan-boat-club/anacortes',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 37,
+    osmId: 'fbc_everett',
+    name: 'Freedom Boat Club Everett',
+    address: 'Port of Everett Marina, Everett, WA',
+    lat: 47.9972,
+    lon: -122.2227,
+    area: 'Everett',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/everett',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 38,
+    osmId: 'fbc_edmonds',
+    name: 'Freedom Boat Club Port of Edmonds',
+    address: 'Port of Edmonds Marina, Edmonds, WA',
+    lat: 47.8112,
+    lon: -122.3857,
+    area: 'Edmonds',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/port-of-edmonds',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 39,
+    osmId: 'fbc_poulsbo',
+    name: 'Freedom Boat Club Port of Poulsbo',
+    address: 'Poulsbo Marina, Poulsbo, WA',
+    lat: 47.7359,
+    lon: -122.6477,
+    area: 'Poulsbo',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/port-of-poulsbo',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 40,
+    osmId: 'fbc_elliott_bay',
+    name: 'Freedom Boat Club Elliott Bay Marina',
+    address: 'Elliott Bay Marina, Seattle, WA',
+    lat: 47.6309,
+    lon: -122.3912,
+    area: 'Seattle',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/elliott-bay-marina',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 41,
+    osmId: 'fbc_agc',
+    name: 'Freedom Boat Club AGC Marina',
+    address: 'AGC Marina, Lake Union, Seattle, WA',
+    lat: 47.6268,
+    lon: -122.3354,
+    area: 'Lake Union',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/agc-marina',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 42,
+    osmId: 'fbc_yarrow_bay',
+    name: 'Freedom Boat Club Yarrow Bay Marina',
+    address: 'Yarrow Bay Marina, Kirkland, WA',
+    lat: 47.6433,
+    lon: -122.2086,
+    area: 'Kirkland',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/yarrow-bay-marina',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 43,
+    osmId: 'fbc_leschi',
+    name: 'Freedom Boat Club Leschi Marina',
+    address: 'Leschi Marina, Seattle, WA',
+    lat: 47.6021,
+    lon: -122.2861,
+    area: 'Lake Washington',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/leschi-marina',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 44,
+    osmId: 'fbc_port_orchard',
+    name: 'Freedom Boat Club Port Orchard',
+    address: 'Port Orchard Marina, Port Orchard, WA',
+    lat: 47.5432,
+    lon: -122.6367,
+    area: 'Port Orchard',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/port-orchard',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 45,
+    osmId: 'fbc_tacoma',
+    name: 'Freedom Boat Club Tacoma',
+    address: 'Foss Harbor Marina, Tacoma, WA',
+    lat: 47.2531,
+    lon: -122.4345,
+    area: 'Tacoma',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/tacoma',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 46,
+    osmId: 'fbc_olympia',
+    name: 'Freedom Boat Club Olympia',
+    address: 'Swantown Marina, Olympia, WA',
+    lat: 47.0554,
+    lon: -122.9004,
+    area: 'Olympia',
+    freedomClub: true,
+    operator: 'FBC Seattle and Greater Puget Sound',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/olympia',
+    accessInfo: FREEDOM_CLUB_ACCESS
+  },
+  {
+    id: 47,
+    osmId: 'fbc_tomahawk_bay',
+    name: 'Freedom Boat Club Portland Tomahawk Bay Marina',
+    address: 'Tomahawk Bay Marina, Portland, OR',
+    lat: 45.6074,
+    lon: -122.6606,
+    area: 'Portland',
+    freedomClub: true,
+    operator: 'FBC of Portland OR',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/columbia-boat-club-inc/portland-oregon',
+    accessInfo: FREEDOM_CLUB_ACCESS,
+    waterType: 'river'
+  },
+  {
+    id: 48,
+    osmId: 'fbc_camas',
+    name: 'Freedom Boat Club Port of Camas',
+    address: "Parker's Landing Marina, Camas/Washougal, WA",
+    lat: 45.5782,
+    lon: -122.3811,
+    area: 'Camas/Washougal',
+    freedomClub: true,
+    operator: 'FBC of Portland OR',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/columbia-boat-club-inc/port-of-camas',
+    accessInfo: FREEDOM_CLUB_ACCESS,
+    waterType: 'river'
+  },
+  {
+    id: 49,
+    osmId: 'fbc_cda',
+    name: "Freedom Boat Club Lake Coeur d'Alene",
+    address: "Lakeside Marina, Coeur d'Alene, ID",
+    lat: 47.6732,
+    lon: -116.7859,
+    area: "Lake Coeur d'Alene",
+    freedomClub: true,
+    operator: 'FBC of Northern ID',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/coeur-dalene/cda',
+    accessInfo: FREEDOM_CLUB_ACCESS,
+    waterType: 'lake'
+  },
+  {
+    id: 50,
+    osmId: 'fbc_hayden_lake',
+    name: 'Freedom Boat Club Hayden Lake Marina',
+    address: 'Hayden Lake Marina, Hayden Lake, ID',
+    lat: 47.7665,
+    lon: -116.7563,
+    area: 'Hayden Lake',
+    freedomClub: true,
+    operator: 'FBC of Northern ID',
+    sourceUrl: 'https://www.freedomboatclub.com/franchises/coeur-dalene/hayden-lake-marina.html',
+    accessInfo: FREEDOM_CLUB_ACCESS,
+    waterType: 'lake'
   }
 ];
 

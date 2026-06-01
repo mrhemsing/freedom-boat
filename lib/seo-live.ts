@@ -18,7 +18,9 @@ const DIRECTIONS = ['northerlies', 'northeasterlies', 'easterlies', 'southeaster
 export async function getMarinaSeoSnapshot(marina: Marina): Promise<SeoSnapshot> {
   const [weather, tide] = await Promise.all([
     getWeatherSnapshot(marina.name, marina.area, marina.lat, marina.lon),
-    getTideSnapshot(marina.lat, marina.lon)
+    marina.waterType === 'lake' || marina.waterType === 'river'
+      ? Promise.resolve({ stationName: null, nextTide: null })
+      : getTideSnapshot(marina.lat, marina.lon)
   ]);
 
   const access = marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);

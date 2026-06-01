@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ADDITIONAL_PUBLIC_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
+import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
 import { AREA_HUBS, SEO_LAUNCHES, SEO_MARINAS } from '../../lib/seo-slugs';
 import MarinaJump from '../location/[locationId]/MarinaJump';
 import TripMap from './TripMap';
@@ -24,7 +24,7 @@ export default function PlanMyTripPage() {
 
         <div className="headerInfo">
           <div className="tripPlannerKicker">Plan my trip</div>
-          <div className="tripPlannerSubhead">Marinas, launches, tides, and day scores around the Salish Sea.</div>
+          <div className="tripPlannerSubhead">Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</div>
           <div className="tripPlannerNav">
             <label htmlFor="marinaJump" className="miniNote tripPlannerJumpLabel">
               Marina:
@@ -35,7 +35,7 @@ export default function PlanMyTripPage() {
       </header>
 
       <section className="tripPlannerPanel" aria-label="Plan my trip map">
-        <TripMap marinas={[...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS]} />
+        <TripMap marinas={[...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS, ...FBC_PNW_MARINAS]} />
       </section>
 
       <section className="seoContent plannerSeoLinks" aria-label="Browse boating condition pages">

@@ -1,4 +1,4 @@
-import { ADDITIONAL_PUBLIC_MARINAS, PUBLIC_LAUNCHES, TRIP_MARINAS, type BoatLaunch, type Marina } from './marinas';
+import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, PUBLIC_LAUNCHES, TRIP_MARINAS, type BoatLaunch, type Marina } from './marinas';
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://fairtide.app';
 
@@ -20,17 +20,41 @@ export const AREA_HUBS: AreaHub[] = [
     slug: 'gulf-islands',
     name: 'Gulf Islands',
     description: 'Tides, marina conditions, fuel, and transient moorage for Gulf Islands cruising stops.',
-    match: (place) => /galiano|pender|sidney|north saanich|mill bay/i.test(place.area)
+    match: (place) => /galiano|pender|sidney|north saanich|mill bay|oak bay/i.test(place.area)
+  },
+  {
+    slug: 'puget-sound',
+    name: 'Puget Sound',
+    description: 'Freedom Club locations, boating conditions, marina access, and forecast windows around Puget Sound.',
+    match: (place) => /bellingham|anacortes|everett|edmonds|poulsbo|seattle|lake union|kirkland|lake washington|port orchard|tacoma|olympia/i.test(place.area)
+  },
+  {
+    slug: 'columbia-river',
+    name: 'Columbia River',
+    description: 'Boating conditions and Freedom Club marina pages for the Portland, Camas, and Washougal stretch of the Columbia River.',
+    match: (place) => /portland|camas|washougal/i.test(place.area)
+  },
+  {
+    slug: 'north-idaho',
+    name: 'North Idaho',
+    description: 'Lake boating conditions and Freedom Club marina pages for Coeur d’Alene and Hayden Lake.',
+    match: (place) => /coeur|hayden/i.test(place.area)
   },
   {
     slug: 'salish-sea',
     name: 'Salish Sea',
     description: 'Daily boating conditions, tide windows, marinas, and public launches across the Salish Sea.',
+    match: (place) => /vancouver|richmond|port moody|north vancouver|surrey|blaine|gibsons|sunshine coast|lions bay|deep cove|west vancouver|horseshoe bay|bowen|galiano|pender|sidney|north saanich|mill bay|oak bay/i.test(place.area)
+  },
+  {
+    slug: 'pacific-northwest',
+    name: 'Pacific Northwest',
+    description: 'Freedom Club marina pages, boating forecasts, and regional boating condition links across BC, Washington, Oregon, and North Idaho.',
     match: () => true
   }
 ];
 
-export const SEO_MARINAS = [...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS].map((marina) => ({
+export const SEO_MARINAS = [...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS, ...FBC_PNW_MARINAS].map((marina) => ({
   ...marina,
   slug: seoSlugForMarina(marina)
 }));
@@ -72,7 +96,9 @@ export function getAreaHubBySlug(slug: string) {
 }
 
 export function areaHubForPlace(place: { area: string; lat: number; lon: number }) {
-  return AREA_HUBS.find((hub) => hub.slug !== 'salish-sea' && hub.match(place)) ?? AREA_HUBS[2];
+  return AREA_HUBS.find((hub) => hub.slug !== 'salish-sea' && hub.slug !== 'pacific-northwest' && hub.match(place))
+    ?? AREA_HUBS.find((hub) => hub.slug === 'salish-sea' && hub.match(place))
+    ?? AREA_HUBS[AREA_HUBS.length - 1];
 }
 
 export function canonicalUrl(path: string) {

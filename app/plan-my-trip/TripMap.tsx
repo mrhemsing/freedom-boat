@@ -646,7 +646,9 @@ function MarinaDetail({
   const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
   const warning = vesselWarning(conditions, vessel);
   const info = accessInfoFor(marina);
-  const tide = tideState(marina, plannerTimeForDay(dayIndex), liveTide);
+  const tide = marina.waterType === 'lake' || marina.waterType === 'river'
+    ? null
+    : tideState(marina, plannerTimeForDay(dayIndex), liveTide);
 
   return (
     <div className="plannerDetail">
@@ -700,7 +702,7 @@ function MarinaDetail({
         </div>
       </div>
 
-      <TideCard tide={tide} />
+      {tide ? <TideCard tide={tide} /> : <NonTidalWaterCard marina={marina} />}
 
       <button className={`plannerPrimary plannerTripAdd ${inTrip ? 'remove' : ''}`} type="button" onClick={onToggleTrip}>
         {inTrip ? 'Remove from float plan' : 'Add to float plan'}
@@ -715,6 +717,24 @@ function MarinaDetail({
       <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
         Close panel
       </button>
+    </div>
+  );
+}
+
+function NonTidalWaterCard({ marina }: { marina: Marina }) {
+  return (
+    <div className="plannerTide">
+      <div className="plannerTideHead">
+        <span>{marina.waterType === 'river' ? 'River' : 'Lake'}</span>
+        <small>{marina.area}</small>
+      </div>
+      <div className="plannerTideNow">
+        <strong>Weather first</strong>
+        <span>No tide cycle</span>
+      </div>
+      <p className="plannerTinyText">
+        Use the wind, gust, and local forecast score for this inland Freedom Club location.
+      </p>
     </div>
   );
 }
