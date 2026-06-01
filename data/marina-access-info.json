@@ -1,0 +1,44 @@
+{
+  "_README": "Public-access and moorage reference for the core Salish Sea marinas. access: Public = open commercial marina; Civic = City of Vancouver park-board marina; Resort = resort/destination marina; Members = club, members-only and excluded from the public planner. transient: Y / Limited / N. verified: true = confirmed against an operator or authority source.",
+  "_your_20_from_wavves": {
+    "coal": { "name": "Coal Harbour Marina", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot", "verified": false },
+    "westvan": { "name": "Freedom Boat Club West Vancouver", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "Y", "moorage": "by the foot", "verified": false },
+    "lynn": { "name": "Lynnwood Marina", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
+    "vanm": { "name": "Vancouver Marina", "access": "Public", "transient": "Limited", "fuel": "?", "launch": "?", "moorage": "by the foot", "verified": false },
+    "sky": { "name": "Skyline Marina", "access": "Public", "transient": "Limited", "fuel": "?", "launch": "?", "moorage": "by the foot", "verified": false },
+    "reed": { "name": "Reed Point Marina", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "Y", "moorage": "by the foot", "verified": false },
+    "thun": { "name": "Thunderbird Marina", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
+    "sewm": { "name": "Sewell's Marina Moorage", "access": "Public", "transient": "Y", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
+    "sewf": { "name": "Sewell's Marina Fuel Dock", "access": "Public", "transient": "N", "fuel": "Y", "launch": "N", "moorage": "fuel dock only", "verified": false },
+    "bowen": { "name": "Bowen Island Marina & The Pier", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot", "verified": false },
+    "cres": { "name": "Crescent Beach Marina", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "Y", "moorage": "by the foot", "verified": false },
+    "semi": { "name": "Semiahmoo Marina", "access": "Resort", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot, USD", "verified": false },
+    "mont": { "name": "Montague Harbour Marina", "access": "Resort", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot", "verified": false },
+    "stal": { "name": "Port Stalashen", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
+    "poet": { "name": "Poets Cove Marina", "access": "Resort", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot, resort", "verified": false },
+    "newc": { "name": "Newcastle Marina", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
+    "vanis": { "name": "Van Isle Marina", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot", "verified": false },
+    "sid": { "name": "Port Sidney Marina", "access": "Public", "transient": "Y", "fuel": "N", "launch": "N", "moorage": "by the foot, reserve", "verified": false },
+    "mill": { "name": "Mill Bay Marina", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot", "verified": false },
+    "canoe": { "name": "Canoe Cove Marina", "access": "Public", "transient": "Limited", "fuel": "Y", "launch": "Y", "moorage": "by the foot", "verified": false }
+  },
+  "_public_marinas_missing_from_your_list": {
+    "fc_fishermens": { "name": "False Creek Fishermen's Wharf", "lat": 49.271, "lng": -123.143, "access": "Public", "transient": "Y", "fuel": "?", "launch": "N", "moorage": "by the foot; annual waitlist", "verified": true },
+    "burrard_civic": { "name": "Burrard Civic Marina", "lat": 49.2735, "lng": -123.1405, "access": "Civic", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "City marina; mostly permanent", "verified": true },
+    "heather_civic": { "name": "Heather Civic Marina", "lat": 49.2705, "lng": -123.118, "access": "Civic", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "City marina", "verified": true },
+    "quayside": { "name": "Quayside Marina", "lat": 49.2725, "lng": -123.1235, "access": "Public", "transient": "Y", "fuel": "N", "launch": "N", "moorage": "guest moorage to 120 ft", "verified": true },
+    "deepcove": { "name": "Deep Cove North Shore Marina", "lat": 49.329, "lng": -122.951, "access": "Public", "transient": "Limited", "fuel": "Y", "launch": "Y", "moorage": "~6 guest slips, max 14 nights", "verified": true },
+    "gibsons_glha": { "name": "Gibsons Landing Harbour Authority", "lat": 49.397, "lng": -123.505, "access": "Public", "transient": "Y", "fuel": "Y", "launch": "Y", "moorage": "overnight, to 110 ft; reserve 50ft+", "verified": true },
+    "gibsons_marina": { "name": "Gibsons Marina & Fuel", "lat": 49.3985, "lng": -123.508, "access": "Public", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "transient as available, to 85 ft", "verified": true },
+    "union_steamship": { "name": "Union Steamship Marina", "lat": 49.3805, "lng": -123.3355, "access": "Public", "transient": "Y", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
+    "pender_hbr": { "name": "Pender Harbour", "lat": 49.624, "lng": -124.016, "access": "Public", "transient": "Y", "fuel": "Y", "launch": "Y", "moorage": "by the foot", "verified": false },
+    "lions_bay": { "name": "Lions Bay Marina", "lat": 49.452, "lng": -123.237, "access": "Public", "transient": "Limited", "fuel": "N", "launch": "Y", "moorage": "by the foot", "verified": false },
+    "steveston_harbour": { "name": "Steveston Harbour Authority", "lat": 49.1234, "lng": -123.1868, "access": "Public", "transient": "Y", "fuel": "?", "launch": "Y", "moorage": "transient float, max 7 days", "verified": true }
+  },
+  "_exclude_members_only": {
+    "fcyc": { "name": "False Creek Yacht Club", "access": "Members", "note": "transient to members only, seniority basis" },
+    "rvyc": { "name": "Royal Vancouver Yacht Club", "access": "Members", "note": "reciprocal clubs only" },
+    "dcyc": { "name": "Deep Cove Yacht Club", "access": "Members", "note": "members only" },
+    "wvyc": { "name": "West Vancouver Yacht Club", "access": "Members", "note": "members only" }
+  }
+}

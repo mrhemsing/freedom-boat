@@ -8,7 +8,9 @@
     "dev:turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "marinas:fetch": "node scripts/fetch-marinas.cjs",
+    "marinas:enrich": "node scripts/enrich-marinas.cjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

@@ -35,6 +35,21 @@ npm install
 npm run dev
 ```
 
+## Marina Data Refresh
+
+The planner uses the vetted TypeScript marina list in `lib/marinas.ts`.
+For an offline OpenStreetMap refresh/review pass:
+
+```bash
+npm run marinas:fetch
+npm run marinas:enrich
+```
+
+`marinas:fetch` writes generated OSM snapshots to `data/marinas.raw.json` and
+`data/ramps.raw.json`. `marinas:enrich` merges `data/marina-access-info.json`
+onto that pull and writes `data/marinas.enriched.json`. The generated snapshots
+are ignored so they can be reviewed before promoting any changes into the app.
+
 ## Roadmap
 
 See `docs/PLAN.md`.
