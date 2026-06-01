@@ -19,7 +19,7 @@ export async function generateMetadata({
   const name = loc?.name ?? 'Marina';
 
   return {
-    title: `FAIRTIDE - ${name}`,
+    title: `FAIRTIDE Boat Planner - ${name}`,
     description: `Hyper-local boating conditions for ${name}.`
   };
 }
@@ -90,6 +90,7 @@ export default async function LocationPage({
               <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={72} height={72} style={{ display: 'block' }} />
               <div className="brandTitle">
                 <span className="brandFreedom">FAIRTIDE</span>
+                <span className="brandBoat">BOAT PLANNER</span>
               </div>
             </div>
           </div>

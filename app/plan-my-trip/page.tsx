@@ -5,7 +5,7 @@ import MarinaJump from '../location/[locationId]/MarinaJump';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
-  title: 'FAIRTIDE - Plan My Trip',
+  title: 'FAIRTIDE Boat Planner',
   description: 'Map-based marina trip planner with forecasted boating conditions.'
 };
 
@@ -18,6 +18,7 @@ export default function PlanMyTripPage() {
             <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={72} height={72} />
             <span className="brandTitle">
               <span className="brandFreedom">FAIRTIDE</span>
+              <span className="brandBoat">BOAT PLANNER</span>
             </span>
           </a>
         </div>
