@@ -667,6 +667,9 @@ function MarinaDetail({
       >
         {marina.locationId ? 'Open conditions' : 'Open in Maps'}
       </a>
+      <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
+        Close panel
+      </button>
     </div>
   );
 }
@@ -758,6 +761,9 @@ function LaunchDetail({ launch, dayIndex, onBack }: { launch: BoatLaunch; dayInd
       >
         Open in Maps
       </a>
+      <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
+        Close panel
+      </button>
     </div>
   );
 }
