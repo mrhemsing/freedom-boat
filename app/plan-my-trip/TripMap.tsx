@@ -18,11 +18,14 @@ export default function TripMap({ marinas }: TripMapProps) {
       const L = await import('leaflet');
       if (disposed || !mapRef.current) return;
 
+      const canWheelZoom = window.matchMedia('(min-width: 900px)').matches;
       const map = L.map(mapRef.current, {
         attributionControl: false,
-        scrollWheelZoom: false,
+        scrollWheelZoom: canWheelZoom,
         zoomControl: false,
-        dragging: true
+        dragging: true,
+        doubleClickZoom: true,
+        touchZoom: true
       });
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
