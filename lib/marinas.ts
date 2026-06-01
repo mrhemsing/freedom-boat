@@ -29,6 +29,7 @@ export type BoatLaunch = {
   lat: number;
   lon: number;
   type: string;
+  minTide?: number;
   access?: string;
   fee?: string;
 };
@@ -356,17 +357,17 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
 ];
 
 export const PUBLIC_LAUNCHES: BoatLaunch[] = [
-  { id: 1, name: 'Vanier Park Boat Launch', area: 'Kitsilano, Vancouver', lat: 49.2762, lon: -123.1448, type: 'Trailer + hand' },
-  { id: 2, name: 'Jericho / Spanish Banks', area: 'West Point Grey', lat: 49.2772, lon: -123.201, type: 'Hand / cartop' },
-  { id: 3, name: 'Ambleside Boat Launch', area: 'West Vancouver', lat: 49.3228, lon: -123.1438, type: 'Trailer' },
-  { id: 4, name: 'Cates Park Boat Launch', area: 'North Vancouver', lat: 49.3012, lon: -122.9556, type: 'Trailer' },
-  { id: 5, name: 'Horseshoe Bay Ramp', area: 'West Vancouver', lat: 49.3742, lon: -123.2738, type: 'Trailer' },
-  { id: 6, name: 'Rocky Point Park', area: 'Port Moody', lat: 49.2872, lon: -122.852, type: 'Trailer' },
-  { id: 7, name: 'Belcarra / Bedwell Bay', area: 'Belcarra', lat: 49.3148, lon: -122.9288, type: 'Trailer' },
-  { id: 8, name: 'Garry Point / Steveston', area: 'Richmond', lat: 49.1252, lon: -123.1925, type: 'Trailer' },
-  { id: 9, name: 'Blackie Spit', area: 'Crescent Beach, Surrey', lat: 49.0578, lon: -122.8818, type: 'Trailer' },
-  { id: 10, name: 'Centennial Beach', area: 'Boundary Bay, Delta', lat: 49.0028, lon: -123.027, type: 'Trailer (tide)' },
-  { id: 11, name: 'Squamish Public Ramp', area: 'Mamquam Blind Channel', lat: 49.6938, lon: -123.1558, type: 'Trailer' }
+  { id: 1, name: 'Vanier Park Boat Launch', area: 'Kitsilano, Vancouver', lat: 49.2762, lon: -123.1448, type: 'Trailer + hand', minTide: 1.0 },
+  { id: 2, name: 'Jericho / Spanish Banks', area: 'West Point Grey', lat: 49.2772, lon: -123.201, type: 'Hand / cartop', minTide: 1.2 },
+  { id: 3, name: 'Ambleside Boat Launch', area: 'West Vancouver', lat: 49.3228, lon: -123.1438, type: 'Trailer', minTide: 1.1 },
+  { id: 4, name: 'Cates Park Boat Launch', area: 'North Vancouver', lat: 49.3012, lon: -122.9556, type: 'Trailer', minTide: 1.0 },
+  { id: 5, name: 'Horseshoe Bay Ramp', area: 'West Vancouver', lat: 49.3742, lon: -123.2738, type: 'Trailer', minTide: 1.2 },
+  { id: 6, name: 'Rocky Point Park', area: 'Port Moody', lat: 49.2872, lon: -122.852, type: 'Trailer', minTide: 1.4 },
+  { id: 7, name: 'Belcarra / Bedwell Bay', area: 'Belcarra', lat: 49.3148, lon: -122.9288, type: 'Trailer', minTide: 1.2 },
+  { id: 8, name: 'Garry Point / Steveston', area: 'Richmond', lat: 49.1252, lon: -123.1925, type: 'Trailer', minTide: 1.5 },
+  { id: 9, name: 'Blackie Spit', area: 'Crescent Beach, Surrey', lat: 49.0578, lon: -122.8818, type: 'Trailer', minTide: 1.6 },
+  { id: 10, name: 'Centennial Beach', area: 'Boundary Bay, Delta', lat: 49.0028, lon: -123.027, type: 'Trailer (tide)', minTide: 1.8 },
+  { id: 11, name: 'Squamish Public Ramp', area: 'Mamquam Blind Channel', lat: 49.6938, lon: -123.1558, type: 'Trailer', minTide: 1.4 }
 ];
 
 export const TRIP_MAP_BOUNDS = {

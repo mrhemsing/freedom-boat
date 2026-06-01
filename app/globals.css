@@ -2052,6 +2052,32 @@ hr.soft {
   text-transform: uppercase;
 }
 
+.plannerVesselRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 13px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  background: var(--planner-teal-tint-2);
+  color: var(--planner-navy);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.plannerVesselSelect {
+  max-width: 190px;
+  border: 2px solid var(--planner-teal-tint);
+  border-radius: 10px;
+  padding: 7px 9px;
+  background: #fff;
+  color: var(--planner-teal-dark);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+}
+
 .plannerRows {
   display: grid;
 }
@@ -2255,6 +2281,35 @@ hr.soft {
   font-weight: 900;
 }
 
+.plannerScoreHero small {
+  display: block;
+  margin-top: 3px;
+  color: var(--planner-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.plannerWarning {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 8px;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.plannerWarning.fair {
+  background: #fdf4e6;
+  color: #a8670f;
+}
+
+.plannerWarning.poor {
+  background: #fdeceb;
+  color: #b8322b;
+}
+
 .plannerMetrics {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2396,6 +2451,9 @@ hr.soft {
   padding: 15px;
   background: var(--planner-teal);
   color: #fff;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
   font-size: 16px;
   font-weight: 900;
   text-decoration: none;
@@ -2403,6 +2461,169 @@ hr.soft {
 
 .plannerPrimary:hover {
   text-decoration: none;
+}
+
+.plannerTripAdd.remove {
+  background: #e0584f;
+}
+
+.plannerLaunchStatus {
+  display: grid;
+  gap: 2px;
+  margin-top: 14px;
+  border-radius: 14px;
+  padding: 13px 15px;
+}
+
+.plannerLaunchStatus.ok {
+  background: #e4f5ea;
+  color: #1f8a4f;
+}
+
+.plannerLaunchStatus.warn {
+  background: #fdf4e6;
+  color: #a8670f;
+}
+
+.plannerLaunchStatus strong {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.plannerLaunchStatus span {
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.plannerTripControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(86px, 0.65fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.plannerTripControls label {
+  display: grid;
+  gap: 4px;
+  border-radius: 13px;
+  padding: 9px 13px;
+  background: var(--planner-teal-tint-2);
+}
+
+.plannerTripControls span {
+  color: var(--planner-muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.plannerTripControls input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--planner-navy);
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.plannerVerdictBar {
+  margin-top: 14px;
+  border-radius: 14px;
+  padding: 13px 15px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.plannerTripLegs {
+  display: grid;
+  margin-top: 12px;
+}
+
+.plannerLeg {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--planner-line);
+  padding: 13px 0;
+}
+
+.plannerLegNode {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--planner-teal);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.plannerLeg div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.plannerLeg strong {
+  color: var(--planner-navy);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.plannerLeg span {
+  color: var(--planner-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.plannerLeg button {
+  width: fit-content;
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--planner-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.plannerTripEmpty {
+  display: grid;
+  gap: 2px;
+  padding-top: 10px;
+}
+
+.plannerTripEmpty p {
+  line-height: 1.45;
+}
+
+.plannerShareMessage {
+  padding: 8px 2px 0;
+  color: var(--planner-teal-dark);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.plannerShareText {
+  width: 100%;
+  min-height: 150px;
+  margin-top: 8px;
+  border: 1px solid var(--planner-line);
+  border-radius: 12px;
+  padding: 11px 13px;
+  background: #fbfdfd;
+  color: var(--planner-navy);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  resize: vertical;
 }
 
 @media (min-width: 900px) {
