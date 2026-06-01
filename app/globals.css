@@ -2866,7 +2866,7 @@ hr.soft {
     align-items: center;
     column-gap: 8px;
     row-gap: 0;
-    min-height: 48px;
+    min-height: 72px;
     margin-bottom: 8px;
   }
 
@@ -2881,13 +2881,13 @@ hr.soft {
   }
 
   .tripPlannerBrand {
-    gap: 7px;
+    gap: 9px;
     min-width: 0;
   }
 
   .tripPlannerBrand .fbLogo {
-    width: 34px;
-    height: 34px;
+    width: 72px;
+    height: 72px;
   }
 
   .tripPlannerBrand .brandTitle {
@@ -2900,7 +2900,7 @@ hr.soft {
     display: block;
     overflow: hidden;
     color: #fff;
-    font-size: 18px;
+    font-size: 21px;
     text-overflow: ellipsis;
   }
 
@@ -2965,8 +2965,9 @@ hr.soft {
   }
 
   .tripPlannerNav .seg {
-    min-width: 148px !important;
-    max-width: 42vw;
+    min-width: 132px !important;
+    width: 132px !important;
+    max-width: 34vw;
     min-height: 38px;
     border-radius: 999px !important;
     padding: 8px 28px 8px 12px !important;
