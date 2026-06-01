@@ -477,10 +477,10 @@ function withinRegionRank(marina: SeoMarina) {
   if (menuRegion(marina) === 'BC') {
     const locationRank = BC_LOCATION_ORDER.get(marina.area);
     if (marina.freedomClub && locationRank != null) return locationRank;
-    return 100 - marina.lat;
+    return 1000 - marina.lat;
   }
 
-  return -marina.lat;
+  return (marina.freedomClub ? 0 : 1000) - marina.lat;
 }
 
 function regionRank(marina: SeoMarina) {
