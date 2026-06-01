@@ -22,8 +22,8 @@ export const TRIP_MARINAS: Marina[] = [
     id: 2,
     name: 'Freedom Boat Club West Vancouver',
     address: '34 Sunset Beach, West Vancouver, BC, V7W 2T7',
-    lat: 49.3293,
-    lon: -123.1566,
+    lat: 49.37,
+    lon: -123.288,
     area: 'West Vancouver',
     freedomClub: true,
     locationId: 'west-vancouver'

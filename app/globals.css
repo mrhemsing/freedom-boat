@@ -1580,5 +1580,685 @@ hr.soft {
   }
 }
 
+/* Plan-my-trip full-screen map app */
+.tripPage {
+  min-height: 100dvh;
+  display: block;
+  background: #f3f6f7;
+  color: #0c3a4c;
+}
+
+.plannerApp {
+  --planner-teal: #1f8a9b;
+  --planner-teal-dark: #136575;
+  --planner-teal-tint: #d8eef2;
+  --planner-teal-tint-2: #eef7f9;
+  --planner-navy: #0c3a4c;
+  --planner-muted: #6f8a94;
+  --planner-line: #e7eef0;
+  --planner-shadow: 0 10px 30px rgba(12, 58, 76, 0.18);
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--planner-navy);
+  background: #b6dcf0;
+}
+
+.plannerMap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: grab;
+  font-family: inherit;
+}
+
+.plannerMap:active {
+  cursor: grabbing;
+}
+
+.plannerMap .leaflet-tile-pane {
+  filter: saturate(0.96) contrast(0.98) brightness(1.02);
+}
+
+.plannerMap .leaflet-control-attribution {
+  display: none;
+}
+
+.plannerTopbar {
+  position: absolute;
+  z-index: 600;
+  top: 14px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.plannerBrand,
+.plannerChip {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--planner-shadow);
+  color: var(--planner-navy);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.plannerBrand {
+  padding: 8px 12px;
+}
+
+.plannerBrand:hover {
+  text-decoration: none;
+}
+
+.plannerBrandDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--planner-teal);
+  box-shadow: 0 0 0 4px rgba(31, 138, 155, 0.18);
+}
+
+.plannerChip {
+  margin-left: auto;
+  padding: 9px 13px;
+  cursor: pointer;
+}
+
+.plannerChip.active {
+  background: var(--planner-teal);
+  color: #fff;
+}
+
+.plannerChip svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.plannerTimebar {
+  position: absolute;
+  z-index: 600;
+  top: 62px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px;
+  pointer-events: auto;
+  scrollbar-width: none;
+}
+
+.plannerTimebar::-webkit-scrollbar {
+  display: none;
+}
+
+.plannerDay {
+  flex: 0 0 auto;
+  min-width: 58px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 7px 11px;
+  background: #fff;
+  box-shadow: var(--planner-shadow);
+  color: var(--planner-navy);
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+}
+
+.plannerDay.active {
+  border-color: var(--planner-teal);
+}
+
+.plannerDay span,
+.plannerDay em {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--planner-muted);
+  font-style: normal;
+}
+
+.plannerDay b {
+  display: block;
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+.plannerDay em {
+  margin-top: 2px;
+  font-size: 10px;
+}
+
+.plannerPin {
+  position: relative;
+  width: 40px;
+  height: 46px;
+}
+
+.plannerPinBubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: var(--planner-teal);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(12, 58, 76, 0.35);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.plannerPinTail {
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border-right: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+  border-bottom-right-radius: 3px;
+  background: var(--planner-teal);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.plannerPinScore {
+  position: absolute;
+  z-index: 2;
+  top: -3px;
+  right: -3px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.plannerPin.sel .plannerPinBubble,
+.plannerPin.sel .plannerPinTail {
+  background: var(--planner-navy);
+}
+
+.plannerPin.trip .plannerPinBubble,
+.plannerPin.trip .plannerPinTail {
+  background: #e0584f;
+}
+
+.tripMe {
+  position: relative;
+  width: 34px;
+  height: 34px;
+}
+
+.tripMeRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(56, 182, 255, 0.25);
+  animation: plannerPulse 2.4s infinite;
+}
+
+.tripMeCore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 18px solid #1fb6e6;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  transform: translate(-50%, -50%);
+}
+
+@keyframes plannerPulse {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+.plannerSheet {
+  position: absolute;
+  z-index: 700;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 82dvh;
+  border-radius: 22px 22px 0 0;
+  background: #fff;
+  box-shadow: 0 -8px 30px rgba(12, 58, 76, 0.18);
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.plannerSheet-full {
+  transform: translateY(0);
+}
+
+.plannerSheet-half {
+  transform: translateY(calc(100% - 330px));
+}
+
+.plannerSheet-collapsed {
+  transform: translateY(calc(100% - 74px));
+}
+
+.plannerGrab {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  border: 0;
+  padding: 10px 0 4px;
+  background: transparent;
+  cursor: grab;
+}
+
+.plannerGrab span {
+  display: block;
+  width: 42px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--planner-navy);
+}
+
+.plannerSheetInner {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 18px 26px;
+}
+
+.plannerSearchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0 12px;
+}
+
+.plannerSearch {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 13px;
+  padding: 12px 14px;
+  background: var(--planner-teal-tint-2);
+}
+
+.plannerSearch svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  stroke: var(--planner-teal);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.plannerSearch input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--planner-navy);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.plannerSearch input::placeholder {
+  color: #9bb3bb;
+}
+
+.plannerSearch button {
+  border: 0;
+  background: transparent;
+  color: var(--planner-teal);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.plannerCollapse {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--planner-teal-tint);
+  color: var(--planner-teal-dark);
+  cursor: pointer;
+}
+
+.plannerCollapse svg,
+.plannerBack svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.plannerResultsHead {
+  padding: 6px 2px 2px;
+  color: var(--planner-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plannerRows {
+  display: grid;
+}
+
+.plannerRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 0;
+  border-bottom: 1px solid var(--planner-line);
+  padding: 15px 4px;
+  background: transparent;
+  color: var(--planner-navy);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.plannerIdx {
+  position: relative;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--planner-teal-tint);
+  color: var(--planner-teal-dark);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.plannerIdx i {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+}
+
+.plannerBody {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.plannerName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--planner-navy);
+  font-size: 16px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plannerName em {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 3px 6px;
+  background: #fff4d7;
+  color: #744508;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.plannerAddr {
+  overflow: hidden;
+  color: var(--planner-muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plannerRight {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 3px;
+  text-align: right;
+}
+
+.plannerRight b {
+  color: var(--planner-teal-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+}
+
+.plannerRight span {
+  color: var(--planner-muted);
+  font-size: 11px;
+}
+
+.plannerDetail {
+  padding-bottom: 4px;
+}
+
+.plannerBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  padding: 4px 0 10px;
+  background: transparent;
+  color: var(--planner-teal-dark);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.plannerDetail h1 {
+  margin: 0;
+  color: var(--planner-navy);
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.plannerDetail p {
+  margin: 4px 0 0;
+  color: var(--planner-muted);
+  font-size: 13px;
+}
+
+.plannerScoreHero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--planner-teal-tint-2);
+}
+
+.plannerScoreRing {
+  flex: 0 0 auto;
+  width: 74px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.plannerScoreHero span {
+  color: var(--planner-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.plannerScoreHero strong {
+  display: block;
+  margin-top: 1px;
+  color: var(--planner-navy);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.plannerMetrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.plannerMetrics div {
+  border: 1px solid var(--planner-line);
+  border-radius: 13px;
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.plannerMetrics span {
+  display: block;
+  color: var(--planner-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.plannerMetrics strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--planner-navy);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.plannerMetrics small {
+  color: var(--planner-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.plannerPrimary {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  padding: 15px;
+  background: var(--planner-teal);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.plannerPrimary:hover {
+  text-decoration: none;
+}
+
+@media (min-width: 900px) {
+  .plannerSheet {
+    left: auto;
+    width: min(430px, calc(100vw - 36px));
+    right: 18px;
+    bottom: 18px;
+    border-radius: 18px;
+    max-height: calc(100dvh - 138px);
+  }
+
+  .plannerSheet-half {
+    transform: translateY(calc(100% - 360px));
+  }
+
+  .plannerSheet-collapsed {
+    transform: translateY(calc(100% - 74px));
+  }
+}
+
+@media (max-width: 560px) {
+  .plannerTopbar {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .plannerBrand,
+  .plannerChip {
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  .plannerChip {
+    padding: 9px 11px;
+  }
+
+  .plannerTimebar {
+    top: 58px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .plannerName {
+    display: grid;
+    align-items: start;
+    gap: 4px;
+  }
+
+  .plannerName em {
+    width: fit-content;
+  }
+
+  .plannerRight {
+    display: none;
+  }
+}
+
 
 
