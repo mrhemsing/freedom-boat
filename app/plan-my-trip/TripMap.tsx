@@ -312,9 +312,13 @@ export default function TripMap({ marinas }: TripMapProps) {
       }).addTo(map);
 
       const bounds = L.latLngBounds([]);
+      const initialBounds = L.latLngBounds([]);
 
       activeMarinas.forEach((marina) => {
         bounds.extend([marina.lat, marina.lon]);
+        if (isInitialBcFocus(marina)) {
+          initialBounds.extend([marina.lat, marina.lon]);
+        }
         const marker = L.marker([marina.lat, marina.lon], {
           icon: marinaIcon(L, marina, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks),
           zIndexOffset: marina.freedomClub ? 600 : 0
@@ -336,6 +340,9 @@ export default function TripMap({ marinas }: TripMapProps) {
       if (showLaunches) {
         launches.forEach((launch) => {
           bounds.extend([launch.lat, launch.lon]);
+          if (isInitialBcFocus(launch)) {
+            initialBounds.extend([launch.lat, launch.lon]);
+          }
           const marker = L.marker([launch.lat, launch.lon], {
             icon: launchIcon(L, launch),
             zIndexOffset: 500
@@ -355,7 +362,8 @@ export default function TripMap({ marinas }: TripMapProps) {
         });
       }
 
-      map.fitBounds(bounds.pad(0.18), { animate: false, maxZoom: 10 });
+      const loadBounds = initialBounds.isValid() ? initialBounds : bounds;
+      map.fitBounds(loadBounds.pad(0.16), { animate: false, maxZoom: 11 });
 
       setTimeout(() => {
         if (!disposed && leafletMapRef.current === map) {
@@ -1072,6 +1080,10 @@ function nextSheetState(state: SheetState): SheetState {
   if (state === 'full') return 'half';
   if (state === 'half') return 'collapsed';
   return 'full';
+}
+
+function isInitialBcFocus(location: Pick<Marina | BoatLaunch, 'lat' | 'lon'>) {
+  return location.lat >= 48.2 && location.lat <= 50.3 && location.lon >= -124.8 && location.lon <= -122.45;
 }
 
 function isMobilePlanner() {

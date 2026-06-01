@@ -2863,7 +2863,7 @@ hr.soft {
   }
 
   .plannerSheet-collapsed {
-    transform: translateY(calc(100% - 46px));
+    transform: translateY(calc(100% - 104px));
   }
 
   .plannerSheetInner {
