@@ -2093,7 +2093,7 @@ hr.soft {
 
 .plannerPinBubble {
   position: absolute;
-  top: 0;
+  top: 1px;
   left: 0;
   width: 40px;
   height: 40px;
