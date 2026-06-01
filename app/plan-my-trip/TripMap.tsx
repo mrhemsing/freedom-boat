@@ -638,7 +638,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             />
           ) : (
             <>
-              <div className="plannerSearchRow">
+              <div className={`plannerSearchRow ${sheetState === 'collapsed' ? 'plannerSearchRow-collapsed' : ''}`}>
                 <label className="plannerSearch">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden>
                     <circle cx="11" cy="11" r="7" />
@@ -659,12 +659,21 @@ export default function TripMap({ marinas }: TripMapProps) {
                 <button
                   className="plannerCollapse"
                   type="button"
-                  aria-label="Collapse"
-                  onClick={() => setSheetState('collapsed')}
+                  aria-label={sheetState === 'collapsed' ? 'Open marina sheet' : 'Collapse marina sheet'}
+                  onClick={() => setSheetState(sheetState === 'collapsed' ? 'full' : 'collapsed')}
                 >
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <line x1="6" y1="9" x2="12" y2="15" />
-                    <line x1="18" y1="9" x2="12" y2="15" />
+                    {sheetState === 'collapsed' ? (
+                      <>
+                        <line x1="6" y1="15" x2="12" y2="9" />
+                        <line x1="18" y1="15" x2="12" y2="9" />
+                      </>
+                    ) : (
+                      <>
+                        <line x1="6" y1="9" x2="12" y2="15" />
+                        <line x1="18" y1="9" x2="12" y2="15" />
+                      </>
+                    )}
                   </svg>
                 </button>
               </div>

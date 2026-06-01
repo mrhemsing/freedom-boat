@@ -2863,15 +2863,37 @@ hr.soft {
   }
 
   .plannerSheet-collapsed {
-    transform: translateY(calc(100% - 104px));
+    transform: translateY(calc(100% - 62px));
   }
 
   .plannerSheetInner {
     padding: 0 14px 20px;
   }
 
+  .plannerSheet-collapsed .plannerGrab {
+    display: none;
+  }
+
   .plannerSheet-collapsed .plannerSheetInner {
     overflow: hidden;
+  }
+
+  .plannerSheet-collapsed .plannerSearchRow {
+    padding: 10px 0;
+  }
+
+  .plannerSheet-collapsed .plannerSearch {
+    pointer-events: none;
+    padding: 8px 4px;
+    background: transparent;
+  }
+
+  .plannerSheet-collapsed .plannerSearch svg {
+    display: none;
+  }
+
+  .plannerSheet-collapsed .plannerSearch input::placeholder {
+    color: var(--planner-navy);
   }
 
   .plannerMobileModal {
