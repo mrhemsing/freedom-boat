@@ -62,6 +62,7 @@ const MAX_CHS_STATION_KM = 60;
 
 export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const leafletMapRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
   const [query, setQuery] = useState('');
@@ -70,6 +71,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [sheetState, setSheetState] = useState<SheetState>('half');
   const [tripMode, setTripMode] = useState(false);
   const [showLaunches, setShowLaunches] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [dayIndex, setDayIndex] = useState(0);
   const [activeMarinas, setActiveMarinas] = useState(marinas);
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
@@ -144,6 +146,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         doubleClickZoom: true,
         touchZoom: true
       }).setView([49.05, -123.25], 9);
+      leafletMapRef.current = map;
 
       L.control.zoom({ position: 'topright' }).addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
@@ -203,6 +206,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       cleanup = () => {
         markerRefs.current = {};
         launchMarkerRefs.current = {};
+        leafletMapRef.current = null;
         map.remove();
       };
     }
@@ -214,6 +218,22 @@ export default function TripMap({ marinas }: TripMapProps) {
       cleanup?.();
     };
   }, [activeMarinas, launches, showLaunches]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      leafletMapRef.current?.invalidateSize?.();
+    }, 260);
+    return () => window.clearTimeout(timer);
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsFullscreen(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isFullscreen]);
 
   useEffect(() => {
     let active = true;
@@ -246,7 +266,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   return (
-    <div className="plannerApp">
+    <div className={`plannerApp ${isFullscreen ? 'plannerAppFullscreen' : ''}`}>
       <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
 
       <div className="plannerTopbar">
@@ -275,6 +295,29 @@ export default function TripMap({ marinas }: TripMapProps) {
             <polygon points="3 11 22 2 13 21 11 13 3 11" />
           </svg>
           <span>Plan a trip</span>
+        </button>
+        <button
+          className={`plannerChip plannerFullscreenChip ${isFullscreen ? 'active' : ''}`}
+          type="button"
+          aria-pressed={isFullscreen}
+          onClick={() => setIsFullscreen((value) => !value)}
+        >
+          {isFullscreen ? (
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+              <polyline points="8 3 8 8 3 8" />
+              <polyline points="16 3 16 8 21 8" />
+              <polyline points="8 21 8 16 3 16" />
+              <polyline points="16 21 16 16 21 16" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+              <polyline points="8 3 3 3 3 8" />
+              <polyline points="16 3 21 3 21 8" />
+              <polyline points="8 21 3 21 3 16" />
+              <polyline points="16 21 21 21 21 16" />
+            </svg>
+          )}
+          <span>{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
         </button>
       </div>
 
