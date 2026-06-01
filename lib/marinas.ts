@@ -358,10 +358,10 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
   {
     id: 31,
     osmId: 'steveston_harbour',
-    name: 'Steveston Harbour Marina',
+    name: 'Steveston Harbour Authority',
     address: '12740 Trites Road, Richmond, BC',
-    lat: 49.1227,
-    lon: -123.1841,
+    lat: 49.1234,
+    lon: -123.1868,
     area: 'Richmond'
   }
 ];
