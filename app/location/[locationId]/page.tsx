@@ -671,7 +671,7 @@ function getBestLaunchWindowSummary({
     if (mid.minute !== start.minute + 60 || end.minute !== start.minute + 120) continue;
 
     const daylight = daylightByDay.get(start.day) ?? { sunriseMinute: 6 * 60, sunsetMinute: 18 * 60 };
-    if (start.minute < daylight.sunriseMinute || end.minute > daylight.sunsetMinute) continue;
+    if (start.minute < daylight.sunriseMinute || start.minute + 180 > daylight.sunsetMinute) continue;
 
     const avg = window.reduce((a, b) => a + b.score, 0) / window.length;
     if (avg > bestAvg) {
@@ -683,9 +683,8 @@ function getBestLaunchWindowSummary({
   if (bestStart < 0) return { label: '—', detail: 'No suitable window found' };
 
   const start = scored[bestStart];
-  const end = scored[Math.min(bestStart + 2, scored.length - 1)];
   return {
-    label: `${formatAsOf(start.t)}–${formatAsOf(end.t)}`,
+    label: `${formatAsOf(start.t)}–${formatLocalMinuteOfDay((start.minute ?? 0) + 180)}`,
     detail: 'Best 3-hour window between sunrise and sunset'
   };
 }
@@ -729,6 +728,16 @@ function extractLocalMinuteOfDay(isoLike?: string) {
   const mm = Number(m[2]);
   if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
   return hh * 60 + mm;
+}
+
+function formatLocalMinuteOfDay(totalMinutes: number) {
+  const wrapped = ((totalMinutes % 1440) + 1440) % 1440;
+  const hhRaw = Math.floor(wrapped / 60);
+  const mm = wrapped % 60;
+  const ampm = hhRaw >= 12 ? 'PM' : 'AM';
+  let hh = hhRaw % 12;
+  if (hh === 0) hh = 12;
+  return `${hh}:${String(mm).padStart(2, '0')} ${ampm}`;
 }
 
 type DailyOutlook = {
