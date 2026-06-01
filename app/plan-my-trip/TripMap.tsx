@@ -46,6 +46,20 @@ const OVERPASS_QUERY = `[out:json][timeout:30];
   nwr["leisure"="slipway"](48.35,-124.45,49.95,-122.30); );
 out center tags;`;
 
+/* CHS / DFO IWLS TIDES
+   Set USE_CHS to true on freedom.b-average.com to replace the synthetic
+   mixed-semidiurnal tide model with live IWLS predictions.
+
+   The browser fetch path works if api-iwls.dfo-mpo.gc.ca sends CORS headers.
+   If it does not, proxy /api/v1/* through the app domain for same-origin
+   requests and point IWLS_BASE at that proxy. Tide predictions are static
+   enough to cache aggressively server-side.
+*/
+const USE_CHS = false;
+const IWLS_BASE = 'https://api-iwls.dfo-mpo.gc.ca';
+const CHS_REGION = 'PAC';
+const MAX_CHS_STATION_KM = 60;
+
 export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const markerRefs = useRef<Record<number, any>>({});
@@ -59,6 +73,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [dayIndex, setDayIndex] = useState(0);
   const [activeMarinas, setActiveMarinas] = useState(marinas);
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
+  const [liveTides, setLiveTides] = useState<Record<number, LiveTide>>({});
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -97,6 +112,21 @@ export default function TripMap({ marinas }: TripMapProps) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!USE_CHS) return;
+    let cancelled = false;
+    loadCHSTides(activeMarinas)
+      .then((tides) => {
+        if (!cancelled) setLiveTides(tides);
+      })
+      .catch(() => {
+        // Keep the synthetic tide model on any IWLS/CORS/schema failure.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMarinas]);
 
   useEffect(() => {
     let disposed = false;
@@ -278,6 +308,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             <MarinaDetail
               marina={selected}
               dayIndex={dayIndex}
+              liveTide={liveTides[selected.id]}
               onBack={() => setSelectedId(null)}
             />
           ) : selectedLaunch ? (
@@ -374,10 +405,12 @@ export default function TripMap({ marinas }: TripMapProps) {
 function MarinaDetail({
   marina,
   dayIndex,
+  liveTide,
   onBack
 }: {
   marina: Marina;
   dayIndex: number;
+  liveTide?: LiveTide;
   onBack: () => void;
 }) {
   const score = marinaScore(marina, dayIndex);
@@ -385,7 +418,7 @@ function MarinaDetail({
   const gust = wind + 5 + (marina.id % 4);
   const wave = Math.max(0.2, (wind - 5) * 0.05 + (marina.freedomClub ? 0.1 : 0.25));
   const info = accessInfoFor(marina);
-  const tide = tideState(marina, plannerTimeForDay(dayIndex));
+  const tide = tideState(marina, plannerTimeForDay(dayIndex), liveTide);
 
   return (
     <div className="plannerDetail">
@@ -611,6 +644,23 @@ type TideEvent = {
   height: number;
 };
 
+type TideExtreme = TideEvent & {
+  kind: 'high' | 'low';
+};
+
+type LiveTide = {
+  station: string;
+  events: TideExtreme[];
+  points: TidePoint[];
+};
+
+type IwlsStation = {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+};
+
 type TideState = {
   station: string;
   height: number;
@@ -634,7 +684,29 @@ function plannerTimeForDay(dayIndex: number) {
   return selected;
 }
 
-function tideState(marina: Marina, when: Date): TideState {
+function tideState(marina: Marina, when: Date, live?: LiveTide): TideState {
+  const sampled = sampleTidePoints(marina, when, live);
+  const current = live ? tideHeightFromSeries(live.points, when) ?? tideHeight(marina, when) : tideHeight(marina, when);
+  const soonTime = new Date(when.getTime() + 10 * 60 * 1000);
+  const soon = live ? tideHeightFromSeries(live.points, soonTime) ?? tideHeight(marina, soonTime) : tideHeight(marina, soonTime);
+  const events = live?.events.filter((event) => event.t > when) ?? tideEvents(marina, when);
+  const nextHigh = events.find((event) => event.kind === 'high') ?? { kind: 'high' as const, t: when, height: current };
+  const nextLow = events.find((event) => event.kind === 'low') ?? { kind: 'low' as const, t: when, height: current };
+  const slack = nextHigh.t < nextLow.t ? nextHigh : nextLow;
+
+  return {
+    station: live?.station ?? nearestTideStation(marina).name,
+    height: current,
+    rising: soon >= current,
+    points: sampled.points,
+    nowIndex: sampled.nowIndex,
+    nextHigh,
+    nextLow,
+    slack
+  };
+}
+
+function sampleTidePoints(marina: Marina, when: Date, live?: LiveTide) {
   const points: TidePoint[] = [];
   const start = new Date(when.getTime() - 6 * 60 * 60 * 1000);
   const stepMinutes = 20;
@@ -643,29 +715,32 @@ function tideState(marina: Marina, when: Date): TideState {
 
   for (let minute = 0; minute <= totalMinutes; minute += stepMinutes) {
     const t = new Date(start.getTime() + minute * 60 * 1000);
-    points.push({ t, height: tideHeight(marina, t) });
+    points.push({
+      t,
+      height: live ? tideHeightFromSeries(live.points, t) ?? tideHeight(marina, t) : tideHeight(marina, t)
+    });
     if (Math.abs(t.getTime() - when.getTime()) < Math.abs(points[nowIndex].t.getTime() - when.getTime())) {
       nowIndex = points.length - 1;
     }
   }
 
-  const current = tideHeight(marina, when);
-  const soon = tideHeight(marina, new Date(when.getTime() + 10 * 60 * 1000));
-  const events = tideEvents(marina, when);
-  const nextHigh = events.find((event) => event.kind === 'high') ?? { kind: 'high' as const, t: when, height: current };
-  const nextLow = events.find((event) => event.kind === 'low') ?? { kind: 'low' as const, t: when, height: current };
-  const slack = nextHigh.t < nextLow.t ? nextHigh : nextLow;
+  return { points, nowIndex };
+}
 
-  return {
-    station: nearestTideStation(marina).name,
-    height: current,
-    rising: soon >= current,
-    points,
-    nowIndex,
-    nextHigh,
-    nextLow,
-    slack
-  };
+function tideHeightFromSeries(points: TidePoint[], when: Date) {
+  if (!points.length) return null;
+  const sorted = [...points].sort((a, b) => a.t.getTime() - b.t.getTime());
+  if (when < sorted[0].t || when > sorted[sorted.length - 1].t) return null;
+  for (let index = 1; index < sorted.length; index += 1) {
+    const prev = sorted[index - 1];
+    const next = sorted[index];
+    if (when <= next.t) {
+      const span = next.t.getTime() - prev.t.getTime() || 1;
+      const pct = (when.getTime() - prev.t.getTime()) / span;
+      return prev.height + (next.height - prev.height) * pct;
+    }
+  }
+  return sorted[sorted.length - 1].height;
 }
 
 function tideHeight(marina: Marina, when: Date) {
@@ -754,6 +829,148 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * radius * Math.asin(Math.sqrt(a));
+}
+
+async function loadCHSTides(marinas: Marina[]) {
+  const stations = await fetchIwlsStations('wlp');
+  const out: Record<number, LiveTide> = {};
+  const from = new Date();
+  from.setHours(0, 0, 0, 0);
+  const to = new Date(from);
+  to.setDate(from.getDate() + 8);
+
+  const tasks = marinas.map(async (marina) => {
+    const station = nearestIwlsStation(marina, stations);
+    if (!station) return;
+    const [curve, events] = await Promise.all([
+      fetchIwlsSeries(station.id, 'wlp', from, to),
+      fetchIwlsSeries(station.id, 'wlp-hilo', from, to)
+    ]);
+    if (curve.length < 4) return;
+    out[marina.id] = {
+      station: station.name,
+      points: curve,
+      events: events.length ? normalizeIwlsEvents(events) : inferTideExtremes(curve)
+    };
+  });
+
+  await Promise.allSettled(tasks);
+  return out;
+}
+
+async function fetchIwlsStations(timeSeriesCode: string) {
+  const url = new URL('/api/v1/stations', IWLS_BASE);
+  url.searchParams.set('chs-region-code', CHS_REGION);
+  url.searchParams.set('time-series-code', timeSeriesCode);
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`IWLS stations failed: ${res.status}`);
+  const json = await res.json();
+  const rows = Array.isArray(json) ? json : Array.isArray(json?.stations) ? json.stations : [];
+  return rows.map(parseIwlsStation).filter(Boolean) as IwlsStation[];
+}
+
+function parseIwlsStation(row: Record<string, unknown>) {
+  const id = stringField(row, ['id', 'code', 'stationId']);
+  const lat = numberField(row, ['latitude', 'lat']);
+  const lon = numberField(row, ['longitude', 'lon', 'lng']);
+  if (!id || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  return {
+    id,
+    name: stringField(row, ['officialName', 'nameEn', 'name', 'code']) ?? id,
+    lat,
+    lon
+  };
+}
+
+function nearestIwlsStation(marina: Marina, stations: IwlsStation[]) {
+  let best: { station: IwlsStation; km: number } | null = null;
+  for (const station of stations) {
+    const km = haversine(marina.lat, marina.lon, station.lat, station.lon) / 1000;
+    if (!best || km < best.km) best = { station, km };
+  }
+  return best && best.km <= MAX_CHS_STATION_KM ? best.station : null;
+}
+
+async function fetchIwlsSeries(stationId: string, timeSeriesCode: string, from: Date, to: Date) {
+  const url = new URL(`/api/v1/stations/${stationId}/data`, IWLS_BASE);
+  url.searchParams.set('time-series-code', timeSeriesCode);
+  url.searchParams.set('from', from.toISOString());
+  url.searchParams.set('to', to.toISOString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`IWLS ${timeSeriesCode} failed: ${res.status}`);
+  const json = await res.json();
+  const rows = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
+  return rows.map(parseIwlsPoint).filter(Boolean) as Array<TidePoint & { qualifier?: string }>;
+}
+
+function parseIwlsPoint(row: Record<string, unknown>) {
+  const time = stringField(row, ['eventDate', 'time', 'dateTime', 'timestamp', 't']);
+  const value = numberField(row, ['value', 'height', 'heightM']);
+  if (!time || !Number.isFinite(value)) return null;
+  const t = new Date(time);
+  if (Number.isNaN(t.getTime())) return null;
+  const qualifier = stringField(row, ['qualifier', 'type', 'eventType']);
+  return qualifier ? { t, height: value, qualifier } : { t, height: value };
+}
+
+function normalizeIwlsEvents(points: Array<TidePoint & { qualifier?: string }>): TideExtreme[] {
+  const sorted = [...points].sort((a, b) => a.t.getTime() - b.t.getTime());
+  const explicit: TideExtreme[] = [];
+  sorted.forEach((point) => {
+    const qualifier = point.qualifier?.toLowerCase() ?? '';
+    if (qualifier.includes('flood') || qualifier.includes('high')) {
+      explicit.push({ kind: 'high', t: point.t, height: point.height });
+    }
+    if (qualifier.includes('ebb') || qualifier.includes('low')) {
+      explicit.push({ kind: 'low', t: point.t, height: point.height });
+    }
+  });
+  if (explicit.length) return explicit;
+
+  const out: TideExtreme[] = [];
+  let nextKind: 'high' | 'low' = sorted[0] && sorted[1] && sorted[0].height < sorted[1].height ? 'low' : 'high';
+  for (const point of sorted) {
+    out.push({ kind: nextKind, t: point.t, height: point.height });
+    nextKind = nextKind === 'high' ? 'low' : 'high';
+  }
+  return out;
+}
+
+function inferTideExtremes(points: TidePoint[]) {
+  const sorted = [...points].sort((a, b) => a.t.getTime() - b.t.getTime());
+  const out: TideExtreme[] = [];
+  for (let index = 1; index < sorted.length - 1; index += 1) {
+    const prev = sorted[index - 1];
+    const current = sorted[index];
+    const next = sorted[index + 1];
+    if (current.height >= prev.height && current.height >= next.height) {
+      out.push({ kind: 'high', t: current.t, height: current.height });
+    } else if (current.height <= prev.height && current.height <= next.height) {
+      out.push({ kind: 'low', t: current.t, height: current.height });
+    }
+  }
+  return out;
+}
+
+function stringField(row: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === 'string' && value.trim()) return value;
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  }
+  return null;
+}
+
+function numberField(row: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return Number.NaN;
 }
 
 async function loadOsmPlaces() {
