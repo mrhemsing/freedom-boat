@@ -106,6 +106,7 @@ export default async function LocationPage({
               Marina:
             </label>
             <MarinaJump value={id} />
+            <a className="seg" href="/plan-my-trip">Plan my trip</a>
           </div>
         </div>
 

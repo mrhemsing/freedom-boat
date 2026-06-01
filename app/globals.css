@@ -1046,5 +1046,500 @@ hr.soft {
   /* Desktop weekly card uses default container styling. */
 }
 
+.tripPage {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
+  background: #e9f0ee;
+  color: #12303a;
+}
+
+.tripMapPanel {
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+  background: #d6e6e2;
+}
+
+.tripMapFrame {
+  position: absolute;
+  inset: -42px -28px -42px -28px;
+  width: calc(100% + 56px);
+  height: calc(100% + 84px);
+  border: 0;
+  filter: saturate(0.92) contrast(0.96) brightness(1.03);
+}
+
+.tripMapShade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(8, 36, 48, 0.22), rgba(8, 36, 48, 0.02) 36%, rgba(8, 36, 48, 0.18)),
+    radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.42), transparent 24%);
+}
+
+.tripTopBar {
+  position: absolute;
+  z-index: 5;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tripLogoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px 9px 9px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #12303a;
+  box-shadow: 0 10px 26px rgba(9, 33, 45, 0.18);
+  text-decoration: none;
+}
+
+.tripLogoLink:hover,
+.tripConditionCard:hover,
+.tripResultRow:hover,
+.tripMarker:hover {
+  text-decoration: none;
+}
+
+.tripLogoLink span {
+  display: grid;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+.tripLogoLink b {
+  font-size: 15px;
+}
+
+.tripLogoLink span span {
+  font-size: 12px;
+  color: rgba(18, 48, 58, 0.68);
+}
+
+.tripLegendPills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tripLegendPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.90);
+  color: rgba(18, 48, 58, 0.76);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(9, 33, 45, 0.13);
+}
+
+.tripLegendClub {
+  background: #fff4d7;
+  color: #744508;
+}
+
+.tripConditionRail {
+  position: absolute;
+  z-index: 5;
+  left: 18px;
+  right: 18px;
+  bottom: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tripConditionCard {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.91);
+  color: #12303a;
+  box-shadow: 0 12px 26px rgba(9, 33, 45, 0.16);
+}
+
+.tripConditionName {
+  font-size: 12px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tripConditionCard strong {
+  font-size: 21px;
+  line-height: 1;
+}
+
+.tripConditionCard span:not(.tripConditionName) {
+  font-size: 12px;
+  color: rgba(18, 48, 58, 0.68);
+}
+
+.tripTone-good {
+  border-color: rgba(22, 163, 74, 0.38);
+}
+
+.tripTone-good strong {
+  color: #166534;
+}
+
+.tripTone-caution {
+  border-color: rgba(245, 158, 11, 0.48);
+}
+
+.tripTone-caution strong {
+  color: #92400e;
+}
+
+.tripTone-bad {
+  border-color: rgba(239, 68, 68, 0.48);
+}
+
+.tripTone-bad strong {
+  color: #991b1b;
+}
+
+.tripMarkers {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.tripMarker {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transform: translate(-18px, -18px);
+  color: #0f5961;
+  text-decoration: none;
+}
+
+.tripMarkerDot {
+  width: 35px;
+  height: 35px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.94);
+  background: #2f9fa7;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  box-shadow: 0 8px 16px rgba(12, 55, 65, 0.25);
+}
+
+.tripMarkerLabel {
+  max-width: 138px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #12303a;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.05;
+  box-shadow: 0 7px 16px rgba(12, 55, 65, 0.14);
+}
+
+.tripMarkerClub {
+  z-index: 6;
+  color: #744508;
+}
+
+.tripMarkerClub .tripMarkerDot {
+  width: 44px;
+  height: 44px;
+  border-color: #fff;
+  background: #f59e0b;
+  color: #2a1a04;
+  box-shadow: 0 10px 22px rgba(95, 52, 4, 0.28);
+}
+
+.tripMarkerClub .tripMarkerLabel {
+  background: #fff4d7;
+  color: #6b3f06;
+}
+
+.tripSheet {
+  position: relative;
+  z-index: 8;
+  min-height: 100vh;
+  background: #fbfdfd;
+  color: #12303a;
+  box-shadow: -16px 0 35px rgba(9, 33, 45, 0.16);
+  padding: 20px 22px 26px;
+  overflow: hidden;
+}
+
+.tripSheetHandle {
+  width: 54px;
+  height: 5px;
+  border-radius: 999px;
+  margin: 0 auto 24px;
+  background: #0d5060;
+}
+
+.tripSearchRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  height: 45px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #eef7f9;
+  color: rgba(18, 48, 58, 0.74);
+  font-weight: 850;
+}
+
+.tripSearchIcon {
+  display: inline-flex;
+  color: rgba(18, 48, 58, 0.50);
+}
+
+.tripSearchRow a {
+  color: #148b89;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.tripSheetHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 22px 0 12px;
+  border-bottom: 1px solid rgba(18, 48, 58, 0.10);
+}
+
+.tripSheetHeader h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.tripSheetHeader p {
+  margin: 5px 0 0;
+  color: rgba(18, 48, 58, 0.60);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.tripClubCount {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 9px;
+  border-radius: 999px;
+  background: #fff4d7;
+  color: #744508;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tripResults {
+  display: grid;
+}
+
+.tripResultRow {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 74px;
+  border-bottom: 1px solid rgba(18, 48, 58, 0.10);
+  color: #12303a;
+}
+
+.tripResultIndex {
+  width: 31px;
+  height: 31px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #d9f4f4;
+  color: #148b89;
+  font-weight: 900;
+}
+
+.tripResultMain {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.tripResultTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: #12303a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.tripResultTitle em {
+  flex: 0 0 auto;
+  font-style: normal;
+  border-radius: 999px;
+  padding: 3px 6px;
+  background: #fff4d7;
+  color: #744508;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.tripResultAddress {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(18, 48, 58, 0.56);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.tripResultArea {
+  color: rgba(18, 48, 58, 0.62);
+  font-size: 12px;
+  font-weight: 850;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tripResultClub .tripResultIndex {
+  background: #f59e0b;
+  color: #2a1a04;
+}
+
+.tripFooter {
+  margin-top: 18px;
+}
+
+.tripFooter .sourceLegend {
+  background: #12303a;
+  border-color: rgba(18, 48, 58, 0.10);
+}
+
+@media (max-width: 1100px) {
+  .tripPage {
+    grid-template-columns: 1fr;
+  }
+
+  .tripMapPanel {
+    position: relative;
+    min-height: 62vh;
+  }
+
+  .tripSheet {
+    min-height: auto;
+    margin-top: -24px;
+    border-top-left-radius: 22px;
+    border-top-right-radius: 22px;
+    box-shadow: 0 -16px 35px rgba(9, 33, 45, 0.16);
+  }
+}
+
+@media (max-width: 720px) {
+  .tripMapPanel {
+    min-height: 58vh;
+  }
+
+  .tripTopBar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    align-items: flex-start;
+  }
+
+  .tripLogoLink {
+    max-width: 205px;
+  }
+
+  .tripLegendPills {
+    max-width: 126px;
+  }
+
+  .tripLegendPill {
+    min-height: 30px;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .tripMarkerDot {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .tripMarkerClub .tripMarkerDot {
+    width: 38px;
+    height: 38px;
+  }
+
+  .tripMarkerLabel {
+    max-width: 104px;
+    font-size: 10px;
+  }
+
+  .tripConditionRail {
+    left: 12px;
+    right: 12px;
+    bottom: 18px;
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .tripConditionCard {
+    min-width: 178px;
+  }
+
+  .tripSheet {
+    padding: 17px 16px 24px;
+  }
+
+  .tripSheetHeader {
+    display: grid;
+  }
+
+  .tripResultRow {
+    grid-template-columns: 38px minmax(0, 1fr);
+    min-height: 72px;
+  }
+
+  .tripResultArea {
+    display: none;
+  }
+
+  .tripResultTitle {
+    display: grid;
+    align-items: start;
+    gap: 4px;
+  }
+
+  .tripResultTitle em {
+    width: fit-content;
+  }
+}
+
 
 
