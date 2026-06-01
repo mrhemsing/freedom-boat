@@ -592,10 +592,10 @@ export default function TripMap({ marinas }: TripMapProps) {
                     <button
                       key={marina.id}
                       type="button"
-                      className="plannerRow"
+                      className={`plannerRow ${marina.freedomClub ? 'plannerRowFreedom' : ''}`}
                       onClick={() => openMarina(marina)}
                     >
-                      <span className="plannerIdx">
+                      <span className={`plannerIdx ${marina.freedomClub ? 'plannerIdxFreedom' : ''}`}>
                         {marina.id}
                         <i style={{ background: scoreColor(score) }} />
                       </span>
@@ -933,7 +933,7 @@ function TripPlanView({
 
 function marinaIcon(L: any, marina: Marina, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
-  const cls = `${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
+  const cls = `${marina.freedomClub ? 'freedom' : ''} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
   return L.divIcon({
     className: '',
     html: `<div class="plannerPin ${cls}"><span class="plannerPinScore" style="background:${scoreColor(score)}"></span><span class="plannerPinBubble">${marina.id}</span><span class="plannerPinTail"></span></div>`,
