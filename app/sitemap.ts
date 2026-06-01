@@ -5,6 +5,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
   return [
     url('/plan-my-trip', lastModified, 'hourly', 1),
+    url('/browse', lastModified, 'daily', 0.8),
     ...AREA_HUBS.map((hub) => url(`/area/${hub.slug}`, lastModified, 'daily', 0.8)),
     ...SEO_MARINAS.map((marina) => url(`/marina/${marina.slug}`, lastModified, 'hourly', 0.9)),
     ...SEO_LAUNCHES.map((launch) => url(`/launch/${launch.slug}`, lastModified, 'hourly', 0.85))
