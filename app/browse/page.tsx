@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AREA_HUBS, canonicalUrl, SEO_LAUNCHES, SEO_MARINAS } from '../../lib/seo-slugs';
+import { AREA_HUBS, canonicalUrl, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../lib/seo-slugs';
 
 type BrowseType = 'all' | 'areas' | 'marinas' | 'launches';
 
@@ -75,7 +75,7 @@ export default function BrowsePage({
             <h2>Marinas</h2>
             <div className="seoLinkGrid">
               {SEO_MARINAS.map((marina) => (
-                <a key={marina.slug} href={`/marina/${marina.slug}`}>
+                <a key={marina.slug} href={marinaPath(marina)}>
                   <strong>{marina.name}</strong>
                   <span>{marina.area}</span>
                 </a>

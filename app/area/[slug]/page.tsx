@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { breadcrumbJsonLd } from '../../../lib/seo-schema';
-import { AREA_HUBS, canonicalUrl, getAreaHubBySlug, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
+import { AREA_HUBS, canonicalUrl, getAreaHubBySlug, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
 
 export const revalidate = 86400;
 
@@ -52,7 +52,7 @@ export default function AreaHubPage({ params }: { params: { slug: string } }) {
         <h2>{hub.name} Marinas</h2>
         <div className="seoLinkGrid">
           {marinas.map((marina) => (
-            <a key={marina.slug} href={`/marina/${marina.slug}`}>
+            <a key={marina.slug} href={marinaPath(marina)}>
               <strong>{marina.name}</strong>
               <span>{marina.area}</span>
             </a>

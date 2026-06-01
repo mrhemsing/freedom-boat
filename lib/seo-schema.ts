@@ -1,10 +1,11 @@
 import { type BoatLaunch, type Marina, MARINA_ACCESS_INFO } from './marinas';
-import { areaHubForPlace, canonicalUrl, seoSlugForLaunch, seoSlugForMarina } from './seo-slugs';
+import { areaHubForPlace, canonicalUrl, marinaPath, seoSlugForLaunch } from './seo-slugs';
 
 export function marinaJsonLd(marina: Marina) {
   const access = marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
   const area = areaHubForPlace(marina);
-  const url = canonicalUrl(`/marina/${seoSlugForMarina(marina)}`);
+  const path = marinaPath(marina);
+  const url = canonicalUrl(path);
   return [
     {
       '@context': 'https://schema.org',
@@ -27,7 +28,7 @@ export function marinaJsonLd(marina: Marina) {
     breadcrumbJsonLd([
       ['Home', '/plan-my-trip'],
       [area.name, `/area/${area.slug}`],
-      [marina.name, `/marina/${seoSlugForMarina(marina)}`]
+      [marina.name, path]
     ]),
     faqJsonLd([
       {

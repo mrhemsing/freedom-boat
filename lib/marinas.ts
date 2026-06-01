@@ -8,7 +8,7 @@ export type Marina = {
   area: string;
   exp?: number;
   freedomClub?: boolean;
-  locationId?: 'port-moody' | 'north-saanich' | 'west-vancouver';
+  locationId?: 'port-moody' | 'north-saanich' | 'west-vancouver' | 'oak-bay';
   accessInfo?: MarinaAccessInfo;
   operator?: string;
   sourceUrl?: string;
@@ -590,6 +590,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -123.3025,
     area: 'Oak Bay',
     freedomClub: true,
+    locationId: 'oak-bay',
     operator: 'Freedom Boat Club of British Columbia',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/freedom-boat-club-of-british-columbia-ltd/oak-bay',
     accessInfo: FREEDOM_CLUB_ACCESS

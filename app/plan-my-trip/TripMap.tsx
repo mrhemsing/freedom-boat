@@ -9,7 +9,7 @@ import {
 } from '../../lib/marinas';
 import { snapMarinaList } from '../../lib/marina-snap';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
-import { seoSlugForLaunch, seoSlugForMarina } from '../../lib/seo-slugs';
+import { marinaPath, seoSlugForLaunch } from '../../lib/seo-slugs';
 
 type TripMapProps = {
   marinas: Marina[];
@@ -860,7 +860,7 @@ function MarinaDetail({
 
       <a
         className="plannerPrimary"
-        href={`/marina/${seoSlugForMarina(marina)}`}
+        href={marinaPath(marina)}
       >
         Open conditions
       </a>

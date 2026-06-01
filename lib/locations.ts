@@ -1,4 +1,4 @@
-export type LocationId = 'port-moody' | 'north-saanich' | 'west-vancouver';
+export type LocationId = 'port-moody' | 'north-saanich' | 'west-vancouver' | 'oak-bay';
 
 export type LocationProfile = {
   id: LocationId;
@@ -35,6 +35,18 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
       'Strait of Georgia',
       'Juan de Fuca Strait',
       'Haro Strait'
+    ]
+  },
+  'oak-bay': {
+    id: 'oak-bay',
+    name: 'Oak Bay',
+    address: 'Oak Bay Marina, Victoria, BC',
+    lat: 48.4249,
+    lon: -123.3025,
+    marineAreas: [
+      'Juan de Fuca Strait',
+      'Haro Strait',
+      'Strait of Georgia'
     ]
   },
   'west-vancouver': {

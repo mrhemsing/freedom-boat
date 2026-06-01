@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getMarinaSeoSnapshot, scorePhrase } from '../../../lib/seo-live';
 import { marinaJsonLd } from '../../../lib/seo-schema';
-import { areaHubForPlace, canonicalUrl, getMarinaBySlug, SEO_MARINAS } from '../../../lib/seo-slugs';
+import { areaHubForPlace, canonicalUrl, getMarinaBySlug, marinaPath, SEO_MARINAS } from '../../../lib/seo-slugs';
 import { MARINA_ACCESS_INFO } from '../../../lib/marinas';
 
 export const revalidate = 3600;
@@ -14,6 +14,22 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const marina = getMarinaBySlug(params.slug);
   if (!marina) return {};
+  if (marina.locationId) {
+    const path = marinaPath(marina);
+    return {
+      title: `FAIRTIDE Boat Planner - ${marina.area}`,
+      description: `Hyper-local boating conditions for ${marina.area}.`,
+      alternates: {
+        canonical: canonicalUrl(path)
+      },
+      openGraph: {
+        title: `FAIRTIDE Boat Planner - ${marina.area}`,
+        description: `Hyper-local boating conditions for ${marina.area}.`,
+        url: canonicalUrl(path),
+        type: 'website'
+      }
+    };
+  }
   const snapshot = await getMarinaSeoSnapshot(marina);
   const title = marinaPageTitle(marina);
   return {
@@ -34,6 +50,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function MarinaSeoPage({ params }: { params: { slug: string } }) {
   const marina = getMarinaBySlug(params.slug);
   if (!marina) return notFound();
+  if (marina.locationId) redirect(marinaPath(marina));
 
   const [snapshot, nearby] = await Promise.all([
     getMarinaSeoSnapshot(marina),
@@ -102,7 +119,7 @@ export default async function MarinaSeoPage({ params }: { params: { slug: string
         <h2>Marinas Near {marina.name}</h2>
         <div className="seoLinkGrid">
           {nearby.map((near) => (
-            <a key={near.slug} href={`/marina/${near.slug}`}>
+            <a key={near.slug} href={marinaPath(near)}>
               <strong>{near.name}</strong>
               <span>{near.area}</span>
             </a>

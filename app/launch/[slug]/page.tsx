@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLaunchSeoSnapshot, scorePhrase } from '../../../lib/seo-live';
 import { launchJsonLd } from '../../../lib/seo-schema';
-import { areaHubForPlace, canonicalUrl, getLaunchBySlug, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
+import { areaHubForPlace, canonicalUrl, getLaunchBySlug, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
 
 export const revalidate = 3600;
 
@@ -83,7 +83,7 @@ export default async function LaunchSeoPage({ params }: { params: { slug: string
         <h2>Nearby Marinas</h2>
         <div className="seoLinkGrid">
           {nearby.map((marina) => (
-            <a key={marina.slug} href={`/marina/${marina.slug}`}>
+            <a key={marina.slug} href={marinaPath(marina)}>
               <strong>{marina.name}</strong>
               <span>{marina.area}</span>
             </a>

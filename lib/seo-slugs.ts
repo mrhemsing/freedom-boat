@@ -97,6 +97,11 @@ export function seoSlugForMarina(marina: Pick<Marina, 'name' | 'id'>) {
   return `${slugify(marina.name)}-${marina.id}`;
 }
 
+export function marinaPath(marina: Pick<Marina, 'name' | 'id' | 'locationId'> & { slug?: string }) {
+  if (marina.locationId) return `/location/${marina.locationId}`;
+  return `/marina/${marina.slug ?? seoSlugForMarina(marina)}`;
+}
+
 export function seoSlugForLaunch(launch: Pick<BoatLaunch, 'name' | 'id'>) {
   return `${slugify(launch.name)}-${launch.id}`;
 }

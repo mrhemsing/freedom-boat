@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../../lib/outlook';
-import { SEO_MARINAS, type SeoMarina } from '../../../lib/seo-slugs';
+import { marinaPath, SEO_MARINAS, type SeoMarina } from '../../../lib/seo-slugs';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
@@ -61,12 +61,7 @@ export default async function LocationPage({
   const windSpeed = now?.wind?.speedKts;
   const gust = now?.wind?.gustKts;
   const dir = now?.wind?.directionDeg;
-  const webcamVideoId =
-    id === 'north-saanich'
-      ? 'zeKV78ULlpY'
-      : id === 'west-vancouver'
-        ? 'MOKktH6RcpU'
-        : 'T0oUufecXeE';
+  const webcam = getLocationWebcam(id);
   const nextTide = getNextTideSummary({ events: tides?.events ?? [] });
   const tidePhase = getTidePhaseSummary({ events: tides?.events ?? [] });
   const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
@@ -307,23 +302,44 @@ export default async function LocationPage({
                       position: 'relative'
                     }}
                   >
-                    <iframe
-                      title="Port Moody YouTube webcam"
-                      src={`https://www.youtube.com/embed/${webcamVideoId}?autoplay=1&mute=1&playsinline=1&controls=0&modestbranding=1&iv_load_policy=3&rel=0`}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        width: '100%',
-                        height: '100%',
-                        border: 0,
-                        transform: 'scale(1.8)',
-                        transformOrigin: 'center center'
-                      }}
-                      loading="lazy"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allowFullScreen
-                    />
+                    {webcam.videoId ? (
+                      <iframe
+                        title={`${loc.name} YouTube webcam`}
+                        src={`https://www.youtube.com/embed/${webcam.videoId}?autoplay=1&mute=1&playsinline=1&controls=0&modestbranding=1&iv_load_policy=3&rel=0`}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          width: '100%',
+                          height: '100%',
+                          border: 0,
+                          transform: 'scale(1.8)',
+                          transformOrigin: 'center center'
+                        }}
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <a
+                        href={webcam.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'grid',
+                          placeItems: 'center',
+                          padding: 18,
+                          textAlign: 'center',
+                          color: 'rgba(11,18,32,0.78)',
+                          background: 'linear-gradient(135deg, rgba(14,165,164,0.16), rgba(255,255,255,0.92))',
+                          fontWeight: 800
+                        }}
+                      >
+                        Open {loc.name} live webcam
+                      </a>
+                    )}
                   </div>
                 )
               },
@@ -452,7 +468,7 @@ function buildMarinaJumpGroups() {
 
   for (const marina of [...SEO_MARINAS].sort(compareMarinaOptions)) {
     const label = regionLabel(menuRegion(marina));
-    const path = marina.locationId ? `/location/${marina.locationId}` : `/marina/${marina.slug}`;
+    const path = marinaPath(marina);
     groups.set(label, [
       ...(groups.get(label) ?? []),
       {
@@ -792,6 +808,13 @@ function baseUrl() {
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
 
   return 'http://localhost:3000';
+}
+
+function getLocationWebcam(id: LocationId) {
+  if (id === 'north-saanich') return { videoId: 'zeKV78ULlpY' };
+  if (id === 'west-vancouver') return { videoId: 'MOKktH6RcpU' };
+  if (id === 'port-moody') return { videoId: 'T0oUufecXeE' };
+  return { url: 'https://oakbaymarina.com/weather/' };
 }
 
 function extractHour(isoLike?: string) {

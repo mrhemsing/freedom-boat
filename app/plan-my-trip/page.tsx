@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
-import { seoSlugForMarina } from '../../lib/seo-slugs';
+import { marinaPath } from '../../lib/seo-slugs';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
@@ -41,7 +41,7 @@ export default function PlanMyTripPage() {
               {freedomMenuRows.map((row) => row.kind === 'divider' ? (
                 <div key={row.label} className="tripPlannerMenuDivider">{row.label}</div>
               ) : (
-                <a key={row.marina.id} href={`/marina/${seoSlugForMarina(row.marina)}`}>
+                <a key={row.marina.id} href={marinaPath(row.marina)}>
                   <strong>{row.marina.name.replace('Freedom Boat Club ', '')}</strong>
                   <span>{row.marina.area}</span>
                 </a>
