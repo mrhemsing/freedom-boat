@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
 import { seoSlugForMarina } from '../../lib/seo-slugs';
-import MarinaJump from '../location/[locationId]/MarinaJump';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
@@ -48,10 +47,6 @@ export default function PlanMyTripPage() {
             </div>
           </details>
           <div className="tripPlannerNav">
-            <label htmlFor="marinaJump" className="miniNote tripPlannerJumpLabel">
-              Marina:
-            </label>
-            <MarinaJump value="" placeholder="Select Freedom Club" />
             <a className="tripPlannerBrowse" href="/browse">Browse directory</a>
           </div>
         </div>
