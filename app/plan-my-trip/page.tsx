@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ADDITIONAL_PUBLIC_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
+import { AREA_HUBS, SEO_LAUNCHES, SEO_MARINAS } from '../../lib/seo-slugs';
 import MarinaJump from '../location/[locationId]/MarinaJump';
 import TripMap from './TripMap';
 
@@ -35,6 +36,32 @@ export default function PlanMyTripPage() {
 
       <section className="tripPlannerPanel" aria-label="Plan my trip map">
         <TripMap marinas={[...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS]} />
+      </section>
+
+      <section className="seoContent plannerSeoLinks" aria-label="Browse boating condition pages">
+        <h2>Browse Marina and Launch Conditions</h2>
+        <div className="seoLinkGrid">
+          {AREA_HUBS.map((hub) => (
+            <a key={hub.slug} href={`/area/${hub.slug}`}>
+              <strong>{hub.name}</strong>
+              <span>Area guide</span>
+            </a>
+          ))}
+        </div>
+        <div className="seoLinkGrid">
+          {SEO_MARINAS.map((marina) => (
+            <a key={marina.slug} href={`/marina/${marina.slug}`}>
+              <strong>{marina.name}</strong>
+              <span>{marina.area}</span>
+            </a>
+          ))}
+          {SEO_LAUNCHES.map((launch) => (
+            <a key={launch.slug} href={`/launch/${launch.slug}`}>
+              <strong>{launch.name}</strong>
+              <span>{launch.area}</span>
+            </a>
+          ))}
+        </div>
       </section>
 
       <footer className="siteFooter">

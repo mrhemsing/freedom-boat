@@ -9,6 +9,7 @@ import {
 } from '../../lib/marinas';
 import { snapMarinaList } from '../../lib/marina-snap';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
+import { seoSlugForLaunch, seoSlugForMarina } from '../../lib/seo-slugs';
 
 type TripMapProps = {
   marinas: Marina[];
@@ -707,11 +708,9 @@ function MarinaDetail({
 
       <a
         className="plannerPrimary"
-        href={marina.locationId ? `/location/${marina.locationId}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${marina.name} ${marina.address}`)}`}
-        target={marina.locationId ? undefined : '_blank'}
-        rel={marina.locationId ? undefined : 'noreferrer'}
+        href={`/marina/${seoSlugForMarina(marina)}`}
       >
-        {marina.locationId ? 'Open conditions' : 'Open in Maps'}
+        Open conditions
       </a>
       <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
         Close panel
@@ -801,11 +800,9 @@ function LaunchDetail({ launch, dayIndex, onBack }: { launch: BoatLaunch; dayInd
       </div>
       <a
         className="plannerPrimary"
-        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${launch.name} ${launch.area}`)}`}
-        target="_blank"
-        rel="noreferrer"
+        href={`/launch/${seoSlugForLaunch(launch)}`}
       >
-        Open in Maps
+        Open launch conditions
       </a>
       <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
         Close panel
