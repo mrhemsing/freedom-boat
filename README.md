@@ -19,6 +19,7 @@ data/marina-access-info.json        verified access/transient/fuel/moorage overr
 scripts/fetch-marinas.cjs           OSM marina and launch refresh pipeline
 scripts/enrich-marinas.cjs          merge verified info onto OSM pull
 docs/bc-marinas-reference.md        regional marina validation checklist
+docs/bc-offpage-seo.md              BC backlink and outreach playbook
 vercel.json                         explicit Next.js project hint
 ```
 
@@ -75,6 +76,13 @@ are ignored so they can be reviewed before promoting any changes into the app.
 
 Use `docs/bc-marinas-reference.md` as a regional validation checklist when
 reviewing whether an OSM pull caught the obvious transient-friendly marinas.
+
+## SEO Growth
+
+The server-rendered marina, launch, and area pages are the on-page SEO layer.
+Use `docs/bc-offpage-seo.md` as the BC-specific backlink plan for harbour
+authorities, yacht clubs, boating forums, marine businesses, and local resource
+pages.
 
 ## Config Knobs
 
