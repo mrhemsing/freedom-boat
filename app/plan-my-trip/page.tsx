@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../lib/locations';
-import { TRIP_MAP_BOUNDS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
+import { TRIP_MARINAS } from '../../lib/marinas';
 import { degToCardinal, isoToLocalTime, round } from '../../lib/format';
+import TripMap from './TripMap';
 
 export const metadata: Metadata = {
   title: 'Freedom Boat - Plan My Trip',
@@ -30,15 +31,7 @@ export default async function PlanMyTripPage() {
   return (
     <main className="tripPage">
       <section className="tripMapPanel" aria-label="Plan my trip map">
-        <iframe
-          className="tripMapFrame"
-          title="Vancouver and Gulf Islands marina map"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-            `${TRIP_MAP_BOUNDS.west},${TRIP_MAP_BOUNDS.south},${TRIP_MAP_BOUNDS.east},${TRIP_MAP_BOUNDS.north}`
-          )}&layer=mapnik`}
-        />
+        <TripMap marinas={TRIP_MARINAS} />
         <div className="tripMapShade" />
 
         <header className="tripTopBar">
@@ -66,23 +59,6 @@ export default async function PlanMyTripPage() {
           ))}
         </div>
 
-        <div className="tripMarkers" aria-label="Marina markers">
-          {TRIP_MARINAS.map((marina) => {
-            const pos = projectMarina(marina);
-            return (
-              <a
-                key={marina.id}
-                href={marina.locationId ? `/location/${marina.locationId}` : `#marina-${marina.id}`}
-                className={`tripMarker ${marina.freedomClub ? 'tripMarkerClub' : ''}`}
-                style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                aria-label={marina.name}
-              >
-                <span className="tripMarkerDot">{marina.id}</span>
-                <span className="tripMarkerLabel">{marina.name}</span>
-              </a>
-            );
-          })}
-        </div>
       </section>
 
       <section className="tripSheet" aria-label="Marina results">
@@ -195,15 +171,6 @@ async function getBaseCondition(id: LocationId, marinaName: string): Promise<Bas
     wind: `${round(wind, 0) ?? '-'} kt${direction ? ` ${direction}` : ''} now`,
     rain: rainHour ? `Rain risk ${isoToLocalTime(rainHour.t)}` : 'No strong rain signal',
     asOf: now?.asOf
-  };
-}
-
-function projectMarina(marina: Marina) {
-  const x = ((marina.lon - TRIP_MAP_BOUNDS.west) / (TRIP_MAP_BOUNDS.east - TRIP_MAP_BOUNDS.west)) * 100;
-  const y = ((TRIP_MAP_BOUNDS.north - marina.lat) / (TRIP_MAP_BOUNDS.north - TRIP_MAP_BOUNDS.south)) * 100;
-  return {
-    x: Math.max(2, Math.min(98, x)),
-    y: Math.max(5, Math.min(94, y))
   };
 }
 

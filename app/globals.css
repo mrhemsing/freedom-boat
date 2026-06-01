@@ -1067,12 +1067,33 @@ hr.soft {
   inset: -42px -28px -42px -28px;
   width: calc(100% + 56px);
   height: calc(100% + 84px);
+}
+
+.tripLeafletMap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  filter: saturate(0.92) contrast(0.96) brightness(1.03);
+}
+
+.tripMapFrame {
   border: 0;
   filter: saturate(0.92) contrast(0.96) brightness(1.03);
 }
 
+.tripLeafletMap .leaflet-tile-pane {
+  filter: saturate(0.92) contrast(0.96) brightness(1.03);
+}
+
+.tripLeafletMap .leaflet-control-attribution {
+  display: none;
+}
+
 .tripMapShade {
   position: absolute;
+  z-index: 2;
   inset: 0;
   pointer-events: none;
   background:
@@ -1107,7 +1128,8 @@ hr.soft {
 .tripLogoLink:hover,
 .tripConditionCard:hover,
 .tripResultRow:hover,
-.tripMarker:hover {
+.tripMarker:hover,
+.tripLeafletMarker:hover {
   text-decoration: none;
 }
 
@@ -1222,7 +1244,8 @@ hr.soft {
   z-index: 4;
 }
 
-.tripMarker {
+.tripMarker,
+.tripLeafletMarker {
   position: absolute;
   display: inline-flex;
   align-items: center;
@@ -1230,6 +1253,13 @@ hr.soft {
   transform: translate(-18px, -18px);
   color: #0f5961;
   text-decoration: none;
+}
+
+.tripLeafletMarker {
+  z-index: 4;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
 }
 
 .tripMarkerDot {
@@ -1258,12 +1288,14 @@ hr.soft {
   box-shadow: 0 7px 16px rgba(12, 55, 65, 0.14);
 }
 
-.tripMarkerClub {
+.tripMarkerClub,
+.tripLeafletMarkerClub {
   z-index: 6;
   color: #744508;
 }
 
-.tripMarkerClub .tripMarkerDot {
+.tripMarkerClub .tripMarkerDot,
+.tripLeafletMarkerClub .tripMarkerDot {
   width: 44px;
   height: 44px;
   border-color: #fff;
@@ -1272,7 +1304,8 @@ hr.soft {
   box-shadow: 0 10px 22px rgba(95, 52, 4, 0.28);
 }
 
-.tripMarkerClub .tripMarkerLabel {
+.tripMarkerClub .tripMarkerLabel,
+.tripLeafletMarkerClub .tripMarkerLabel {
   background: #fff4d7;
   color: #6b3f06;
 }
@@ -1490,7 +1523,8 @@ hr.soft {
     font-size: 12px;
   }
 
-  .tripMarkerClub .tripMarkerDot {
+  .tripMarkerClub .tripMarkerDot,
+  .tripLeafletMarkerClub .tripMarkerDot {
     width: 38px;
     height: 38px;
   }
