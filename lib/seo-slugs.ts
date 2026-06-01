@@ -11,16 +11,34 @@ export type AreaHub = {
 
 export const AREA_HUBS: AreaHub[] = [
   {
+    slug: 'sunshine-coast',
+    name: 'Sunshine Coast',
+    description: 'Marina conditions, tide windows, and transient moorage from Gibsons through Powell River and Lund.',
+    match: (place) => /sunshine coast|gibsons|pender harbour|halfmoon|powell river|lund|secret cove/i.test(place.area)
+  },
+  {
     slug: 'howe-sound',
     name: 'Howe Sound',
     description: 'Boating conditions, marina tides, guest moorage, and public launch options around Howe Sound.',
-    match: (place) => /west vancouver|horseshoe bay|bowen|gibsons|sunshine coast|lions bay|deep cove/i.test(place.area)
+    match: (place) => /west vancouver|horseshoe bay|bowen|lions bay|deep cove/i.test(place.area)
   },
   {
     slug: 'gulf-islands',
     name: 'Gulf Islands',
     description: 'Tides, marina conditions, fuel, and transient moorage for Gulf Islands cruising stops.',
-    match: (place) => /galiano|pender|sidney|north saanich|mill bay|oak bay/i.test(place.area)
+    match: (place) => /galiano|north pender|south pender|pender island|sidney|north saanich|mill bay|oak bay/i.test(place.area)
+  },
+  {
+    slug: 'discovery-islands',
+    name: 'Discovery Islands',
+    description: 'Boating conditions, marina access, and Discovery Passage stops around Quadra, Cortes, and Desolation Sound.',
+    match: (place) => /discovery islands|desolation sound|quadra|cortes|campbell river/i.test(place.area)
+  },
+  {
+    slug: 'vancouver-island-east',
+    name: 'Vancouver Island East Coast',
+    description: 'East Vancouver Island marina conditions from French Creek and Nanaimo north to Comox and Courtenay.',
+    match: (place) => /comox|courtenay|french creek|nanoose|nanaimo|ladysmith/i.test(place.area)
   },
   {
     slug: 'puget-sound',
@@ -44,7 +62,7 @@ export const AREA_HUBS: AreaHub[] = [
     slug: 'salish-sea',
     name: 'Salish Sea',
     description: 'Daily boating conditions, tide windows, marinas, and public launches across the Salish Sea.',
-    match: (place) => /vancouver|richmond|port moody|north vancouver|surrey|blaine|gibsons|sunshine coast|lions bay|deep cove|west vancouver|horseshoe bay|bowen|galiano|pender|sidney|north saanich|mill bay|oak bay/i.test(place.area)
+    match: (place) => /vancouver|richmond|port moody|north vancouver|surrey|blaine|gibsons|sunshine coast|lions bay|deep cove|west vancouver|horseshoe bay|bowen|galiano|pender|sidney|north saanich|mill bay|oak bay|comox|courtenay|french creek|nanoose|campbell river|powell river|lund|discovery islands|desolation sound/i.test(place.area)
   },
   {
     slug: 'pacific-northwest',

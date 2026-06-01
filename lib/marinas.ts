@@ -70,7 +70,23 @@ export const MARINA_ACCESS_INFO: Record<string, MarinaAccessInfo> = {
   union_steamship: { access: 'Public', transient: 'Y', fuel: 'N', launch: 'N', moorage: 'by the foot', verified: false },
   pender_hbr: { access: 'Public', transient: 'Y', fuel: 'Y', launch: 'Y', moorage: 'by the foot', verified: false },
   lions_bay: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'Y', moorage: 'by the foot', verified: false },
-  steveston_harbour: { access: 'Public', transient: 'Y', fuel: '?', launch: 'Y', moorage: 'transient float, max 7 days', verified: true }
+  steveston_harbour: { access: 'Public', transient: 'Y', fuel: '?', launch: 'Y', moorage: 'transient float, max 7 days', verified: true },
+  secret_cove: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'transient moorage as available', verified: false },
+  john_henrys: { access: 'Resort', transient: 'Y', fuel: '?', launch: 'N', moorage: 'transient moorage as available', verified: false },
+  westview_harbour: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'guest moorage as available', verified: false },
+  beach_gardens: { access: 'Resort', transient: 'Y', fuel: '?', launch: 'N', moorage: 'resort marina transient moorage', verified: false },
+  lund_harbour: { access: 'Public', transient: 'Y', fuel: '?', launch: '?', moorage: 'small craft harbour transient moorage', verified: false },
+  refuge_cove: { access: 'Public', transient: 'Y', fuel: 'Y', launch: 'N', moorage: 'transient moorage as available', verified: false },
+  gorge_harbour: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'government wharf / marina moorage', verified: false },
+  heriot_bay: { access: 'Resort', transient: 'Y', fuel: 'Y', launch: 'N', moorage: 'transient moorage as available', verified: false },
+  taku_resort: { access: 'Resort', transient: 'Y', fuel: '?', launch: 'N', moorage: 'resort marina transient moorage', verified: false },
+  discovery_harbour: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'transient moorage as available', verified: false },
+  coast_campbell_river: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'transient moorage as available', verified: false },
+  salmon_point: { access: 'Resort', transient: 'Y', fuel: '?', launch: 'N', moorage: 'resort marina transient moorage', verified: false },
+  courtenay_marina: { access: 'Public', transient: 'Limited', fuel: '?', launch: '?', moorage: 'moorage as available', verified: false },
+  comox_bay: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'harbour authority transient moorage', verified: false },
+  french_creek: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'harbour authority transient moorage', verified: false },
+  schooner_cove: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'transient moorage as available', verified: false }
 };
 
 export const EXCLUDED_MARINAS = {
@@ -392,6 +408,166 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     lat: 49.3585,
     lon: -123.2715,
     area: 'West Vancouver'
+  },
+  {
+    id: 51,
+    osmId: 'secret_cove',
+    name: 'Secret Cove Marina',
+    address: '5411 Secret Cove Road, Halfmoon Bay, BC',
+    lat: 49.5308,
+    lon: -123.9694,
+    area: 'Sunshine Coast',
+    exp: 0.5
+  },
+  {
+    id: 52,
+    osmId: 'john_henrys',
+    name: "John Henry's Marina & Resort",
+    address: 'Garden Bay, Pender Harbour, BC',
+    lat: 49.6317,
+    lon: -124.0337,
+    area: 'Pender Harbour',
+    exp: 0.5
+  },
+  {
+    id: 53,
+    osmId: 'westview_harbour',
+    name: 'Powell River Westview Harbour',
+    address: '6790 Wharf Street, Powell River, BC',
+    lat: 49.8359,
+    lon: -124.5298,
+    area: 'Powell River',
+    exp: 0.6
+  },
+  {
+    id: 54,
+    osmId: 'beach_gardens',
+    name: 'Beach Gardens Resort & Marina',
+    address: 'Powell River, BC',
+    lat: 49.8018,
+    lon: -124.5185,
+    area: 'Powell River',
+    exp: 0.6
+  },
+  {
+    id: 55,
+    osmId: 'lund_harbour',
+    name: 'Lund Harbour',
+    address: 'Lund, BC',
+    lat: 49.9817,
+    lon: -124.763,
+    area: 'Lund',
+    exp: 0.7
+  },
+  {
+    id: 56,
+    osmId: 'refuge_cove',
+    name: 'Refuge Cove Marina',
+    address: 'Refuge Cove, West Redonda Island, BC',
+    lat: 50.1228,
+    lon: -124.844,
+    area: 'Desolation Sound',
+    exp: 0.7
+  },
+  {
+    id: 57,
+    osmId: 'gorge_harbour',
+    name: 'Gorge Harbour Government Wharf',
+    address: 'Gorge Harbour, Cortes Island, BC',
+    lat: 50.0993,
+    lon: -125.0203,
+    area: 'Discovery Islands',
+    exp: 0.7
+  },
+  {
+    id: 58,
+    osmId: 'heriot_bay',
+    name: 'Heriot Bay Inn & Marina',
+    address: 'Heriot Bay, Quadra Island, BC',
+    lat: 50.1029,
+    lon: -125.2114,
+    area: 'Discovery Islands',
+    exp: 0.7
+  },
+  {
+    id: 59,
+    osmId: 'taku_resort',
+    name: 'Taku Resort & Marina',
+    address: 'Drew Harbour, Quadra Island, BC',
+    lat: 50.101,
+    lon: -125.2044,
+    area: 'Discovery Islands',
+    exp: 0.7
+  },
+  {
+    id: 60,
+    osmId: 'discovery_harbour',
+    name: 'Discovery Harbour Marina',
+    address: 'Campbell River, BC',
+    lat: 50.0335,
+    lon: -125.2431,
+    area: 'Campbell River',
+    exp: 0.7
+  },
+  {
+    id: 61,
+    osmId: 'coast_campbell_river',
+    name: 'The Coast Marina Campbell River',
+    address: 'Campbell River, BC',
+    lat: 50.0275,
+    lon: -125.2408,
+    area: 'Campbell River',
+    exp: 0.7
+  },
+  {
+    id: 62,
+    osmId: 'salmon_point',
+    name: 'Salmon Point Marina',
+    address: 'Campbell River, BC',
+    lat: 49.8896,
+    lon: -125.1269,
+    area: 'Campbell River',
+    exp: 0.7
+  },
+  {
+    id: 63,
+    osmId: 'courtenay_marina',
+    name: 'Courtenay Marina',
+    address: 'Courtenay, BC',
+    lat: 49.682,
+    lon: -124.9839,
+    area: 'Courtenay',
+    exp: 0.7
+  },
+  {
+    id: 64,
+    osmId: 'comox_bay',
+    name: 'Comox Bay Marina',
+    address: 'Comox, BC',
+    lat: 49.6695,
+    lon: -124.9284,
+    area: 'Comox',
+    exp: 0.7
+  },
+  {
+    id: 65,
+    osmId: 'french_creek',
+    name: 'French Creek Marina',
+    address: 'French Creek, BC',
+    lat: 49.3497,
+    lon: -124.3572,
+    area: 'French Creek',
+    exp: 0.5
+  },
+  {
+    id: 66,
+    osmId: 'schooner_cove',
+    name: 'Schooner Cove Marina',
+    address: 'Nanoose Bay, BC',
+    lat: 49.2869,
+    lon: -124.1357,
+    area: 'Nanoose Bay',
+    exp: 0.5
   }
 ];
 

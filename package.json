@@ -14,7 +14,8 @@
     "start": "next start",
     "lint": "next lint",
     "marinas:fetch": "node scripts/fetch-marinas.cjs",
-    "marinas:enrich": "node scripts/enrich-marinas.cjs"
+    "marinas:enrich": "node scripts/enrich-marinas.cjs",
+    "marinas:validate": "node scripts/validate-marina-refresh.cjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

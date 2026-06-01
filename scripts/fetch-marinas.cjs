@@ -10,7 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEFAULT_BBOX = '48.30,-125.60,51.20,-122.10'; // S,W,N,E
+const DEFAULT_BBOX = '48.30,-127.00,52.50,-122.10'; // S,W,N,E
 const ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter'

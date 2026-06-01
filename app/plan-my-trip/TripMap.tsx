@@ -754,7 +754,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                       </span>
                       <span className="plannerRight">
                         <b>{distanceFromHome(marina).toFixed(1)} nm</b>
-                        <span>{windFor(marina, dayIndex, weeklyOutlooks)} kt - {verdict(score)}</span>
+                        <span>{Math.round(windFor(marina, dayIndex, weeklyOutlooks))} kt - {verdict(score)}</span>
                       </span>
                     </button>
                   );

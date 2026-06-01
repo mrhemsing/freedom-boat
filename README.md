@@ -67,12 +67,15 @@ offline OpenStreetMap refresh/review pass:
 ```bash
 npm run marinas:fetch
 npm run marinas:enrich
+npm run marinas:validate
 ```
 
 `marinas:fetch` writes generated OSM snapshots to `data/marinas.raw.json` and
 `data/ramps.raw.json`. `marinas:enrich` merges `data/marina-access-info.json`
-onto that pull and writes `data/marinas.enriched.json`. The generated snapshots
-are ignored so they can be reviewed before promoting any changes into the app.
+onto that pull and writes `data/marinas.enriched.json`. `marinas:validate`
+checks the enriched pull against the BC reference list and prints which expected
+coast marinas were found or missed. The generated snapshots are ignored so they
+can be reviewed before promoting any changes into the app.
 
 Use `docs/bc-marinas-reference.md` as a regional validation checklist when
 reviewing whether an OSM pull caught the obvious transient-friendly marinas.
