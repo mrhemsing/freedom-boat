@@ -113,6 +113,9 @@ export default function TripMap({ marinas }: TripMapProps) {
   const tripMarinas = tripStops
     .map((id) => activeMarinas.find((marina) => marina.id === id))
     .filter(Boolean) as Marina[];
+  const marinaListIndex = useMemo(() => {
+    return new Map(activeMarinas.map((marina, index) => [marina.id, index + 1]));
+  }, [activeMarinas]);
 
   const filtered = useMemo<PlannerResult[]>(() => {
     const q = query.trim().toLowerCase();
@@ -324,7 +327,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           initialBounds.extend([marina.lat, marina.lon]);
         }
         const marker = L.marker([marina.lat, marina.lon], {
-          icon: marinaIcon(L, marina, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks),
+          icon: marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks),
           zIndexOffset: marina.freedomClub ? 600 : 0
         }).addTo(map);
         marker.on('click', () => {
@@ -389,7 +392,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       disposed = true;
       cleanup?.();
     };
-  }, [activeMarinas, launches, showLaunches, weeklyOutlooks]);
+  }, [activeMarinas, launches, marinaListIndex, showLaunches, weeklyOutlooks]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -414,7 +417,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       activeMarinas.forEach((marina) => {
         const marker = markerRefs.current[marina.id];
         if (marker) {
-          marker.setIcon(marinaIcon(L, marina, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks));
+          marker.setIcon(marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks));
           marker.setZIndexOffset(selectedId === marina.id || tripStops.includes(marina.id) || marina.freedomClub ? 700 : 0);
         }
       });
@@ -422,7 +425,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       active = false;
     };
-  }, [activeMarinas, selectedId, tripStops, dayIndex, vessel, weeklyOutlooks]);
+  }, [activeMarinas, marinaListIndex, selectedId, tripStops, dayIndex, vessel, weeklyOutlooks]);
 
   function openMarina(marina: Marina) {
     setSelectedId(marina.id);
@@ -734,6 +737,7 @@ export default function TripMap({ marinas }: TripMapProps) {
 
                   const { marina } = result;
                   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
+                  const listIndex = marinaListIndex.get(marina.id) ?? marina.id;
                   return (
                     <button
                       key={`marina-${marina.id}`}
@@ -742,7 +746,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                       onClick={() => openMarina(marina)}
                     >
                       <span className={`plannerIdx ${marina.freedomClub ? 'plannerIdxFreedom' : ''}`}>
-                        {marina.id}
+                        {listIndex}
                         <i style={{ background: scoreColor(score) }} />
                       </span>
                       <span className="plannerBody">
@@ -754,7 +758,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                       </span>
                       <span className="plannerRight">
                         <b>{distanceFromHome(marina).toFixed(1)} nm</b>
-                        <span>{Math.round(windFor(marina, dayIndex, weeklyOutlooks))} kt - {verdict(score)}</span>
+                        <span>{score} score - {Math.round(windFor(marina, dayIndex, weeklyOutlooks))} kt - {verdict(score)}</span>
                       </span>
                     </button>
                   );
@@ -1077,12 +1081,13 @@ function TripPlanView({
   );
 }
 
-function marinaIcon(L: any, marina: Marina, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
+function marinaIcon(L: any, marina: Marina, listIndex: number, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
   const cls = `${marina.freedomClub ? 'freedom' : ''} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
+  const title = escapeHtml(`${listIndex}. ${marina.name} - score ${score}`);
   return L.divIcon({
     className: '',
-    html: `<div class="plannerPin ${cls}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble">${score}</span><span class="plannerPinTail"></span></div>`,
+    html: `<div class="plannerPin ${cls}" title="${title}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble">${listIndex}</span><span class="plannerPinTail"></span></div>`,
     iconSize: [40, 46],
     iconAnchor: [20, 44],
     popupAnchor: [0, -44]
