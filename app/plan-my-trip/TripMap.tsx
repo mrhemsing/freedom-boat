@@ -7,12 +7,14 @@ import {
   type BoatLaunch,
   type Marina
 } from '../../lib/marinas';
+import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
 
 type TripMapProps = {
   marinas: Marina[];
 };
 
 type SheetState = 'collapsed' | 'half' | 'full';
+type PlannerOutlooks = Record<string, DailyOutlook[]>;
 type VesselKey = 'kayak' | 'small' | 'cruiser' | 'large' | 'sail';
 type VesselProfile = {
   label: string;
@@ -96,6 +98,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [activeMarinas, setActiveMarinas] = useState(marinas);
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
   const [liveTides, setLiveTides] = useState<Record<number, LiveTide>>({});
+  const [weeklyOutlooks, setWeeklyOutlooks] = useState<PlannerOutlooks>({});
   const restoredPlanRef = useRef(false);
   const vessel = VESSELS[vesselKey];
   const tripMarinas = tripStops
@@ -122,6 +125,35 @@ export default function TripMap({ marinas }: TripMapProps) {
   useEffect(() => {
     setActiveMarinas(marinas);
   }, [marinas]);
+
+  useEffect(() => {
+    const locationIds = [...new Set(activeMarinas.map((marina) => marina.locationId).filter(Boolean))] as string[];
+    if (!locationIds.length) {
+      setWeeklyOutlooks({});
+      return;
+    }
+
+    let cancelled = false;
+    Promise.all(locationIds.map(async (locationId) => {
+      const res = await fetch(`/api/${locationId}/forecast?hours=120`);
+      if (!res.ok) throw new Error(`forecast ${locationId}`);
+      const data = await res.json();
+      return [
+        locationId,
+        buildWeeklyOutlook(data?.forecast ?? [], data?.sunByDay ?? [], 5)
+      ] as const;
+    }))
+      .then((entries) => {
+        if (!cancelled) setWeeklyOutlooks(Object.fromEntries(entries));
+      })
+      .catch(() => {
+        if (!cancelled) setWeeklyOutlooks({});
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeMarinas]);
 
   useEffect(() => {
     const available = new Set(activeMarinas.map((marina) => marina.id));
@@ -226,7 +258,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       activeMarinas.forEach((marina) => {
         bounds.extend([marina.lat, marina.lon]);
         const marker = L.marker([marina.lat, marina.lon], {
-          icon: marinaIcon(L, marina, selectedId, tripStops.includes(marina.id), dayIndex, vessel),
+          icon: marinaIcon(L, marina, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks),
           zIndexOffset: marina.freedomClub ? 600 : 0
         }).addTo(map);
         marker.on('click', () => {
@@ -272,7 +304,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       disposed = true;
       cleanup?.();
     };
-  }, [activeMarinas, launches, showLaunches]);
+  }, [activeMarinas, launches, showLaunches, weeklyOutlooks]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -297,7 +329,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       activeMarinas.forEach((marina) => {
         const marker = markerRefs.current[marina.id];
         if (marker) {
-          marker.setIcon(marinaIcon(L, marina, selectedId, tripStops.includes(marina.id), dayIndex, vessel));
+          marker.setIcon(marinaIcon(L, marina, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks));
           marker.setZIndexOffset(selectedId === marina.id || tripStops.includes(marina.id) || marina.freedomClub ? 700 : 0);
         }
       });
@@ -305,7 +337,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       active = false;
     };
-  }, [activeMarinas, selectedId, tripStops, dayIndex, vessel]);
+  }, [activeMarinas, selectedId, tripStops, dayIndex, vessel, weeklyOutlooks]);
 
   function openMarina(marina: Marina) {
     setSelectedId(marina.id);
@@ -332,7 +364,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   async function shareFloatPlan() {
-    const text = buildFloatPlanText(tripMarinas, vessel, departAt, speedKt, dayIndex);
+    const text = buildFloatPlanText(tripMarinas, vessel, departAt, speedKt, dayIndex, weeklyOutlooks);
     const url = typeof window === 'undefined' ? '' : window.location.href;
     setShareText('');
     setShareMessage('');
@@ -362,7 +394,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           >
             <span>{label}</span>
             <b>{dayNumber(index)}</b>
-            <em style={{ color: scoreColor(averageScore(activeMarinas, index, vessel)) }}>{averageScore(activeMarinas, index, vessel)}</em>
+            <em style={{ color: scoreColor(averageScore(activeMarinas, index, vessel, weeklyOutlooks)) }}>{averageScore(activeMarinas, index, vessel, weeklyOutlooks)}</em>
           </button>
         ))}
       </div>
@@ -446,6 +478,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               marina={selected}
               dayIndex={dayIndex}
               vessel={vessel}
+              weeklyOutlooks={weeklyOutlooks}
               liveTide={liveTides[selected.id]}
               inTrip={tripStops.includes(selected.id)}
               onToggleTrip={() => toggleTripStop(selected.id)}
@@ -461,6 +494,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               departAt={departAt}
               speedKt={speedKt}
               dayIndex={dayIndex}
+              weeklyOutlooks={weeklyOutlooks}
               shareText={shareText}
               shareMessage={shareMessage}
               onBack={() => setTripMode(false)}
@@ -542,7 +576,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                     </span>
                   </button>
                 )) : (filtered as Marina[]).map((marina) => {
-                  const score = marinaScore(marina, dayIndex, vessel);
+                  const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
                   return (
                     <button
                       key={marina.id}
@@ -563,7 +597,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                       </span>
                       <span className="plannerRight">
                         <b>{distanceFromHome(marina).toFixed(1)} nm</b>
-                        <span>{windFor(marina, dayIndex)} kt - {verdict(score)}</span>
+                        <span>{windFor(marina, dayIndex, weeklyOutlooks)} kt - {verdict(score)}</span>
                       </span>
                     </button>
                   );
@@ -582,6 +616,7 @@ function MarinaDetail({
   marina,
   dayIndex,
   vessel,
+  weeklyOutlooks,
   liveTide,
   inTrip,
   onToggleTrip,
@@ -590,13 +625,14 @@ function MarinaDetail({
   marina: Marina;
   dayIndex: number;
   vessel: VesselProfile;
+  weeklyOutlooks: PlannerOutlooks;
   liveTide?: LiveTide;
   inTrip: boolean;
   onToggleTrip: () => void;
   onBack: () => void;
 }) {
-  const score = marinaScore(marina, dayIndex, vessel);
-  const conditions = conditionsFor(marina, dayIndex);
+  const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
+  const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
   const warning = vesselWarning(conditions, vessel);
   const info = accessInfoFor(marina);
   const tide = tideState(marina, plannerTimeForDay(dayIndex), liveTide);
@@ -775,6 +811,7 @@ function TripPlanView({
   departAt,
   speedKt,
   dayIndex,
+  weeklyOutlooks,
   shareText,
   shareMessage,
   onBack,
@@ -790,6 +827,7 @@ function TripPlanView({
   departAt: string;
   speedKt: number;
   dayIndex: number;
+  weeklyOutlooks: PlannerOutlooks;
   shareText: string;
   shareMessage: string;
   onBack: () => void;
@@ -799,7 +837,7 @@ function TripPlanView({
   onRemoveStop: (id: number) => void;
   onShare: () => void;
 }) {
-  const legs = buildTripLegs(marinas, departAt, speedKt, dayIndex, vessel);
+  const legs = buildTripLegs(marinas, departAt, speedKt, dayIndex, vessel, weeklyOutlooks);
   const summary = tripSummary(legs);
 
   return (
@@ -866,8 +904,8 @@ function TripPlanView({
   );
 }
 
-function marinaIcon(L: any, marina: Marina, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile) {
-  const score = marinaScore(marina, dayIndex, vessel);
+function marinaIcon(L: any, marina: Marina, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
+  const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
   const cls = `${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
   return L.divIcon({
     className: '',
@@ -899,8 +937,11 @@ function nextSheetState(state: SheetState): SheetState {
   return 'full';
 }
 
-function marinaScore(marina: Marina, dayIndex: number, vessel: VesselProfile) {
-  const conditions = conditionsFor(marina, dayIndex);
+function marinaScore(marina: Marina, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
+  const outlook = outlookFor(marina, dayIndex, weeklyOutlooks);
+  if (outlook) return outlook.score;
+
+  const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
   const exposure = marina.freedomClub ? 0.7 : 1;
   const score = 100
     - conditions.wind * vessel.windK
@@ -911,20 +952,29 @@ function marinaScore(marina: Marina, dayIndex: number, vessel: VesselProfile) {
   return Math.max(24, Math.min(98, Math.round(score)));
 }
 
-function averageScore(marinas: Marina[], dayIndex: number, vessel: VesselProfile) {
-  return Math.round(marinas.reduce((sum, marina) => sum + marinaScore(marina, dayIndex, vessel), 0) / marinas.length);
+function averageScore(marinas: Marina[], dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
+  return Math.round(marinas.reduce((sum, marina) => sum + marinaScore(marina, dayIndex, vessel, weeklyOutlooks), 0) / marinas.length);
 }
 
-function windFor(marina: Marina, dayIndex: number) {
+function windFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks = {}) {
+  const outlook = outlookFor(marina, dayIndex, weeklyOutlooks);
+  if (outlook) return outlook.maxWind;
+
   return 5 + ((marina.id * 7 + dayIndex * 3) % 12);
 }
 
-function conditionsFor(marina: Marina, dayIndex: number) {
-  const wind = windFor(marina, dayIndex);
-  const gust = wind + 5 + (marina.id % 4);
+function conditionsFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks = {}) {
+  const outlook = outlookFor(marina, dayIndex, weeklyOutlooks);
+  const wind = outlook?.maxWind ?? windFor(marina, dayIndex, weeklyOutlooks);
+  const gust = outlook?.maxGust ?? wind + 5 + (marina.id % 4);
   const exposure = marina.freedomClub ? 0.2 : (marina.exp ?? 0.45);
   const wave = Math.max(0.2, (wind - 5) * 0.05 + exposure * 0.35);
   return { wind, gust, wave };
+}
+
+function outlookFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks) {
+  if (!marina.locationId) return null;
+  return weeklyOutlooks[marina.locationId]?.[dayIndex] ?? null;
 }
 
 function vesselWarning(conditions: ReturnType<typeof conditionsFor>, vessel: VesselProfile) {
@@ -1054,7 +1104,7 @@ type TripLeg = {
   score: number;
 };
 
-function buildTripLegs(marinas: Marina[], departAt: string, speedKt: number, dayIndex: number, vessel: VesselProfile): TripLeg[] {
+function buildTripLegs(marinas: Marina[], departAt: string, speedKt: number, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}): TripLeg[] {
   const speed = Math.max(4, speedKt || DEFAULT_SPEED_KT);
   let previous = HOME;
   let cursor = new Date(departAt || defaultDepartInput());
@@ -1062,13 +1112,13 @@ function buildTripLegs(marinas: Marina[], departAt: string, speedKt: number, day
     const distance = haversine(previous.lat, previous.lon, marina.lat, marina.lon) / 1852;
     cursor = new Date(cursor.getTime() + (distance / speed) * 3600000);
     previous = marina;
-    const conditions = conditionsFor(marina, dayIndex);
+    const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
     return {
       marina,
       distance,
       arrive: new Date(cursor),
       conditions,
-      score: marinaScore(marina, dayIndex, vessel)
+      score: marinaScore(marina, dayIndex, vessel, weeklyOutlooks)
     };
   });
 }
@@ -1083,8 +1133,8 @@ function tripSummary(legs: TripLeg[]) {
   };
 }
 
-function buildFloatPlanText(marinas: Marina[], vessel: VesselProfile, departAt: string, speedKt: number, dayIndex: number) {
-  const legs = buildTripLegs(marinas, departAt, speedKt, dayIndex, vessel);
+function buildFloatPlanText(marinas: Marina[], vessel: VesselProfile, departAt: string, speedKt: number, dayIndex: number, weeklyOutlooks: PlannerOutlooks = {}) {
+  const legs = buildTripLegs(marinas, departAt, speedKt, dayIndex, vessel, weeklyOutlooks);
   const summary = tripSummary(legs);
   const depart = new Date(departAt || defaultDepartInput());
   const lines = [

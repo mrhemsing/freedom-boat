@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
+import { buildWeeklyOutlook, type DailyOutlook } from '../../../lib/outlook';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
@@ -758,95 +759,6 @@ function formatLocalMinuteOfDay(totalMinutes: number) {
   let hh = hhRaw % 12;
   if (hh === 0) hh = 12;
   return `${hh}:${String(mm).padStart(2, '0')} ${ampm}`;
-}
-
-type DailyOutlook = {
-  day: string; // YYYY-MM-DD
-  label: string;
-  score: number;
-  maxWind: number;
-  maxGust: number;
-  maxPrecipProb: number;
-  totalPrecipMm: number;
-  minTempC?: number;
-  maxTempC?: number;
-};
-
-function buildWeeklyOutlook(
-  forecast: Array<{ t: string; tempC?: number; windSpeedKts: number; windGustKts?: number; precipMm?: number; precipProbPct?: number }>,
-  sunByDay: Array<{ day: string; sunrise?: string; sunset?: string }> = [],
-  days = 5
-): DailyOutlook[] {
-  const daylightHoursByDay = new Map<string, { sunriseHour: number; sunsetHour: number }>();
-  for (const s of sunByDay || []) {
-    const day = String(s?.day || '');
-    if (!day) continue;
-    const sunriseHour = extractHour(s?.sunrise) ?? 8;
-    const sunsetHour = extractHour(s?.sunset) ?? 18;
-    daylightHoursByDay.set(day, { sunriseHour, sunsetHour });
-  }
-
-  const byDay = new Map<string, any[]>();
-  for (const h of forecast || []) {
-    const day = typeof h.t === 'string' ? h.t.slice(0, 10) : null;
-    if (!day) continue;
-
-    // Keep lows/highs in true daylight for each day (sunrise -> sunset), not overnight.
-    const hour = Number(h.t.slice(11, 13));
-    if (!Number.isFinite(hour)) continue;
-    const daylight = daylightHoursByDay.get(day) ?? { sunriseHour: 8, sunsetHour: 18 };
-    if (hour < daylight.sunriseHour || hour > daylight.sunsetHour) continue;
-
-    const arr = byDay.get(day) ?? [];
-    arr.push(h);
-    byDay.set(day, arr);
-  }
-
-  const daysSorted = [...byDay.keys()].sort().slice(0, days);
-  const out: DailyOutlook[] = [];
-
-  for (const day of daysSorted) {
-    const rows = byDay.get(day) ?? [];
-    const maxWind = Math.max(...rows.map((r) => (typeof r.windSpeedKts === 'number' ? r.windSpeedKts : 0)), 0);
-    const maxGust = Math.max(...rows.map((r) => (typeof r.windGustKts === 'number' ? r.windGustKts : r.windSpeedKts ?? 0)), 0);
-    const maxPrecipProb = Math.max(...rows.map((r) => (typeof r.precipProbPct === 'number' ? r.precipProbPct : 0)), 0);
-    const totalPrecipMm = rows.reduce((acc, r) => acc + (typeof r.precipMm === 'number' ? r.precipMm : 0), 0);
-
-    const temps = rows
-      .map((r) => (typeof r.tempC === 'number' && Number.isFinite(r.tempC) ? r.tempC : null))
-      .filter((v) => v != null) as number[];
-    const minTempC = temps.length ? Math.min(...temps) : undefined;
-    const maxTempC = temps.length ? Math.max(...temps) : undefined;
-
-    // Heuristic score: wind/gust matter most, small rain has light impact,
-    // but rain totals over 5mm/day incur a steeper penalty.
-    // Tiered rain impact: <=5mm light, <=10mm moderate, <=20mm heavy, >20mm severe
-    const rainPenalty =
-      totalPrecipMm <= 5
-        ? totalPrecipMm * 1.8
-        : totalPrecipMm <= 10
-          ? 5 * 1.8 + (totalPrecipMm - 5) * 4.5
-          : totalPrecipMm <= 20
-            ? 5 * 1.8 + 5 * 4.5 + (totalPrecipMm - 10) * 7.5
-            : 5 * 1.8 + 5 * 4.5 + 10 * 7.5 + (totalPrecipMm - 20) * 10.5;
-    const popPenalty = maxPrecipProb * 0.1;
-    const raw = 100 - (maxGust * 1.65 + maxWind * 0.45 + popPenalty + rainPenalty);
-    const score = Math.max(0, Math.min(100, Math.round(raw)));
-
-    out.push({
-      day,
-      label: isoToLocalDay(`${day}T12:00:00`),
-      score,
-      maxWind,
-      maxGust,
-      maxPrecipProb,
-      totalPrecipMm,
-      minTempC,
-      maxTempC
-    });
-  }
-
-  return out;
 }
 
 function formatAsOfWithDay(iso: string) {
