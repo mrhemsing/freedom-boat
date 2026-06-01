@@ -1029,10 +1029,34 @@ hr.soft {
     font-size: 18px !important;
   }
 
-  /* Header (mobile): just tighten spacing a bit */
+  /* Header (mobile): stack sun times above the main logo. */
   .topbar{
-    column-gap: 12px;
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: 0;
     row-gap: 8px;
+  }
+
+  .headerBrand {
+    grid-column: 1;
+    grid-row: 2;
+    padding-right: 52px;
+  }
+
+  .headerInfo {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .sunBadgeWrap {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+    justify-content: flex-start !important;
+    margin: 0 54px 0 0 !important;
+    padding-top: 0 !important;
   }
 
   .planMapButton {
@@ -1052,11 +1076,6 @@ hr.soft {
   #marinaJump,
   .seg {
     border-radius: 8px !important;
-  }
-
-  .sunBadgeWrap {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
   }
 
   /* Some cards should show the right-side meta on the next line on mobile. */
