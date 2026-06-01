@@ -383,21 +383,30 @@ export default function TripMap({ marinas }: TripMapProps) {
     }
   }
 
+  function timebarScore(index: number) {
+    return selected
+      ? marinaScore(selected, index, vessel, weeklyOutlooks)
+      : averageScore(activeMarinas, index, vessel, weeklyOutlooks);
+  }
+
   return (
     <div className={`plannerWrap ${isFullscreen ? 'plannerWrapFullscreen' : ''}`}>
       <div className="plannerTimebar" aria-label="Trip date">
-        {DAYS.map((label, index) => (
-          <button
-            key={label}
-            type="button"
-            className={`plannerDay ${dayIndex === index ? 'active' : ''}`}
-            onClick={() => setDayIndex(index)}
-          >
-            <span>{label}</span>
-            <b>{dayNumber(index)}</b>
-            <em style={{ color: scoreColor(averageScore(activeMarinas, index, vessel, weeklyOutlooks)) }}>{averageScore(activeMarinas, index, vessel, weeklyOutlooks)}</em>
-          </button>
-        ))}
+        {DAYS.map((label, index) => {
+          const score = timebarScore(index);
+          return (
+            <button
+              key={label}
+              type="button"
+              className={`plannerDay ${dayIndex === index ? 'active' : ''}`}
+              onClick={() => setDayIndex(index)}
+            >
+              <span>{label}</span>
+              <b>{dayNumber(index)}</b>
+              <em style={{ color: scoreColor(score) }}>{score}</em>
+            </button>
+          );
+        })}
       </div>
 
       <div className={`plannerApp ${isFullscreen ? 'plannerAppFullscreen' : ''}`}>
