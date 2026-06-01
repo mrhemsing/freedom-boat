@@ -16,6 +16,14 @@ type SheetState = 'collapsed' | 'half' | 'full';
 
 const HOME = { lat: 49.2845, lon: -123.1116 };
 const DAYS = ['Today', 'Mon', 'Tue', 'Wed', 'Thu'];
+const TIDE_STATION_HINTS = [
+  { name: 'Vancouver', lat: 49.288, lon: -123.115 },
+  { name: 'Point Atkinson', lat: 49.33, lon: -123.25 },
+  { name: 'Squamish', lat: 49.69, lon: -123.16 },
+  { name: 'Nanaimo', lat: 49.17, lon: -123.94 },
+  { name: 'Sidney', lat: 48.65, lon: -123.4 },
+  { name: 'Ganges Harbour', lat: 48.85, lon: -123.5 }
+];
 
 /* LIVE DATA
    Set USE_OSM to true on freedom.b-average.com to replace the curated
@@ -381,6 +389,7 @@ function MarinaDetail({
   const gust = wind + 5 + (marina.id % 4);
   const wave = Math.max(0.2, (wind - 5) * 0.05 + (marina.freedomClub ? 0.1 : 0.25));
   const info = accessInfoFor(marina);
+  const tide = tideState(marina, plannerTimeForDay(dayIndex));
 
   return (
     <div className="plannerDetail">
@@ -431,6 +440,8 @@ function MarinaDetail({
         </div>
       </div>
 
+      <TideCard tide={tide} />
+
       <a
         className="plannerPrimary"
         href={marina.locationId ? `/location/${marina.locationId}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${marina.name} ${marina.address}`)}`}
@@ -440,6 +451,62 @@ function MarinaDetail({
         {marina.locationId ? 'Open conditions' : 'Open in Maps'}
       </a>
     </div>
+  );
+}
+
+function TideCard({ tide }: { tide: TideState }) {
+  return (
+    <div className="plannerTide">
+      <div className="plannerTideHead">
+        <span>Tide</span>
+        <small>{tide.station}</small>
+      </div>
+      <div className="plannerTideNow">
+        <strong>{tide.height.toFixed(1)} m</strong>
+        <span>{tide.rising ? 'rising' : 'falling'}</span>
+      </div>
+      <TideSparkline points={tide.points} nowIndex={tide.nowIndex} />
+      <div className="plannerTideEvents">
+        <div>
+          <span>Next high</span>
+          <strong>{formatShortTime(tide.nextHigh.t)} - {tide.nextHigh.height.toFixed(1)}m</strong>
+        </div>
+        <div>
+          <span>Next low</span>
+          <strong>{formatShortTime(tide.nextLow.t)} - {tide.nextLow.height.toFixed(1)}m</strong>
+        </div>
+        <div>
+          <span>Slack</span>
+          <strong>{formatShortTime(tide.slack.t)}</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TideSparkline({ points, nowIndex }: { points: TidePoint[]; nowIndex: number }) {
+  const width = 320;
+  const height = 58;
+  const pad = 5;
+  const min = Math.min(...points.map((point) => point.height));
+  const max = Math.max(...points.map((point) => point.height));
+  const range = max - min || 1;
+  const xFor = (index: number) => pad + (index / (points.length - 1)) * (width - pad * 2);
+  const yFor = (value: number) => (height - pad) - ((value - min) / range) * (height - pad * 2);
+  const path = points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'}${xFor(index).toFixed(1)},${yFor(point.height).toFixed(1)}`)
+    .join(' ');
+  const area = `${path} L${xFor(points.length - 1).toFixed(1)},${height} L${pad},${height} Z`;
+  const now = points[nowIndex] ?? points[0];
+  const cx = xFor(nowIndex);
+  const cy = yFor(now.height);
+
+  return (
+    <svg className="plannerTideSpark" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden>
+      <path d={area} className="plannerTideArea" />
+      <path d={path} className="plannerTideLine" />
+      <circle cx={cx} cy={cy} r="3.6" className="plannerTideDot" />
+    </svg>
   );
 }
 
@@ -536,6 +603,131 @@ function verdict(score: number) {
 function distanceFromHome(place: { lat: number; lon: number }) {
   const metres = haversine(HOME.lat, HOME.lon, place.lat, place.lon);
   return metres / 1852;
+}
+
+type TidePoint = {
+  t: Date;
+  height: number;
+};
+
+type TideEvent = {
+  t: Date;
+  height: number;
+};
+
+type TideState = {
+  station: string;
+  height: number;
+  rising: boolean;
+  points: TidePoint[];
+  nowIndex: number;
+  nextHigh: TideEvent;
+  nextLow: TideEvent;
+  slack: TideEvent;
+};
+
+function plannerTimeForDay(dayIndex: number) {
+  const now = new Date();
+  const selected = new Date(now);
+  selected.setDate(now.getDate() + dayIndex);
+  if (dayIndex === 0) {
+    selected.setMinutes(0, 0, 0);
+    return selected;
+  }
+  selected.setHours(12, 0, 0, 0);
+  return selected;
+}
+
+function tideState(marina: Marina, when: Date): TideState {
+  const points: TidePoint[] = [];
+  const start = new Date(when.getTime() - 6 * 60 * 60 * 1000);
+  const stepMinutes = 20;
+  const totalMinutes = 18 * 60;
+  let nowIndex = 0;
+
+  for (let minute = 0; minute <= totalMinutes; minute += stepMinutes) {
+    const t = new Date(start.getTime() + minute * 60 * 1000);
+    points.push({ t, height: tideHeight(marina, t) });
+    if (Math.abs(t.getTime() - when.getTime()) < Math.abs(points[nowIndex].t.getTime() - when.getTime())) {
+      nowIndex = points.length - 1;
+    }
+  }
+
+  const current = tideHeight(marina, when);
+  const soon = tideHeight(marina, new Date(when.getTime() + 10 * 60 * 1000));
+  const events = tideEvents(marina, when);
+  const nextHigh = events.find((event) => event.kind === 'high') ?? { kind: 'high' as const, t: when, height: current };
+  const nextLow = events.find((event) => event.kind === 'low') ?? { kind: 'low' as const, t: when, height: current };
+  const slack = nextHigh.t < nextLow.t ? nextHigh : nextLow;
+
+  return {
+    station: nearestTideStation(marina).name,
+    height: current,
+    rising: soon >= current,
+    points,
+    nowIndex,
+    nextHigh,
+    nextLow,
+    slack
+  };
+}
+
+function tideHeight(marina: Marina, when: Date) {
+  const hours = when.getTime() / 3600000;
+  const phase = hash(`${marina.osmId || marina.id}:tide`) * Math.PI * 2;
+  const exposure = marina.freedomClub ? 0.3 : (marina.exp ?? 0.5);
+  return 2.8 + exposure * 0.25
+    + 1.35 * Math.cos((2 * Math.PI * hours) / 12.4206 + phase)
+    + 0.42 * Math.cos((2 * Math.PI * hours) / 12 + phase * 1.1)
+    + 0.72 * Math.cos((2 * Math.PI * hours) / 23.9345 + phase * 0.7)
+    + 0.38 * Math.cos((2 * Math.PI * hours) / 25.8193 + phase * 0.5);
+}
+
+function tideEvents(marina: Marina, when: Date) {
+  const out: Array<TideEvent & { kind: 'high' | 'low' }> = [];
+  let previous = tideHeight(marina, when);
+  let slope = tideHeight(marina, new Date(when.getTime() + 10 * 60 * 1000)) >= previous ? 1 : -1;
+
+  for (let minute = 10; minute <= 18 * 60; minute += 10) {
+    const t = new Date(when.getTime() + minute * 60 * 1000);
+    const height = tideHeight(marina, t);
+    if (slope > 0 && height < previous) {
+      out.push({ kind: 'high', t: new Date(t.getTime() - 10 * 60 * 1000), height: previous });
+      slope = -1;
+    } else if (slope < 0 && height > previous) {
+      out.push({ kind: 'low', t: new Date(t.getTime() - 10 * 60 * 1000), height: previous });
+      slope = 1;
+    }
+    previous = height;
+    if (out.some((event) => event.kind === 'high') && out.some((event) => event.kind === 'low')) break;
+  }
+
+  return out;
+}
+
+function nearestTideStation(marina: Marina) {
+  return TIDE_STATION_HINTS.reduce((best, station) => {
+    const current = haversine(marina.lat, marina.lon, station.lat, station.lon);
+    const bestDistance = haversine(marina.lat, marina.lon, best.lat, best.lon);
+    return current < bestDistance ? station : best;
+  }, TIDE_STATION_HINTS[0]);
+}
+
+function formatShortTime(value: Date) {
+  return value.toLocaleTimeString('en-CA', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).replace(/\s/g, '').toLowerCase();
+}
+
+function hash(value: string) {
+  let h = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    h ^= value.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967295;
 }
 
 function accessInfoFor(marina: Marina) {
