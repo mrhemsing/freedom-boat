@@ -16,6 +16,9 @@ type TripMapProps = {
 };
 
 type SheetState = 'collapsed' | 'half' | 'full';
+type PlannerResult =
+  | { kind: 'marina'; marina: Marina }
+  | { kind: 'launch'; launch: BoatLaunch };
 type PlannerOutlooks = Record<string, DailyOutlook[]>;
 type VesselKey = 'kayak' | 'small' | 'cruiser' | 'large' | 'sail';
 type VesselProfile = {
@@ -111,18 +114,19 @@ export default function TripMap({ marinas }: TripMapProps) {
     .map((id) => activeMarinas.find((marina) => marina.id === id))
     .filter(Boolean) as Marina[];
 
-  const filtered = useMemo(() => {
+  const filtered = useMemo<PlannerResult[]>(() => {
     const q = query.trim().toLowerCase();
-    if (showLaunches) {
-      if (!q) return launches;
-      return launches.filter((launch) =>
-        `${launch.name} ${launch.area} ${launch.type}`.toLowerCase().includes(q)
-      );
-    }
-    if (!q) return activeMarinas;
-    return activeMarinas.filter((marina) =>
-      `${marina.name} ${marina.address} ${marina.area}`.toLowerCase().includes(q)
-    );
+    const marinaResults = activeMarinas
+      .filter((marina) => !q || `${marina.name} ${marina.address} ${marina.area}`.toLowerCase().includes(q))
+      .map((marina) => ({ kind: 'marina' as const, marina }));
+
+    const launchResults = showLaunches
+      ? launches
+        .filter((launch) => !q || `${launch.name} ${launch.area} ${launch.type}`.toLowerCase().includes(q))
+        .map((launch) => ({ kind: 'launch' as const, launch }))
+      : [];
+
+    return [...marinaResults, ...launchResults];
   }, [activeMarinas, launches, query, showLaunches]);
 
   const selected = selectedId ? activeMarinas.find((marina) => marina.id === selectedId) ?? null : null;
@@ -507,23 +511,6 @@ export default function TripMap({ marinas }: TripMapProps) {
 
         <div className="plannerTopbar">
         <button
-          className={`plannerChip ${showLaunches ? 'active' : ''}`}
-          type="button"
-          onClick={() => {
-            setShowLaunches((value) => !value);
-            setSelectedId(null);
-            setSelectedLaunchId(null);
-            setMobileMarkerModal(false);
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-            <circle cx="12" cy="5" r="2" />
-            <line x1="12" y1="7" x2="12" y2="22" />
-            <path d="M5 12a7 7 0 0 0 14 0" />
-          </svg>
-          <span>Launches</span>
-        </button>
-        <button
           className={`plannerChip ${tripMode ? 'active' : ''}`}
           type="button"
           onClick={() => {
@@ -568,7 +555,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         <span><i className="scoreGood" />Good</span>
         <span><i className="scoreFair" />Fair</span>
         <span><i className="scorePoor" />Poor</span>
-        <span><i className="launchShape" />Launch</span>
+        {showLaunches ? <span><i className="launchShape" />Launch</span> : null}
       </div>
 
       {mobileMarkerModal && (selected || selectedLaunch) ? (
@@ -654,7 +641,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder={showLaunches ? 'Launches' : 'Marinas'}
+                    placeholder={showLaunches ? 'Search marinas and launches' : 'Search marinas'}
                     autoComplete="off"
                   />
                   {query ? (
@@ -685,46 +672,71 @@ export default function TripMap({ marinas }: TripMapProps) {
                 </button>
               </div>
 
-              {!showLaunches ? (
-                <label className="plannerVesselRow">
-                  <span>Boat profile</span>
-                  <select
-                    value={vesselKey}
-                    onChange={(event) => setVesselKey(event.target.value as VesselKey)}
-                    className="plannerVesselSelect"
-                  >
-                    {(Object.keys(VESSELS) as VesselKey[]).map((key) => (
-                      <option key={key} value={key}>{VESSELS[key].label}</option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
+              <label className="plannerFilterRow">
+                <span className="plannerFilterCheck">
+                  <input
+                    type="checkbox"
+                    checked={showLaunches}
+                    onChange={(event) => {
+                      setShowLaunches(event.target.checked);
+                      setSelectedLaunchId(null);
+                      setMobileMarkerModal(false);
+                    }}
+                  />
+                  <i aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>Show launches</strong>
+                  <em>Optional ramp layer</em>
+                </span>
+              </label>
 
-              <div className="plannerResultsHead">{query ? `Results - ${filtered.length}` : showLaunches ? 'Public launches' : 'Results'}</div>
+              <label className="plannerVesselRow">
+                <span>Boat profile</span>
+                <select
+                  value={vesselKey}
+                  onChange={(event) => setVesselKey(event.target.value as VesselKey)}
+                  className="plannerVesselSelect"
+                >
+                  {(Object.keys(VESSELS) as VesselKey[]).map((key) => (
+                    <option key={key} value={key}>{VESSELS[key].label}</option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="plannerResultsHead">
+                {query ? `Results - ${filtered.length}` : showLaunches ? 'Marinas and launches' : 'Marinas'}
+              </div>
 
               <div className="plannerRows">
-                {showLaunches ? (filtered as BoatLaunch[]).map((launch) => (
-                  <button
-                    key={launch.id}
-                    type="button"
-                    className="plannerRow"
-                    onClick={() => openLaunch(launch)}
-                  >
-                    <span className="plannerIdx plannerLaunchIdx">{launch.id}</span>
-                    <span className="plannerBody">
-                      <span className="plannerName">{launch.name}</span>
-                      <span className="plannerAddr">{launch.area}</span>
-                    </span>
-                    <span className="plannerRight">
-                      <b>{distanceFromHome(launch).toFixed(1)} nm</b>
-                      <span>{launch.type}</span>
-                    </span>
-                  </button>
-                )) : (filtered as Marina[]).map((marina) => {
+                {filtered.map((result) => {
+                  if (result.kind === 'launch') {
+                    const { launch } = result;
+                    return (
+                      <button
+                        key={`launch-${launch.id}`}
+                        type="button"
+                        className="plannerRow"
+                        onClick={() => openLaunch(launch)}
+                      >
+                        <span className="plannerIdx plannerLaunchIdx">{launch.id}</span>
+                        <span className="plannerBody">
+                          <span className="plannerName">{launch.name}</span>
+                          <span className="plannerAddr">{launch.area}</span>
+                        </span>
+                        <span className="plannerRight">
+                          <b>{distanceFromHome(launch).toFixed(1)} nm</b>
+                          <span>{launch.type}</span>
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  const { marina } = result;
                   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
                   return (
                     <button
-                      key={marina.id}
+                      key={`marina-${marina.id}`}
                       type="button"
                       className={`plannerRow ${marina.freedomClub ? 'plannerRowFreedom' : ''}`}
                       onClick={() => openMarina(marina)}

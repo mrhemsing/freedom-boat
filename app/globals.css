@@ -2360,6 +2360,75 @@ hr.soft {
   font-weight: 850;
 }
 
+.plannerFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 13px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  background: #fff7ef;
+  color: var(--planner-navy);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.plannerFilterRow span:last-child {
+  display: grid;
+  gap: 1px;
+}
+
+.plannerFilterRow strong,
+.plannerFilterRow em {
+  display: block;
+  font-style: normal;
+}
+
+.plannerFilterRow em {
+  color: var(--planner-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.plannerFilterCheck {
+  position: relative;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+}
+
+.plannerFilterCheck input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.plannerFilterCheck i {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid #ef8a3c;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.plannerFilterCheck input:checked + i {
+  background: #ef8a3c;
+}
+
+.plannerFilterCheck input:checked + i::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
 .plannerVesselSelect {
   max-width: 190px;
   border: 2px solid var(--planner-teal-tint);
