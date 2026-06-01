@@ -2808,15 +2808,66 @@ hr.soft {
   }
 
   .plannerTimebar {
+    position: sticky;
+    z-index: 2100;
+    top: 0;
     justify-content: flex-start;
-    padding-bottom: 8px;
+    margin-left: -14px;
+    margin-right: -14px;
+    padding: 8px 14px;
+    background: rgba(42, 57, 91, 0.96);
+    backdrop-filter: blur(8px);
+  }
+
+  .plannerTimebarPinned {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 2400;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .plannerTimebarSpacer {
+    flex: 0 0 auto;
   }
 
   .plannerWrapFullscreen .plannerTimebar {
+    position: fixed;
     top: 58px;
     left: 10px;
     right: 10px;
+    margin-left: 0;
+    margin-right: 0;
     padding: 2px;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .plannerSheet {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    z-index: 2200;
+    max-height: 72dvh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .plannerSheet-half {
+    transform: translateY(calc(100% - 176px));
+  }
+
+  .plannerSheet-collapsed {
+    transform: translateY(calc(100% - 46px));
+  }
+
+  .plannerSheetInner {
+    padding: 0 14px 20px;
+  }
+
+  .plannerSheet-collapsed .plannerSheetInner {
+    overflow: hidden;
   }
 
   .plannerName {

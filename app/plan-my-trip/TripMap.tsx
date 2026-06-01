@@ -80,6 +80,7 @@ const MAX_CHS_STATION_KM = 60;
 
 export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const timebarRef = useRef<HTMLDivElement | null>(null);
   const leafletMapRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
@@ -87,6 +88,8 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedLaunchId, setSelectedLaunchId] = useState<number | null>(null);
   const [sheetState, setSheetState] = useState<SheetState>('half');
+  const [isTimebarPinned, setIsTimebarPinned] = useState(false);
+  const [timebarHeight, setTimebarHeight] = useState(0);
   const [tripMode, setTripMode] = useState(false);
   const [showLaunches, setShowLaunches] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -127,6 +130,35 @@ export default function TripMap({ marinas }: TripMapProps) {
   useEffect(() => {
     setActiveMarinas(snapMarinaList(marinas));
   }, [marinas]);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 560px)');
+    if (media.matches) setSheetState('collapsed');
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 560px)');
+    if (!media.matches || !timebarRef.current || isFullscreen) {
+      setIsTimebarPinned(false);
+      return;
+    }
+
+    const timebar = timebarRef.current;
+    const pinAt = timebar.getBoundingClientRect().top + window.scrollY;
+    setTimebarHeight(timebar.offsetHeight);
+
+    function updatePinned() {
+      setIsTimebarPinned(window.scrollY >= pinAt);
+    }
+
+    updatePinned();
+    window.addEventListener('scroll', updatePinned, { passive: true });
+    window.addEventListener('resize', updatePinned);
+    return () => {
+      window.removeEventListener('scroll', updatePinned);
+      window.removeEventListener('resize', updatePinned);
+    };
+  }, [isFullscreen]);
 
   useEffect(() => {
     const locationIds = [...new Set(activeMarinas.map((marina) => marina.locationId).filter(Boolean))] as string[];
@@ -397,7 +429,11 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   return (
     <div className={`plannerWrap ${isFullscreen ? 'plannerWrapFullscreen' : ''}`}>
-      <div className="plannerTimebar" aria-label="Trip date">
+      <div
+        ref={timebarRef}
+        className={`plannerTimebar ${isTimebarPinned ? 'plannerTimebarPinned' : ''}`}
+        aria-label="Trip date"
+      >
         {DAYS.map((label, index) => {
           const score = timebarScore(index);
           return (
@@ -414,6 +450,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           );
         })}
       </div>
+      {isTimebarPinned ? <div className="plannerTimebarSpacer" style={{ height: timebarHeight }} /> : null}
 
       <div className={`plannerApp ${isFullscreen ? 'plannerAppFullscreen' : ''}`}>
         <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
