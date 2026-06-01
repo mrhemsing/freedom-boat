@@ -73,7 +73,8 @@ export default async function LocationPage({
   const launchWindow = getBestLaunchWindowSummary({
     forecast: forecast?.forecast ?? [],
     sunriseIso: now?.sun?.sunrise,
-    sunsetIso: now?.sun?.sunset
+    sunsetIso: now?.sun?.sunset,
+    sunByDay: forecast?.sunByDay ?? []
   });
   const slackTide = getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
   const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
@@ -622,40 +623,56 @@ function getVisibilityRiskSummary({
 function getBestLaunchWindowSummary({
   forecast,
   sunriseIso,
-  sunsetIso
+  sunsetIso,
+  sunByDay = []
 }: {
   forecast: Array<{ t: string; windSpeedKts?: number; windGustKts?: number; precipProbPct?: number }>;
   sunriseIso?: string;
   sunsetIso?: string;
+  sunByDay?: Array<{ day: string; sunrise?: string; sunset?: string }>;
 }) {
   const rows = (forecast || []).slice(0, 24);
   if (!rows.length) return { label: '—', detail: 'No forecast data' };
 
-  const sunriseHour = sunriseIso ? new Date(sunriseIso).getHours() : 6;
-  const sunsetHour = sunsetIso ? new Date(sunsetIso).getHours() : 18;
-
-  const daylightRows = rows.filter((h) => {
-    const d = new Date(h.t);
-    const hour = d.getHours();
-    return Number.isFinite(hour) && hour >= sunriseHour && hour <= sunsetHour;
-  });
-
-  if (daylightRows.length < 3) {
-    return { label: '—', detail: 'No usable daylight window yet' };
+  const daylightByDay = new Map<string, { sunriseMinute: number; sunsetMinute: number }>();
+  for (const s of sunByDay || []) {
+    if (!s.day) continue;
+    daylightByDay.set(s.day, {
+      sunriseMinute: extractLocalMinuteOfDay(s.sunrise) ?? 6 * 60,
+      sunsetMinute: extractLocalMinuteOfDay(s.sunset) ?? 18 * 60
+    });
   }
 
-  const scored = daylightRows.map((h) => {
+  const today = extractLocalDay(sunriseIso) ?? extractLocalDay(sunsetIso);
+  if (today && !daylightByDay.has(today)) {
+    daylightByDay.set(today, {
+      sunriseMinute: extractLocalMinuteOfDay(sunriseIso) ?? 6 * 60,
+      sunsetMinute: extractLocalMinuteOfDay(sunsetIso) ?? 18 * 60
+    });
+  }
+
+  const scored = rows.map((h) => {
     const wind = Number(h.windSpeedKts ?? 0);
     const gust = Number(h.windGustKts ?? wind);
     const rain = Number(h.precipProbPct ?? 0);
     const score = Math.max(0, 100 - wind * 3 - gust * 1.2 - rain * 0.6);
-    return { ...h, score };
+    const day = extractLocalDay(h.t);
+    const minute = extractLocalMinuteOfDay(h.t);
+    return { ...h, day, minute, score };
   });
 
   let bestStart = -1;
   let bestAvg = -1;
   for (let i = 0; i <= scored.length - 3; i += 1) {
     const window = scored.slice(i, i + 3);
+    const [start, mid, end] = window;
+    if (!start.day || start.minute == null || mid.minute == null || end.minute == null) continue;
+    if (mid.day !== start.day || end.day !== start.day) continue;
+    if (mid.minute !== start.minute + 60 || end.minute !== start.minute + 120) continue;
+
+    const daylight = daylightByDay.get(start.day) ?? { sunriseMinute: 6 * 60, sunsetMinute: 18 * 60 };
+    if (start.minute < daylight.sunriseMinute || end.minute > daylight.sunsetMinute) continue;
+
     const avg = window.reduce((a, b) => a + b.score, 0) / window.length;
     if (avg > bestAvg) {
       bestAvg = avg;
@@ -668,7 +685,7 @@ function getBestLaunchWindowSummary({
   const start = scored[bestStart];
   const end = scored[Math.min(bestStart + 2, scored.length - 1)];
   return {
-    label: `${isoToLocalTime(start.t)}–${isoToLocalTime(end.t)}`,
+    label: `${formatAsOf(start.t)}–${formatAsOf(end.t)}`,
     detail: 'Best 3-hour window between sunrise and sunset'
   };
 }
@@ -698,6 +715,20 @@ function extractHour(isoLike?: string) {
   if (!m) return null;
   const hh = Number(m[1]);
   return Number.isFinite(hh) ? hh : null;
+}
+
+function extractLocalDay(isoLike?: string) {
+  const m = String(isoLike || '').match(/^(\d{4}-\d{2}-\d{2})T/);
+  return m?.[1] ?? null;
+}
+
+function extractLocalMinuteOfDay(isoLike?: string) {
+  const m = String(isoLike || '').match(/T(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const hh = Number(m[1]);
+  const mm = Number(m[2]);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  return hh * 60 + mm;
 }
 
 type DailyOutlook = {
