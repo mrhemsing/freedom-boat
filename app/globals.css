@@ -1589,7 +1589,7 @@ hr.soft {
 }
 
 .tripPlannerHeader {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .tripPlannerBrand {
@@ -2644,7 +2644,7 @@ hr.soft {
 
 @media (min-width: 900px) {
   .tripPlannerHeader {
-    margin-bottom: 10px;
+    margin-bottom: 24px;
   }
 
   .plannerWrap {
@@ -2654,7 +2654,7 @@ hr.soft {
   .plannerTimebar {
     position: absolute;
     z-index: 700;
-    top: -78px;
+    top: -92px;
     right: 0;
     max-width: calc(100% - 330px);
     padding-bottom: 0;
