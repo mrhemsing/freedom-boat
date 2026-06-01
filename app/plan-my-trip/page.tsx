@@ -12,6 +12,7 @@ export default function PlanMyTripPage() {
   const freedomMarinas = [...TRIP_MARINAS, ...FBC_PNW_MARINAS]
     .filter((marina) => marina.freedomClub)
     .sort(compareFreedomMenuMarinas);
+  const freedomMenuRows = buildFreedomMenuRows(freedomMarinas);
 
   return (
     <main className="container tripPlannerPage">
@@ -37,10 +38,12 @@ export default function PlanMyTripPage() {
             </summary>
             <div className="tripPlannerMenuPanel" aria-label="Freedom Club marinas">
               <div className="tripPlannerMenuTitle">Freedom Club Marinas</div>
-              {freedomMarinas.map((marina) => (
-                <a key={marina.id} href={`/marina/${seoSlugForMarina(marina)}`}>
-                  <strong>{marina.name.replace('Freedom Boat Club ', '')}</strong>
-                  <span>{marina.area}</span>
+              {freedomMenuRows.map((row) => row.kind === 'divider' ? (
+                <div key={row.label} className="tripPlannerMenuDivider">{row.label}</div>
+              ) : (
+                <a key={row.marina.id} href={`/marina/${seoSlugForMarina(row.marina)}`}>
+                  <strong>{row.marina.name.replace('Freedom Boat Club ', '')}</strong>
+                  <span>{row.marina.area}</span>
                 </a>
               ))}
               <a className="tripPlannerMenuAll" href="/browse?type=marinas">Browse all marinas</a>
@@ -83,24 +86,65 @@ export default function PlanMyTripPage() {
   );
 }
 
+type FreedomMenuRow =
+  | { kind: 'divider'; label: string }
+  | { kind: 'marina'; marina: Marina };
+
+const BC_MENU_AREA_ORDER = new Map([
+  ['Port Moody', 0],
+  ['West Vancouver', 1],
+  ['North Saanich', 2],
+  ['Oak Bay', 3]
+]);
+
 function compareFreedomMenuMarinas(a: Marina, b: Marina) {
   return (
-    featuredFreedomRank(a) - featuredFreedomRank(b) ||
     regionRank(a) - regionRank(b) ||
-    a.area.localeCompare(b.area) ||
+    withinRegionRank(a) - withinRegionRank(b) ||
     a.name.localeCompare(b.name)
   );
 }
 
-function featuredFreedomRank(marina: Marina) {
-  return marina.name === 'Reed Point Marina' ? 0 : 1;
+function buildFreedomMenuRows(marinas: Marina[]): FreedomMenuRow[] {
+  const rows: FreedomMenuRow[] = [];
+  let previousRegion = 'BC';
+
+  for (const marina of marinas) {
+    const region = menuRegion(marina);
+    if (region !== previousRegion) {
+      rows.push({ kind: 'divider', label: regionLabel(region) });
+      previousRegion = region;
+    }
+    rows.push({ kind: 'marina', marina });
+  }
+
+  return rows;
+}
+
+function withinRegionRank(marina: Marina) {
+  if (menuRegion(marina) === 'BC') {
+    return BC_MENU_AREA_ORDER.get(marina.area) ?? 99;
+  }
+
+  return -marina.lat;
 }
 
 function regionRank(marina: Marina) {
-  const region = marina.address.match(/,\s*(BC|WA|OR|ID)\b/)?.[1];
+  const region = menuRegion(marina);
   if (region === 'BC') return 0;
   if (region === 'WA') return 1;
   if (region === 'OR') return 2;
   if (region === 'ID') return 3;
   return 4;
+}
+
+function menuRegion(marina: Marina) {
+  return marina.address.match(/,\s*(BC|WA|OR|ID)\b/)?.[1] ?? 'OTHER';
+}
+
+function regionLabel(region: string) {
+  if (region === 'WA') return 'Washington';
+  if (region === 'OR') return 'Oregon';
+  if (region === 'ID') return 'Idaho';
+  return region;
 }
