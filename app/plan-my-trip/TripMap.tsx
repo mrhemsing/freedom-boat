@@ -58,23 +58,19 @@ const TIDE_STATION_HINTS = [
    and falls back to the curated data on any failure.
 */
 const USE_OSM = false;
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+const OVERPASS_URL = '/api/overpass';
 const OVERPASS_QUERY = `[out:json][timeout:30];
 ( nwr["leisure"="marina"](48.35,-124.45,49.95,-122.30);
   nwr["leisure"="slipway"](48.35,-124.45,49.95,-122.30); );
 out center tags;`;
 
 /* CHS / DFO IWLS TIDES
-   Set USE_CHS to true on freedom.b-average.com to replace the synthetic
-   mixed-semidiurnal tide model with live IWLS predictions.
-
-   The browser fetch path works if api-iwls.dfo-mpo.gc.ca sends CORS headers.
-   If it does not, proxy /api/v1/* through the app domain for same-origin
-   requests and point IWLS_BASE at that proxy. Tide predictions are static
-   enough to cache aggressively server-side.
+   Uses the same-origin /api/iwls proxy so production can fetch IWLS
+   predictions without depending on browser CORS support. If the proxy or
+   upstream API fails, the synthetic mixed-semidiurnal model stays in place.
 */
-const USE_CHS = false;
-const IWLS_BASE = 'https://api-iwls.dfo-mpo.gc.ca';
+const USE_CHS = true;
+const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
 
@@ -1306,27 +1302,44 @@ async function loadCHSTides(marinas: Marina[]) {
   const to = new Date(from);
   to.setDate(from.getDate() + 8);
 
-  const tasks = marinas.map(async (marina) => {
+  const stationByMarina = new Map<number, IwlsStation>();
+  const uniqueStations = new Map<string, IwlsStation>();
+  marinas.forEach((marina) => {
     const station = nearestIwlsStation(marina, stations);
     if (!station) return;
+    stationByMarina.set(marina.id, station);
+    uniqueStations.set(station.id, station);
+  });
+
+  const stationData = new Map<string, { points: TidePoint[]; events: TideExtreme[] }>();
+  const tasks = Array.from(uniqueStations.values()).map(async (station) => {
     const [curve, events] = await Promise.all([
       fetchIwlsSeries(station.id, 'wlp', from, to),
       fetchIwlsSeries(station.id, 'wlp-hilo', from, to)
     ]);
     if (curve.length < 4) return;
-    out[marina.id] = {
-      station: station.name,
+    stationData.set(station.id, {
       points: curve,
       events: events.length ? normalizeIwlsEvents(events) : inferTideExtremes(curve)
-    };
+    });
   });
 
   await Promise.allSettled(tasks);
+  marinas.forEach((marina) => {
+    const station = stationByMarina.get(marina.id);
+    const data = station ? stationData.get(station.id) : null;
+    if (!station || !data) return;
+    out[marina.id] = {
+      station: station.name,
+      points: data.points,
+      events: data.events
+    };
+  });
   return out;
 }
 
 async function fetchIwlsStations(timeSeriesCode: string) {
-  const url = new URL('/api/v1/stations', IWLS_BASE);
+  const url = iwlsUrl('/api/v1/stations');
   url.searchParams.set('chs-region-code', CHS_REGION);
   url.searchParams.set('time-series-code', timeSeriesCode);
   const res = await fetch(url.toString());
@@ -1359,7 +1372,7 @@ function nearestIwlsStation(marina: Marina, stations: IwlsStation[]) {
 }
 
 async function fetchIwlsSeries(stationId: string, timeSeriesCode: string, from: Date, to: Date) {
-  const url = new URL(`/api/v1/stations/${stationId}/data`, IWLS_BASE);
+  const url = iwlsUrl(`/api/v1/stations/${stationId}/data`);
   url.searchParams.set('time-series-code', timeSeriesCode);
   url.searchParams.set('from', from.toISOString());
   url.searchParams.set('to', to.toISOString());
@@ -1368,6 +1381,14 @@ async function fetchIwlsSeries(stationId: string, timeSeriesCode: string, from: 
   const json = await res.json();
   const rows = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
   return rows.map(parseIwlsPoint).filter(Boolean) as Array<TidePoint & { qualifier?: string }>;
+}
+
+function iwlsUrl(path: string) {
+  if (IWLS_BASE.startsWith('/')) {
+    const origin = typeof window === 'undefined' ? 'http://localhost' : window.location.origin;
+    return new URL(`${IWLS_BASE}${path}`, origin);
+  }
+  return new URL(path, IWLS_BASE);
 }
 
 function parseIwlsPoint(row: Record<string, unknown>) {
