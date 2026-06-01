@@ -2662,8 +2662,8 @@ hr.soft {
 
   .plannerTimebar {
     position: absolute;
-    z-index: 700;
-    top: -92px;
+    z-index: 1300;
+    top: -190px;
     right: 0;
     max-width: calc(100% - 330px);
     padding-bottom: 0;
