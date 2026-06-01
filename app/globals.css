@@ -3055,29 +3055,29 @@ hr.soft {
     position: absolute;
     z-index: 1300;
     top: 14px;
-    left: 14px;
-    right: auto;
+    left: auto;
+    right: 14px;
     max-width: calc(100% - 470px);
     padding-bottom: 0;
   }
 
   .plannerWrapFullscreen .plannerTimebar {
-    left: 12px;
+    left: auto;
     right: 12px;
-    max-width: none;
+    max-width: calc(100% - 470px);
   }
 
   .plannerSheet {
     position: fixed;
     top: 0;
-    left: auto;
+    left: 0;
     width: min(430px, calc(100vw - 36px));
-    right: 0;
+    right: auto;
     bottom: 0;
     z-index: 1200;
     max-height: none;
     border-radius: 0;
-    box-shadow: -10px 0 32px rgba(12, 58, 76, 0.18);
+    box-shadow: 10px 0 32px rgba(12, 58, 76, 0.18);
   }
 
   .plannerSheet-full,
@@ -3086,7 +3086,7 @@ hr.soft {
   }
 
   .plannerSheet-collapsed {
-    transform: translateX(calc(100% - 68px));
+    transform: translateX(calc(-100% + 68px));
   }
 
   .plannerSheet-detail {
@@ -3098,15 +3098,15 @@ hr.soft {
   .plannerSheet .plannerGrab {
     position: absolute;
     top: 50%;
-    left: -38px;
+    right: -38px;
     width: 38px;
     height: 76px;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border-radius: 14px 0 0 14px;
+    border-radius: 0 14px 14px 0;
     background: #fff;
-    box-shadow: -8px 0 22px rgba(12, 58, 76, 0.14);
+    box-shadow: 8px 0 22px rgba(12, 58, 76, 0.14);
     transform: translateY(-50%);
   }
 
