@@ -1,6 +1,3 @@
-"use client";
-
-import { useRouter } from 'next/navigation';
 import type { LocationId } from '../../../lib/locations';
 
 export type MarinaJumpGroup = {
@@ -13,37 +10,44 @@ export type MarinaJumpGroup = {
 
 export default function MarinaJump({
   value,
-  placeholder,
   groups
 }: {
   value?: LocationId | '';
-  placeholder?: string;
   groups: MarinaJumpGroup[];
 }) {
-  const router = useRouter();
   const currentPath = value ? `/location/${value}` : '';
+  const currentLabel =
+    groups.flatMap((group) => group.options).find((option) => option.path === currentPath)?.label ?? 'Select marina';
 
   return (
-    <select
-      id="marinaJump"
-      defaultValue={currentPath}
-      className="seg segActive"
-      style={{ minWidth: 190, paddingRight: 28 }}
-      onChange={(e) => {
-        const next = e.currentTarget.value;
-        if (next) router.push(next);
-      }}
-    >
-      {placeholder ? <option value="" disabled>{placeholder}</option> : null}
-      {groups.map((group) => (
-        <optgroup key={group.label} label={group.label}>
-          {group.options.map((option) => (
-            <option key={option.path} value={option.path}>
-              {option.label}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
+    <details className="marinaJumpMenu">
+      <summary aria-label="Open marina menu">
+        <span className="marinaJumpSummaryText">
+          <span>Marina</span>
+          <strong>{currentLabel}</strong>
+        </span>
+        <span className="marinaJumpBars" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+      </summary>
+      <div className="marinaJumpPanel" aria-label="Marina pages">
+        {groups.map((group) => (
+          <div key={group.label}>
+            <div className="marinaJumpDivider">{group.label}</div>
+            {group.options.map((option) => (
+              <a
+                key={option.path}
+                className={option.path === currentPath ? 'active' : undefined}
+                href={option.path}
+              >
+                {option.label}
+              </a>
+            ))}
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }

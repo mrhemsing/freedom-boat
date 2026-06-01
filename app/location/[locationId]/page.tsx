@@ -107,10 +107,7 @@ export default async function LocationPage({
             {now?.asOf ? <span style={{ opacity: 0.75 }}>{` • as of ${formatAsOf(now.asOf)}`}</span> : null}
           </div>
           {loc.address ? <div className="locationAddress" style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
-          <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <label htmlFor="marinaJump" className="miniNote" style={{ fontWeight: 700, color: 'rgba(255,255,255,0.86)' }}>
-              Marina:
-            </label>
+          <div className="marinaJumpWrap">
             <MarinaJump value={id} groups={marinaJumpGroups} />
           </div>
         </div>

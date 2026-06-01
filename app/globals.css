@@ -238,6 +238,151 @@ a:hover {
   color: rgba(255, 255, 255, 0.95);
 }
 
+.marinaJumpWrap {
+  position: relative;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.marinaJumpMenu {
+  position: relative;
+  max-width: 100%;
+}
+
+.marinaJumpMenu summary {
+  min-height: 42px;
+  min-width: min(310px, calc(100vw - 36px));
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  border-radius: 999px;
+  padding: 7px 9px 7px 14px;
+  background: rgba(12, 58, 76, 0.92);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(2, 12, 27, 0.22);
+  cursor: pointer;
+  list-style: none;
+}
+
+.marinaJumpMenu summary::marker {
+  display: none;
+  content: "";
+}
+
+.marinaJumpMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.marinaJumpMenu summary:hover {
+  background: rgba(31, 138, 155, 0.92);
+}
+
+.marinaJumpSummaryText {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  line-height: 1.05;
+  text-align: left;
+}
+
+.marinaJumpSummaryText span {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.marinaJumpSummaryText strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marinaJumpBars {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.marinaJumpBars span {
+  width: 16px;
+  height: 2px;
+  display: block;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.marinaJumpPanel {
+  position: absolute;
+  z-index: 2600;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(360px, calc(100vw - 36px));
+  max-height: min(480px, calc(100dvh - 160px));
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 8px;
+  background: rgba(12, 58, 76, 0.97);
+  color: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 14px 32px rgba(2, 12, 27, 0.30);
+}
+
+.marinaJumpDivider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 10px 5px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.marinaJumpDivider::before {
+  content: "";
+  height: 1px;
+  flex: 1 1 auto;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.marinaJumpPanel a {
+  display: block;
+  overflow: hidden;
+  border-radius: 9px;
+  padding: 10px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 850;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marinaJumpPanel a:hover,
+.marinaJumpPanel a.active {
+  background: rgba(255, 255, 255, 0.10);
+  text-decoration: none;
+}
+
+.marinaJumpPanel a.active {
+  color: #bdefff;
+}
+
 /* Ensure native select dropdown items stay readable on desktop/light popups. */
 #marinaJump option {
   color: #1f2937;
