@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
+import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
 import { seoSlugForMarina } from '../../lib/seo-slugs';
 import TripMap from './TripMap';
 
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function PlanMyTripPage() {
   const freedomMarinas = [...TRIP_MARINAS, ...FBC_PNW_MARINAS]
     .filter((marina) => marina.freedomClub)
-    .sort((a, b) => a.area.localeCompare(b.area) || a.name.localeCompare(b.name));
+    .sort(compareFreedomMenuMarinas);
 
   return (
     <main className="container tripPlannerPage">
@@ -81,4 +81,26 @@ export default function PlanMyTripPage() {
       </footer>
     </main>
   );
+}
+
+function compareFreedomMenuMarinas(a: Marina, b: Marina) {
+  return (
+    featuredFreedomRank(a) - featuredFreedomRank(b) ||
+    regionRank(a) - regionRank(b) ||
+    a.area.localeCompare(b.area) ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function featuredFreedomRank(marina: Marina) {
+  return marina.name === 'Reed Point Marina' ? 0 : 1;
+}
+
+function regionRank(marina: Marina) {
+  const region = marina.address.match(/,\s*(BC|WA|OR|ID)\b/)?.[1];
+  if (region === 'BC') return 0;
+  if (region === 'WA') return 1;
+  if (region === 'OR') return 2;
+  if (region === 'ID') return 3;
+  return 4;
 }
