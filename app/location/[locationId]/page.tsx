@@ -95,6 +95,9 @@ export default async function LocationPage({
             </div>
           </div>
         </div>
+        <a className="planMapButton" href="/plan-my-trip" aria-label="Plan my trip">
+          <IconMap size={22} />
+        </a>
 
         <div className="headerInfo">
           <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.78)', fontSize: 15 }}>
@@ -107,7 +110,6 @@ export default async function LocationPage({
               Marina:
             </label>
             <MarinaJump value={id} />
-            <a className="seg" href="/plan-my-trip">Plan my trip</a>
           </div>
         </div>
 

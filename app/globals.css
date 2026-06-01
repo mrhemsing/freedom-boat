@@ -164,6 +164,27 @@ a:hover {
 .headerInfo{ grid-column: 1; grid-row: 2; }
 .sunBadgeWrap{ grid-column: 2; grid-row: 2; justify-self: end; align-self: end; }
 
+.planMapButton {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  width: 46px;
+  height: 46px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(12, 58, 76, 0.82);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(2, 12, 27, 0.20);
+}
+
+.planMapButton:hover {
+  background: rgba(31, 138, 155, 0.92);
+  text-decoration: none;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -867,6 +888,14 @@ hr.soft {
   .topbar{
     column-gap: 12px;
     row-gap: 8px;
+  }
+
+  .planMapButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
   }
 
   /* Header logo: ~30% smaller on mobile */
