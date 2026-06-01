@@ -88,6 +88,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedLaunchId, setSelectedLaunchId] = useState<number | null>(null);
   const [sheetState, setSheetState] = useState<SheetState>('half');
+  const [mobileMarkerModal, setMobileMarkerModal] = useState(false);
   const [isTimebarPinned, setIsTimebarPinned] = useState(false);
   const [timebarHeight, setTimebarHeight] = useState(0);
   const [tripMode, setTripMode] = useState(false);
@@ -126,6 +127,7 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   const selected = selectedId ? activeMarinas.find((marina) => marina.id === selectedId) ?? null : null;
   const selectedLaunch = selectedLaunchId ? launches.find((launch) => launch.id === selectedLaunchId) ?? null : null;
+  const showSheetDetail = Boolean((selected || selectedLaunch) && !mobileMarkerModal);
 
   useEffect(() => {
     setActiveMarinas(snapMarinaList(marinas));
@@ -135,6 +137,25 @@ export default function TripMap({ marinas }: TripMapProps) {
     const media = window.matchMedia('(max-width: 560px)');
     if (media.matches) setSheetState('collapsed');
   }, []);
+
+  useEffect(() => {
+    if (!mobileMarkerModal) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [mobileMarkerModal]);
+
+  useEffect(() => {
+    if (!mobileMarkerModal) return;
+    const media = window.matchMedia('(max-width: 560px)');
+    function handleChange(event: MediaQueryListEvent) {
+      if (!event.matches) setMobileMarkerModal(false);
+    }
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, [mobileMarkerModal]);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 560px)');
@@ -300,7 +321,14 @@ export default function TripMap({ marinas }: TripMapProps) {
         }).addTo(map);
         marker.on('click', () => {
           setSelectedId(marina.id);
-          setSheetState('full');
+          setSelectedLaunchId(null);
+          if (isMobilePlanner()) {
+            setMobileMarkerModal(true);
+            setSheetState('collapsed');
+          } else {
+            setMobileMarkerModal(false);
+            setSheetState('full');
+          }
         });
         markerRefs.current[marina.id] = marker;
       });
@@ -315,7 +343,13 @@ export default function TripMap({ marinas }: TripMapProps) {
           marker.on('click', () => {
             setSelectedId(null);
             setSelectedLaunchId(launch.id);
-            setSheetState('full');
+            if (isMobilePlanner()) {
+              setMobileMarkerModal(true);
+              setSheetState('collapsed');
+            } else {
+              setMobileMarkerModal(false);
+              setSheetState('full');
+            }
           });
           launchMarkerRefs.current[launch.id] = marker;
         });
@@ -381,6 +415,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   function openMarina(marina: Marina) {
     setSelectedId(marina.id);
     setSelectedLaunchId(null);
+    setMobileMarkerModal(false);
     setSheetState('full');
     markerRefs.current[marina.id]?.openPopup?.();
   }
@@ -388,7 +423,14 @@ export default function TripMap({ marinas }: TripMapProps) {
   function openLaunch(launch: BoatLaunch) {
     setSelectedLaunchId(launch.id);
     setSelectedId(null);
+    setMobileMarkerModal(false);
     setSheetState('full');
+  }
+
+  function closeSelectedDetail() {
+    setSelectedId(null);
+    setSelectedLaunchId(null);
+    setMobileMarkerModal(false);
   }
 
   function toggleTripStop(marinaId: number) {
@@ -463,6 +505,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             setShowLaunches((value) => !value);
             setSelectedId(null);
             setSelectedLaunchId(null);
+            setMobileMarkerModal(false);
           }}
         >
           <svg viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -479,6 +522,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             setTripMode((value) => !value);
             setSelectedId(null);
             setSelectedLaunchId(null);
+            setMobileMarkerModal(false);
             setSheetState('full');
           }}
         >
@@ -512,8 +556,32 @@ export default function TripMap({ marinas }: TripMapProps) {
         </button>
       </div>
 
+      {mobileMarkerModal && (selected || selectedLaunch) ? (
+        <div className="plannerMobileModal" role="dialog" aria-modal="true" aria-label="Marker details">
+          <div className="plannerMobileModalCard">
+            <button className="plannerMobileModalClose" type="button" onClick={closeSelectedDetail}>
+              Close
+            </button>
+            {selected ? (
+              <MarinaDetail
+                marina={selected}
+                dayIndex={dayIndex}
+                vessel={vessel}
+                weeklyOutlooks={weeklyOutlooks}
+                liveTide={liveTides[selected.id]}
+                inTrip={tripStops.includes(selected.id)}
+                onToggleTrip={() => toggleTripStop(selected.id)}
+                onBack={closeSelectedDetail}
+              />
+            ) : selectedLaunch ? (
+              <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={closeSelectedDetail} />
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <section
-        className={`plannerSheet plannerSheet-${sheetState} ${selected || selectedLaunch ? 'plannerSheet-detail' : ''}`}
+        className={`plannerSheet plannerSheet-${sheetState} ${showSheetDetail ? 'plannerSheet-detail' : ''}`}
         aria-label="Marina results"
       >
         <button
@@ -526,7 +594,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         </button>
 
         <div className="plannerSheetInner">
-          {selected ? (
+          {showSheetDetail && selected ? (
             <MarinaDetail
               marina={selected}
               dayIndex={dayIndex}
@@ -535,10 +603,10 @@ export default function TripMap({ marinas }: TripMapProps) {
               liveTide={liveTides[selected.id]}
               inTrip={tripStops.includes(selected.id)}
               onToggleTrip={() => toggleTripStop(selected.id)}
-              onBack={() => setSelectedId(null)}
+              onBack={closeSelectedDetail}
             />
-          ) : selectedLaunch ? (
-            <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={() => setSelectedLaunchId(null)} />
+          ) : showSheetDetail && selectedLaunch ? (
+            <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={closeSelectedDetail} />
           ) : tripMode ? (
             <TripPlanView
               marinas={tripMarinas}
@@ -1004,6 +1072,10 @@ function nextSheetState(state: SheetState): SheetState {
   if (state === 'full') return 'half';
   if (state === 'half') return 'collapsed';
   return 'full';
+}
+
+function isMobilePlanner() {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 560px)').matches;
 }
 
 function marinaScore(marina: Marina, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
