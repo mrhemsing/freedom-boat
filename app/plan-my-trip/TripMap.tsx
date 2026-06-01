@@ -1087,7 +1087,7 @@ function marinaIcon(L: any, marina: Marina, listIndex: number, selectedId: numbe
   const title = escapeHtml(`${listIndex}. ${marina.name} - score ${score}`);
   return L.divIcon({
     className: '',
-    html: `<div class="plannerPin ${cls}" title="${title}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble"><span class="plannerPinValue">${score}</span></span><span class="plannerPinTail"></span></div>`,
+    html: `<div class="plannerPin ${cls}" title="${title}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble">${listIndex}</span><span class="plannerPinTail"></span></div>`,
     iconSize: [40, 46],
     iconAnchor: [20, 44],
     popupAnchor: [0, -44]
