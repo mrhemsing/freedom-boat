@@ -2102,11 +2102,13 @@ hr.soft {
   justify-content: center;
   border: 3px solid #fff;
   border-radius: 999px;
-  background: var(--planner-teal);
+  background: var(--pin-quality, var(--planner-teal));
   color: #fff;
   box-shadow: 0 3px 8px rgba(12, 58, 76, 0.35);
   font-size: 14px;
   font-weight: 600;
+  transform-origin: 50% 50%;
+  transition: box-shadow 160ms ease, transform 160ms ease;
 }
 
 .plannerPinTail {
@@ -2118,47 +2120,26 @@ hr.soft {
   border-right: 3px solid #fff;
   border-bottom: 3px solid #fff;
   border-bottom-right-radius: 3px;
-  background: var(--planner-teal);
+  background: var(--pin-quality, var(--planner-teal));
   transform: translateX(-50%) rotate(45deg);
+  transition: transform 160ms ease;
 }
 
-.plannerPinScore {
-  position: absolute;
-  z-index: 2;
-  top: -3px;
-  right: -3px;
-  width: 14px;
-  height: 14px;
-  border: 2px solid #fff;
-  border-radius: 999px;
-  background: var(--pin-score, var(--planner-teal));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-.plannerPin.freedom .plannerPinBubble {
-  background: #1456a0;
-  box-shadow: 0 4px 10px rgba(20, 86, 160, 0.36);
-}
-
-.plannerPin.freedom .plannerPinTail {
-  background: #1456a0;
+.plannerPin.quality-fair .plannerPinBubble {
+  color: #172033;
 }
 
 .plannerPin.sel .plannerPinBubble {
-  border-color: var(--planner-navy);
-  box-shadow: 0 0 0 4px rgba(12, 58, 76, 0.18), 0 4px 10px rgba(12, 58, 76, 0.36);
+  box-shadow: 0 0 0 4px rgba(12, 58, 76, 0.24), 0 6px 14px rgba(12, 58, 76, 0.36);
+  transform: scale(1.12);
 }
 
 .plannerPin.sel .plannerPinTail {
-  border-color: var(--planner-navy);
+  transform: translateX(-50%) rotate(45deg) scale(1.12);
 }
 
 .plannerPin.trip .plannerPinBubble {
-  border-color: #e0584f;
-}
-
-.plannerPin.trip .plannerPinTail {
-  border-color: #e0584f;
+  box-shadow: 0 0 0 3px rgba(224, 88, 79, 0.24), 0 4px 10px rgba(12, 58, 76, 0.34);
 }
 
 .plannerLaunchPin {
@@ -2487,16 +2468,6 @@ hr.soft {
   font-weight: 900;
 }
 
-.plannerIdx i {
-  position: absolute;
-  right: -1px;
-  bottom: -1px;
-  width: 13px;
-  height: 13px;
-  border: 2px solid #fff;
-  border-radius: 999px;
-}
-
 .plannerRowFreedom {
   background: linear-gradient(90deg, rgba(20, 86, 160, 0.08), rgba(20, 86, 160, 0));
 }
@@ -2504,10 +2475,6 @@ hr.soft {
 .plannerIdxFreedom {
   background: #1456a0;
   color: #fff;
-}
-
-.plannerIdxFreedom i {
-  border-color: #fff;
 }
 
 .plannerLaunchIdx {

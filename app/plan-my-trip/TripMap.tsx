@@ -747,7 +747,6 @@ export default function TripMap({ marinas }: TripMapProps) {
                     >
                       <span className={`plannerIdx ${marina.freedomClub ? 'plannerIdxFreedom' : ''}`}>
                         {listIndex}
-                        <i style={{ background: scoreColor(score) }} />
                       </span>
                       <span className="plannerBody">
                         <span className="plannerName">
@@ -1083,11 +1082,12 @@ function TripPlanView({
 
 function marinaIcon(L: any, marina: Marina, listIndex: number, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
-  const cls = `${marina.freedomClub ? 'freedom' : ''} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
+  const quality = scoreQuality(score);
+  const cls = `${marina.freedomClub ? 'freedom' : ''} quality-${quality} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
   const title = escapeHtml(`${listIndex}. ${marina.name} - score ${score}`);
   return L.divIcon({
     className: '',
-    html: `<div class="plannerPin ${cls}" title="${title}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble">${listIndex}</span><span class="plannerPinTail"></span></div>`,
+    html: `<div class="plannerPin ${cls}" title="${title}" style="--pin-quality:${scoreColor(score)}"><span class="plannerPinBubble">${listIndex}</span><span class="plannerPinTail"></span></div>`,
     iconSize: [40, 46],
     iconAnchor: [20, 44],
     popupAnchor: [0, -44]
@@ -1178,6 +1178,12 @@ function scoreColor(score: number) {
   if (score >= 75) return '#2fae6b';
   if (score >= 55) return '#e6a13c';
   return '#e0584f';
+}
+
+function scoreQuality(score: number) {
+  if (score >= 75) return 'good';
+  if (score >= 55) return 'fair';
+  return 'poor';
 }
 
 function verdict(score: number) {
