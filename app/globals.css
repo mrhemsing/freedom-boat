@@ -2137,13 +2137,11 @@ hr.soft {
 
 .plannerPin.freedom .plannerPinBubble {
   background: #1456a0;
-  border-color: #1456a0;
   box-shadow: 0 4px 10px rgba(20, 86, 160, 0.36);
 }
 
 .plannerPin.freedom .plannerPinTail {
   background: #1456a0;
-  border-color: #1456a0;
 }
 
 .plannerPin.sel .plannerPinBubble {
