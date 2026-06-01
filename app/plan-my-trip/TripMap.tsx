@@ -351,7 +351,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   return (
-    <div className={`plannerWrap ${isFullscreen ? 'plannerWrapFullscreen' : ''}`}>
+    <div className={`plannerWrap plannerWrapSheet-${sheetState} ${isFullscreen ? 'plannerWrapFullscreen' : ''}`}>
       <div className="plannerTimebar" aria-label="Trip date">
         {DAYS.map((label, index) => (
           <button

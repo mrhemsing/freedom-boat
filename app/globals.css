@@ -2667,6 +2667,13 @@ hr.soft {
     right: 0;
     max-width: calc(100% - 330px);
     padding-bottom: 0;
+    transition: right 0.24s ease;
+  }
+
+  .plannerWrapSheet-full:not(.plannerWrapFullscreen) .plannerTimebar {
+    flex-direction: column;
+    right: calc(min(430px, calc(100vw - 36px)) + 30px);
+    max-width: none;
   }
 
   .plannerWrapFullscreen .plannerTimebar {
