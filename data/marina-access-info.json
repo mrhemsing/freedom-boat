@@ -2,6 +2,7 @@
   "_README": "Public-access and moorage reference for the core Salish Sea marinas. access: Public = open commercial marina; Civic = City of Vancouver park-board marina; Resort = resort/destination marina; Members = club, members-only and excluded from the public planner. transient: Y / Limited / N. verified: true = confirmed against an operator or authority source.",
   "_your_20_from_wavves": {
     "coal": { "name": "Coal Harbour Marina", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot", "verified": false },
+    "mosq": { "name": "Mosquito Creek Marina", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
     "westvan": { "name": "Freedom Boat Club West Vancouver", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "Y", "moorage": "by the foot", "verified": false },
     "lynn": { "name": "Lynnwood Marina", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
     "vanm": { "name": "Vancouver Marina", "access": "Public", "transient": "Limited", "fuel": "?", "launch": "?", "moorage": "by the foot", "verified": false },
@@ -10,6 +11,7 @@
     "thun": { "name": "Thunderbird Marina", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
     "sewm": { "name": "Sewell's Marina Moorage", "access": "Public", "transient": "Y", "fuel": "N", "launch": "N", "moorage": "by the foot", "verified": false },
     "sewf": { "name": "Sewell's Marina Fuel Dock", "access": "Public", "transient": "N", "fuel": "Y", "launch": "N", "moorage": "fuel dock only", "verified": false },
+    "sun": { "name": "Sunset Marina", "access": "Public", "transient": "Limited", "fuel": "N", "launch": "Y", "moorage": "by the foot", "verified": false },
     "bowen": { "name": "Bowen Island Marina & The Pier", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot", "verified": false },
     "cres": { "name": "Crescent Beach Marina", "access": "Public", "transient": "Y", "fuel": "Y", "launch": "Y", "moorage": "by the foot", "verified": false },
     "semi": { "name": "Semiahmoo Marina", "access": "Resort", "transient": "Y", "fuel": "Y", "launch": "N", "moorage": "by the foot, USD", "verified": false },

@@ -83,7 +83,7 @@ function proxyResponse(entry: CacheEntry, cacheStatus: string) {
   return new Response(entry.body, {
     status: entry.status,
     headers: {
-      'cache-control': `public, s-maxage=${entry.cacheSeconds}, stale-while-revalidate=86400`,
+      'cache-control': `public, s-maxage=${entry.cacheSeconds}, stale-while-revalidate=604800`,
       'content-type': entry.contentType,
       'x-proxy-cache': cacheStatus
     }

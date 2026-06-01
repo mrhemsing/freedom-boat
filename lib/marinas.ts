@@ -36,6 +36,7 @@ export type BoatLaunch = {
 
 export const MARINA_ACCESS_INFO: Record<string, MarinaAccessInfo> = {
   coal: { access: 'Public', transient: 'Y', fuel: 'Y', launch: 'N', moorage: 'by the foot', verified: false },
+  mosq: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'N', moorage: 'by the foot', verified: false },
   westvan: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'Y', moorage: 'by the foot', verified: false },
   lynn: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'N', moorage: 'by the foot', verified: false },
   vanm: { access: 'Public', transient: 'Limited', fuel: '?', launch: '?', moorage: 'by the foot', verified: false },
@@ -44,6 +45,7 @@ export const MARINA_ACCESS_INFO: Record<string, MarinaAccessInfo> = {
   thun: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'N', moorage: 'by the foot', verified: false },
   sewm: { access: 'Public', transient: 'Y', fuel: 'N', launch: 'N', moorage: 'by the foot', verified: false },
   sewf: { access: 'Public', transient: 'N', fuel: 'Y', launch: 'N', moorage: 'fuel dock only', verified: false },
+  sun: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'Y', moorage: 'by the foot', verified: false },
   bowen: { access: 'Public', transient: 'Y', fuel: 'Y', launch: 'N', moorage: 'by the foot', verified: false },
   cres: { access: 'Public', transient: 'Y', fuel: 'Y', launch: 'Y', moorage: 'by the foot', verified: false },
   semi: { access: 'Resort', transient: 'Y', fuel: 'Y', launch: 'N', moorage: 'by the foot, USD', verified: false },
@@ -363,6 +365,24 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     lat: 49.1234,
     lon: -123.1868,
     area: 'Richmond'
+  },
+  {
+    id: 32,
+    osmId: 'mosq',
+    name: 'Mosquito Creek Marina',
+    address: '415 Esplanade W, North Vancouver, BC',
+    lat: 49.3111,
+    lon: -123.0842,
+    area: 'North Vancouver'
+  },
+  {
+    id: 33,
+    osmId: 'sun',
+    name: 'Sunset Marina',
+    address: 'West Vancouver, BC',
+    lat: 49.3585,
+    lon: -123.2715,
+    area: 'West Vancouver'
   }
 ];
 
