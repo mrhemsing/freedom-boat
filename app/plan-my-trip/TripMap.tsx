@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Marina } from '../../lib/marinas';
+import {
+  MARINA_ACCESS_INFO,
+  PUBLIC_LAUNCHES,
+  type BoatLaunch,
+  type Marina
+} from '../../lib/marinas';
 
 type TripMapProps = {
   marinas: Marina[];
@@ -12,24 +17,78 @@ type SheetState = 'collapsed' | 'half' | 'full';
 const HOME = { lat: 49.2845, lon: -123.1116 };
 const DAYS = ['Today', 'Mon', 'Tue', 'Wed', 'Thu'];
 
+/* LIVE DATA
+   Set USE_OSM to true on freedom.b-average.com to replace the curated
+   marina and launch lists with OpenStreetMap data at runtime.
+
+   Overpass query:
+   [out:json][timeout:30];
+   ( nwr["leisure"="marina"](48.35,-124.45,49.95,-122.30);
+     nwr["leisure"="slipway"](48.35,-124.45,49.95,-122.30); );
+   out center tags;
+
+   BBOX order is S,W,N,E. The parser skips access=private and members-only
+   style club names, pulls fee/fuel tags when present, sorts nearest-first,
+   and falls back to the curated data on any failure.
+*/
+const USE_OSM = false;
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+const OVERPASS_QUERY = `[out:json][timeout:30];
+( nwr["leisure"="marina"](48.35,-124.45,49.95,-122.30);
+  nwr["leisure"="slipway"](48.35,-124.45,49.95,-122.30); );
+out center tags;`;
+
 export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const markerRefs = useRef<Record<number, any>>({});
+  const launchMarkerRefs = useRef<Record<number, any>>({});
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedLaunchId, setSelectedLaunchId] = useState<number | null>(null);
   const [sheetState, setSheetState] = useState<SheetState>('half');
   const [tripMode, setTripMode] = useState(false);
+  const [showLaunches, setShowLaunches] = useState(false);
   const [dayIndex, setDayIndex] = useState(0);
+  const [activeMarinas, setActiveMarinas] = useState(marinas);
+  const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return marinas;
-    return marinas.filter((marina) =>
+    if (showLaunches) {
+      if (!q) return launches;
+      return launches.filter((launch) =>
+        `${launch.name} ${launch.area} ${launch.type}`.toLowerCase().includes(q)
+      );
+    }
+    if (!q) return activeMarinas;
+    return activeMarinas.filter((marina) =>
       `${marina.name} ${marina.address} ${marina.area}`.toLowerCase().includes(q)
     );
-  }, [marinas, query]);
+  }, [activeMarinas, launches, query, showLaunches]);
 
-  const selected = selectedId ? marinas.find((marina) => marina.id === selectedId) ?? null : null;
+  const selected = selectedId ? activeMarinas.find((marina) => marina.id === selectedId) ?? null : null;
+  const selectedLaunch = selectedLaunchId ? launches.find((launch) => launch.id === selectedLaunchId) ?? null : null;
+
+  useEffect(() => {
+    setActiveMarinas(marinas);
+  }, [marinas]);
+
+  useEffect(() => {
+    if (!USE_OSM) return;
+    let cancelled = false;
+    loadOsmPlaces()
+      .then((result) => {
+        if (cancelled || !result) return;
+        setActiveMarinas(result.marinas);
+        setLaunches(result.launches);
+      })
+      .catch(() => {
+        // Keep curated lists on any live-data failure.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let disposed = false;
@@ -68,7 +127,7 @@ export default function TripMap({ marinas }: TripMapProps) {
 
       const bounds = L.latLngBounds([]);
 
-      marinas.forEach((marina) => {
+      activeMarinas.forEach((marina) => {
         bounds.extend([marina.lat, marina.lon]);
         const marker = L.marker([marina.lat, marina.lon], {
           icon: marinaIcon(L, marina, selectedId, tripMode),
@@ -81,6 +140,22 @@ export default function TripMap({ marinas }: TripMapProps) {
         markerRefs.current[marina.id] = marker;
       });
 
+      if (showLaunches) {
+        launches.forEach((launch) => {
+          bounds.extend([launch.lat, launch.lon]);
+          const marker = L.marker([launch.lat, launch.lon], {
+            icon: launchIcon(L, launch),
+            zIndexOffset: 500
+          }).addTo(map);
+          marker.on('click', () => {
+            setSelectedId(null);
+            setSelectedLaunchId(launch.id);
+            setSheetState('full');
+          });
+          launchMarkerRefs.current[launch.id] = marker;
+        });
+      }
+
       map.fitBounds(bounds.pad(0.18), { maxZoom: 10 });
 
       setTimeout(() => {
@@ -89,6 +164,7 @@ export default function TripMap({ marinas }: TripMapProps) {
 
       cleanup = () => {
         markerRefs.current = {};
+        launchMarkerRefs.current = {};
         map.remove();
       };
     }
@@ -99,13 +175,13 @@ export default function TripMap({ marinas }: TripMapProps) {
       disposed = true;
       cleanup?.();
     };
-  }, [marinas]);
+  }, [activeMarinas, launches, showLaunches]);
 
   useEffect(() => {
     let active = true;
     import('leaflet').then((L) => {
       if (!active) return;
-      marinas.forEach((marina) => {
+      activeMarinas.forEach((marina) => {
         const marker = markerRefs.current[marina.id];
         if (marker) {
           marker.setIcon(marinaIcon(L, marina, selectedId, tripMode));
@@ -116,12 +192,19 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       active = false;
     };
-  }, [marinas, selectedId, tripMode, dayIndex]);
+  }, [activeMarinas, selectedId, tripMode, dayIndex]);
 
   function openMarina(marina: Marina) {
     setSelectedId(marina.id);
+    setSelectedLaunchId(null);
     setSheetState('full');
     markerRefs.current[marina.id]?.openPopup?.();
+  }
+
+  function openLaunch(launch: BoatLaunch) {
+    setSelectedLaunchId(launch.id);
+    setSelectedId(null);
+    setSheetState('full');
   }
 
   return (
@@ -133,6 +216,22 @@ export default function TripMap({ marinas }: TripMapProps) {
           <span className="plannerBrandDot" />
           <span>Freedom Boat</span>
         </a>
+        <button
+          className={`plannerChip ${showLaunches ? 'active' : ''}`}
+          type="button"
+          onClick={() => {
+            setShowLaunches((value) => !value);
+            setSelectedId(null);
+            setSelectedLaunchId(null);
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+            <circle cx="12" cy="5" r="2" />
+            <line x1="12" y1="7" x2="12" y2="22" />
+            <path d="M5 12a7 7 0 0 0 14 0" />
+          </svg>
+          <span>Launches</span>
+        </button>
         <button
           className={`plannerChip ${tripMode ? 'active' : ''}`}
           type="button"
@@ -155,7 +254,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           >
             <span>{label}</span>
             <b>{dayNumber(index)}</b>
-            <em style={{ color: scoreColor(averageScore(marinas, index)) }}>{averageScore(marinas, index)}</em>
+            <em style={{ color: scoreColor(averageScore(activeMarinas, index)) }}>{averageScore(activeMarinas, index)}</em>
           </button>
         ))}
       </div>
@@ -177,6 +276,8 @@ export default function TripMap({ marinas }: TripMapProps) {
               dayIndex={dayIndex}
               onBack={() => setSelectedId(null)}
             />
+          ) : selectedLaunch ? (
+            <LaunchDetail launch={selectedLaunch} onBack={() => setSelectedLaunchId(null)} />
           ) : (
             <>
               <div className="plannerSearchRow">
@@ -188,7 +289,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Marinas"
+                    placeholder={showLaunches ? 'Launches' : 'Marinas'}
                     autoComplete="off"
                   />
                   {query ? (
@@ -210,10 +311,27 @@ export default function TripMap({ marinas }: TripMapProps) {
                 </button>
               </div>
 
-              <div className="plannerResultsHead">{query ? `Results - ${filtered.length}` : 'Results'}</div>
+              <div className="plannerResultsHead">{query ? `Results - ${filtered.length}` : showLaunches ? 'Public launches' : 'Results'}</div>
 
               <div className="plannerRows">
-                {filtered.map((marina) => {
+                {showLaunches ? (filtered as BoatLaunch[]).map((launch) => (
+                  <button
+                    key={launch.id}
+                    type="button"
+                    className="plannerRow"
+                    onClick={() => openLaunch(launch)}
+                  >
+                    <span className="plannerIdx plannerLaunchIdx">{launch.id}</span>
+                    <span className="plannerBody">
+                      <span className="plannerName">{launch.name}</span>
+                      <span className="plannerAddr">{launch.area}</span>
+                    </span>
+                    <span className="plannerRight">
+                      <b>{distanceFromHome(launch).toFixed(1)} nm</b>
+                      <span>{launch.type}</span>
+                    </span>
+                  </button>
+                )) : (filtered as Marina[]).map((marina) => {
                   const score = marinaScore(marina, dayIndex);
                   return (
                     <button
@@ -262,6 +380,7 @@ function MarinaDetail({
   const wind = windFor(marina, dayIndex);
   const gust = wind + 5 + (marina.id % 4);
   const wave = Math.max(0.2, (wind - 5) * 0.05 + (marina.freedomClub ? 0.1 : 0.25));
+  const info = accessInfoFor(marina);
 
   return (
     <div className="plannerDetail">
@@ -273,6 +392,17 @@ function MarinaDetail({
       </button>
       <h1>{marina.name}</h1>
       <p>{marina.address} - {distanceFromHome(marina).toFixed(1)} nm</p>
+
+      {info ? (
+        <div className="plannerTags">
+          <span className={`plannerTag ${info.access === 'Public' ? 'pub' : ''}`}>{info.access}</span>
+          <span className="plannerTag">Transient: {transientLabel(info.transient)}</span>
+          <span className="plannerTag">Fuel: {info.fuel}</span>
+          <span className="plannerTag">Launch: {info.launch}</span>
+          <span className="plannerTag">{info.moorage}</span>
+          <span className="plannerTag verify">{info.verified ? 'verified' : 'verify before publish'}</span>
+        </div>
+      ) : null}
 
       <div className="plannerScoreHero">
         <div className="plannerScoreRing" style={{ background: scoreColor(score) }}>{score}</div>
@@ -313,6 +443,35 @@ function MarinaDetail({
   );
 }
 
+function LaunchDetail({ launch, onBack }: { launch: BoatLaunch; onBack: () => void }) {
+  return (
+    <div className="plannerDetail">
+      <button className="plannerBack" type="button" onClick={onBack}>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        All launches
+      </button>
+      <h1>{launch.name}</h1>
+      <p>{launch.area} - {distanceFromHome(launch).toFixed(1)} nm</p>
+      <div className="plannerTags">
+        <span className="plannerTag pub">Public launch</span>
+        <span className="plannerTag">{launch.type}</span>
+        {launch.access ? <span className="plannerTag">Access: {launch.access}</span> : null}
+        {launch.fee ? <span className="plannerTag">Fee: {launch.fee}</span> : null}
+      </div>
+      <a
+        className="plannerPrimary"
+        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${launch.name} ${launch.area}`)}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Open in Maps
+      </a>
+    </div>
+  );
+}
+
 function marinaIcon(L: any, marina: Marina, selectedId: number | null, tripMode: boolean) {
   const score = marinaScore(marina, 0);
   const cls = `${selectedId === marina.id ? 'sel' : ''} ${tripMode && marina.freedomClub ? 'trip' : ''}`;
@@ -322,6 +481,15 @@ function marinaIcon(L: any, marina: Marina, selectedId: number | null, tripMode:
     iconSize: [40, 46],
     iconAnchor: [20, 44],
     popupAnchor: [0, -44]
+  });
+}
+
+function launchIcon(L: any, launch: BoatLaunch) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="plannerLaunchPin" title="${escapeHtml(launch.name)}"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="22"/><path d="M5 12a7 7 0 0 0 14 0"/></svg></div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
   });
 }
 
@@ -365,9 +533,28 @@ function verdict(score: number) {
   return 'Marginal';
 }
 
-function distanceFromHome(marina: Marina) {
-  const metres = haversine(HOME.lat, HOME.lon, marina.lat, marina.lon);
+function distanceFromHome(place: { lat: number; lon: number }) {
+  const metres = haversine(HOME.lat, HOME.lon, place.lat, place.lon);
   return metres / 1852;
+}
+
+function accessInfoFor(marina: Marina) {
+  return marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
+}
+
+function transientLabel(value: 'Y' | 'Limited' | 'N') {
+  if (value === 'Y') return 'Yes';
+  if (value === 'N') return 'No';
+  return value;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -379,4 +566,73 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * radius * Math.asin(Math.sqrt(a));
+}
+
+async function loadOsmPlaces() {
+  const body = new URLSearchParams({ data: OVERPASS_QUERY });
+  const res = await fetch(OVERPASS_URL, {
+    method: 'POST',
+    body
+  });
+  if (!res.ok) throw new Error(`Overpass failed: ${res.status}`);
+  const data = await res.json();
+  const elements = Array.isArray(data.elements) ? data.elements : [];
+  const marinas: Marina[] = [];
+  const launches: BoatLaunch[] = [];
+
+  for (const element of elements) {
+    const tags = element.tags || {};
+    if (tags.access === 'private') continue;
+    const name = tags.name || tags['seamark:name'];
+    const lat = Number(element.lat ?? element.center?.lat);
+    const lon = Number(element.lon ?? element.center?.lon);
+    if (!name || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    if (isMembersOnlyName(name)) continue;
+
+    if (tags.leisure === 'slipway') {
+      launches.push({
+        id: launches.length + 1,
+        osmId: String(element.id),
+        name,
+        area: tags['addr:city'] || tags.place || 'Salish Sea',
+        lat,
+        lon,
+        type: tags.boat === 'yes' ? 'Boat launch' : 'Slipway',
+        access: tags.access,
+        fee: tags.fee
+      });
+    } else if (tags.leisure === 'marina') {
+      marinas.push({
+        id: marinas.length + 1,
+        osmId: String(element.id),
+        name,
+        address: osmAddress(tags),
+        lat,
+        lon,
+        area: tags['addr:city'] || tags.place || 'Salish Sea',
+        accessInfo: {
+          access: 'Public',
+          transient: 'Limited',
+          fuel: tags.fuel === 'yes' || tags['fuel:diesel'] === 'yes' ? 'Y' : '?',
+          launch: tags.leisure === 'slipway' ? 'Y' : '?',
+          moorage: tags.fee === 'yes' ? 'fee tagged in OSM' : 'verify moorage',
+          verified: false
+        }
+      });
+    }
+  }
+
+  marinas.sort((a, b) => distanceFromHome(a) - distanceFromHome(b));
+  launches.sort((a, b) => distanceFromHome(a) - distanceFromHome(b));
+  return marinas.length ? { marinas: marinas.map((m, index) => ({ ...m, id: index + 1 })), launches } : null;
+}
+
+function osmAddress(tags: Record<string, string>) {
+  const parts = [tags['addr:housenumber'], tags['addr:street'], tags['addr:city'], tags['addr:province']].filter(Boolean);
+  return parts.length ? parts.join(' ') : 'Address not listed in OSM';
+}
+
+function isMembersOnlyName(name: string) {
+  const lower = name.toLowerCase();
+  return lower.includes('yacht club') || lower.includes('members only');
 }

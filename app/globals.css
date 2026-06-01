@@ -1806,6 +1806,29 @@ hr.soft {
   background: #e0584f;
 }
 
+.plannerLaunchPin {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 8px;
+  background: #ef8a3c;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(12, 58, 76, 0.35);
+  transform: rotate(45deg);
+}
+
+.plannerLaunchPin svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: rotate(-45deg);
+}
+
 .tripMe {
   position: relative;
   width: 34px;
@@ -2024,6 +2047,11 @@ hr.soft {
   border-radius: 999px;
 }
 
+.plannerLaunchIdx {
+  background: #ffe0c4;
+  color: #a84d14;
+}
+
 .plannerBody {
   flex: 1;
   min-width: 0;
@@ -2110,6 +2138,36 @@ hr.soft {
   margin: 4px 0 0;
   color: var(--planner-muted);
   font-size: 13px;
+}
+
+.plannerTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.plannerTag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 8px;
+  padding: 4px 9px;
+  background: var(--planner-teal-tint);
+  color: var(--planner-teal-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.plannerTag.pub {
+  background: #e4f5ea;
+  color: #1f8a4f;
+}
+
+.plannerTag.verify {
+  background: #f3f6f7;
+  color: #8aa0a8;
+  font-weight: 700;
 }
 
 .plannerScoreHero {
@@ -2237,6 +2295,10 @@ hr.soft {
 
   .plannerChip {
     padding: 9px 11px;
+  }
+
+  .plannerChip span {
+    display: none;
   }
 
   .plannerTimebar {

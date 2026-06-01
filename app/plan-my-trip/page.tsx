@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { TRIP_MARINAS } from '../../lib/marinas';
+import { ADDITIONAL_PUBLIC_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function PlanMyTripPage() {
   return (
     <main className="tripPage">
-      <TripMap marinas={TRIP_MARINAS} />
+      <TripMap marinas={[...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS]} />
     </main>
   );
 }
