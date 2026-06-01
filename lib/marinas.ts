@@ -64,7 +64,8 @@ export const MARINA_ACCESS_INFO: Record<string, MarinaAccessInfo> = {
   gibsons_marina: { access: 'Public', transient: 'Y', fuel: 'Y', launch: 'N', moorage: "transient 'as available', to 85 ft", verified: true },
   union_steamship: { access: 'Public', transient: 'Y', fuel: 'N', launch: 'N', moorage: 'by the foot', verified: false },
   pender_hbr: { access: 'Public', transient: 'Y', fuel: 'Y', launch: 'Y', moorage: 'by the foot', verified: false },
-  lions_bay: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'Y', moorage: 'by the foot', verified: false }
+  lions_bay: { access: 'Public', transient: 'Limited', fuel: 'N', launch: 'Y', moorage: 'by the foot', verified: false },
+  steveston_harbour: { access: 'Public', transient: 'Y', fuel: '?', launch: 'Y', moorage: 'transient float, max 7 days', verified: true }
 };
 
 export const EXCLUDED_MARINAS = {
@@ -353,6 +354,15 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     lat: 49.452,
     lon: -123.237,
     area: 'Lions Bay'
+  },
+  {
+    id: 31,
+    osmId: 'steveston_harbour',
+    name: 'Steveston Harbour Marina',
+    address: '12740 Trites Road, Richmond, BC',
+    lat: 49.1227,
+    lon: -123.1841,
+    area: 'Richmond'
   }
 ];
 
