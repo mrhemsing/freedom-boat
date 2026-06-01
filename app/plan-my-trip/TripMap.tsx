@@ -371,7 +371,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     setShareMessage('');
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Freedom Boat float plan', text, url });
+        await navigator.share({ title: 'FAIRTIDE float plan', text, url });
         setShareMessage('Share sheet opened.');
         return;
       }
@@ -1148,7 +1148,7 @@ function buildFloatPlanText(marinas: Marina[], vessel: VesselProfile, departAt: 
   const summary = tripSummary(legs);
   const depart = new Date(departAt || defaultDepartInput());
   const lines = [
-    'Freedom Boat float plan',
+    'FAIRTIDE float plan',
     `Vessel: ${vessel.label}`,
     `Depart: ${formatShortDateTime(depart)}`,
     `Cruise speed: ${speedKt || DEFAULT_SPEED_KT} kt`,

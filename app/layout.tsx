@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Freedom Boat',
+  title: 'FAIRTIDE',
   description: 'Hyper-local boating conditions for Port Moody, West Vancouver, and North Saanich.'
 };
 
