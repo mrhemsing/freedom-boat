@@ -2643,6 +2643,27 @@ hr.soft {
 }
 
 @media (min-width: 900px) {
+  .tripPlannerHeader {
+    margin-bottom: 10px;
+  }
+
+  .plannerWrap {
+    padding-top: 0;
+  }
+
+  .plannerTimebar {
+    position: absolute;
+    z-index: 700;
+    top: -78px;
+    right: 0;
+    max-width: calc(100% - 330px);
+    padding-bottom: 0;
+  }
+
+  .plannerWrapFullscreen .plannerTimebar {
+    max-width: none;
+  }
+
   .plannerSheet {
     left: auto;
     width: min(430px, calc(100vw - 36px));
