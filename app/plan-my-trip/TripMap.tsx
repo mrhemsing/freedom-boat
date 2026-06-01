@@ -351,10 +351,26 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   return (
-    <div className={`plannerApp ${isFullscreen ? 'plannerAppFullscreen' : ''}`}>
-      <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
+    <div className={`plannerWrap ${isFullscreen ? 'plannerWrapFullscreen' : ''}`}>
+      <div className="plannerTimebar" aria-label="Trip date">
+        {DAYS.map((label, index) => (
+          <button
+            key={label}
+            type="button"
+            className={`plannerDay ${dayIndex === index ? 'active' : ''}`}
+            onClick={() => setDayIndex(index)}
+          >
+            <span>{label}</span>
+            <b>{dayNumber(index)}</b>
+            <em style={{ color: scoreColor(averageScore(activeMarinas, index, vessel)) }}>{averageScore(activeMarinas, index, vessel)}</em>
+          </button>
+        ))}
+      </div>
 
-      <div className="plannerTopbar">
+      <div className={`plannerApp ${isFullscreen ? 'plannerAppFullscreen' : ''}`}>
+        <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
+
+        <div className="plannerTopbar">
         <button
           className={`plannerChip ${showLaunches ? 'active' : ''}`}
           type="button"
@@ -409,21 +425,6 @@ export default function TripMap({ marinas }: TripMapProps) {
           )}
           <span>{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
         </button>
-      </div>
-
-      <div className="plannerTimebar" aria-label="Trip date">
-        {DAYS.map((label, index) => (
-          <button
-            key={label}
-            type="button"
-            className={`plannerDay ${dayIndex === index ? 'active' : ''}`}
-            onClick={() => setDayIndex(index)}
-          >
-            <span>{label}</span>
-            <b>{dayNumber(index)}</b>
-            <em style={{ color: scoreColor(averageScore(activeMarinas, index, vessel)) }}>{averageScore(activeMarinas, index, vessel)}</em>
-          </button>
-        ))}
       </div>
 
       <section className={`plannerSheet plannerSheet-${sheetState}`} aria-label="Marina results">
@@ -569,6 +570,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           )}
         </div>
       </section>
+      </div>
     </div>
   );
 }

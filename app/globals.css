@@ -1634,15 +1634,14 @@ hr.soft {
 }
 
 .tripPlannerPanel {
-  border: 1px solid rgba(255, 255, 255, 0.60);
-  border-radius: 18px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
-.plannerApp {
+.plannerWrap {
   --planner-teal: #1f8a9b;
   --planner-teal-dark: #136575;
   --planner-teal-tint: #d8eef2;
@@ -1651,6 +1650,12 @@ hr.soft {
   --planner-muted: #6f8a94;
   --planner-line: #e7eef0;
   --planner-shadow: 0 10px 30px rgba(12, 58, 76, 0.18);
+  position: relative;
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--planner-navy);
+}
+
+.plannerApp {
   position: relative;
   min-height: min(760px, calc(100dvh - 210px));
   overflow: hidden;
@@ -1745,17 +1750,22 @@ hr.soft {
 }
 
 .plannerTimebar {
-  position: absolute;
-  z-index: 600;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 0 10px;
+  pointer-events: auto;
+  scrollbar-width: none;
+}
+
+.plannerWrapFullscreen .plannerTimebar {
+  position: fixed;
+  z-index: 5600;
   top: 62px;
   left: 12px;
   right: 12px;
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
   padding: 2px;
-  pointer-events: auto;
-  scrollbar-width: none;
 }
 
 .plannerTimebar::-webkit-scrollbar {
@@ -2660,8 +2670,7 @@ hr.soft {
   .tripPlannerPanel {
     margin-left: -2px;
     margin-right: -2px;
-    border-radius: 16px;
-    padding: 8px;
+    padding: 0;
   }
 
   .plannerApp {
@@ -2689,9 +2698,15 @@ hr.soft {
   }
 
   .plannerTimebar {
+    justify-content: flex-start;
+    padding-bottom: 8px;
+  }
+
+  .plannerWrapFullscreen .plannerTimebar {
     top: 58px;
     left: 10px;
     right: 10px;
+    padding: 2px;
   }
 
   .plannerName {
