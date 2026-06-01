@@ -27,7 +27,7 @@ export default function PlanMyTripPage() {
           <div className="tripPlannerSubhead">Marinas, launches, tides, and day scores around the Salish Sea.</div>
           <div className="tripPlannerNav">
             <label htmlFor="marinaJump" className="miniNote tripPlannerJumpLabel">
-              Select Freedom Club
+              Marina:
             </label>
             <MarinaJump value="" placeholder="Select Freedom Club" />
           </div>
