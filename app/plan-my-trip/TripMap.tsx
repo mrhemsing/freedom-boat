@@ -427,7 +427,10 @@ export default function TripMap({ marinas }: TripMapProps) {
         </button>
       </div>
 
-      <section className={`plannerSheet plannerSheet-${sheetState}`} aria-label="Marina results">
+      <section
+        className={`plannerSheet plannerSheet-${sheetState} ${selected || selectedLaunch ? 'plannerSheet-detail' : ''}`}
+        aria-label="Marina results"
+      >
         <button
           type="button"
           className="plannerGrab"

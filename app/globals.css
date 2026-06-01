@@ -2693,6 +2693,28 @@ hr.soft {
   .plannerSheet-collapsed {
     transform: translateY(calc(100% - 74px));
   }
+
+  .plannerSheet-detail {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(430px, 38vw);
+    max-height: none;
+    border-radius: 0;
+    box-shadow: -10px 0 32px rgba(12, 58, 76, 0.18);
+    transform: none;
+    transition: none;
+  }
+
+  .plannerSheet-detail .plannerGrab {
+    display: none;
+  }
+
+  .plannerSheet-detail .plannerSheetInner {
+    height: 100dvh;
+    padding: 24px 24px 32px;
+  }
 }
 
 @media (max-width: 560px) {
