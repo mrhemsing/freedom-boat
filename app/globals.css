@@ -1623,8 +1623,14 @@ hr.soft {
 .tripPlannerNav {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin-top: 12px;
+}
+
+.tripPlannerJumpLabel {
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 800;
 }
 
 .tripPlannerPanel {

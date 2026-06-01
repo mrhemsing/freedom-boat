@@ -3,13 +3,19 @@
 import { useRouter } from 'next/navigation';
 import type { LocationId } from '../../../lib/locations';
 
-export default function MarinaJump({ value }: { value: LocationId }) {
+export default function MarinaJump({
+  value,
+  placeholder
+}: {
+  value?: LocationId | '';
+  placeholder?: string;
+}) {
   const router = useRouter();
 
   return (
     <select
       id="marinaJump"
-      defaultValue={value}
+      defaultValue={value ?? ''}
       className="seg segActive"
       style={{ minWidth: 190, paddingRight: 28 }}
       onChange={(e) => {
@@ -17,6 +23,7 @@ export default function MarinaJump({ value }: { value: LocationId }) {
         if (next) router.push(`/location/${next}`);
       }}
     >
+      {placeholder ? <option value="" disabled>{placeholder}</option> : null}
       <option value="port-moody">Port Moody</option>
       <option value="west-vancouver">West Vancouver</option>
       <option value="north-saanich">North Saanich</option>

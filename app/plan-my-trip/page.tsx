@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ADDITIONAL_PUBLIC_MARINAS, TRIP_MARINAS } from '../../lib/marinas';
+import MarinaJump from '../location/[locationId]/MarinaJump';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
@@ -25,9 +26,10 @@ export default function PlanMyTripPage() {
           <div className="tripPlannerKicker">Plan my trip</div>
           <div className="tripPlannerSubhead">Marinas, launches, tides, and day scores around the Salish Sea.</div>
           <div className="tripPlannerNav">
-            <a className="seg" href="/location/port-moody">Port Moody</a>
-            <a className="seg" href="/location/west-vancouver">West Vancouver</a>
-            <a className="seg" href="/location/north-saanich">North Saanich</a>
+            <label htmlFor="marinaJump" className="miniNote tripPlannerJumpLabel">
+              Select Freedom Club
+            </label>
+            <MarinaJump value="" placeholder="Select Freedom Club" />
           </div>
         </div>
       </header>
