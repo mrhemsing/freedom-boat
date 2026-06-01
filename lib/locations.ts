@@ -40,9 +40,9 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
   'west-vancouver': {
     id: 'west-vancouver',
     name: 'West Vancouver',
-    address: '415 W Esplanade, North Vancouver, BC',
-    lat: 49.315,
-    lon: -123.083,
+    address: '34 Sunset Beach, West Vancouver, BC, V7W 2T7',
+    lat: 49.3293,
+    lon: -123.1566,
     marineAreas: [
       'Howe Sound',
       'Strait of Georgia',

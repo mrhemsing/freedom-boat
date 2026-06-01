@@ -20,11 +20,11 @@ export const TRIP_MARINAS: Marina[] = [
   },
   {
     id: 2,
-    name: 'Mosquito Creek Marina',
-    address: '415 W Esplanade, North Vancouver, BC',
-    lat: 49.315,
-    lon: -123.083,
-    area: 'North Shore',
+    name: 'Freedom Boat Club West Vancouver',
+    address: '34 Sunset Beach, West Vancouver, BC, V7W 2T7',
+    lat: 49.3293,
+    lon: -123.1566,
+    area: 'West Vancouver',
     freedomClub: true,
     locationId: 'west-vancouver'
   },
@@ -88,14 +88,6 @@ export const TRIP_MARINAS: Marina[] = [
   },
   {
     id: 10,
-    name: 'Sunset Marina',
-    address: '34 Sunset Beach, West Vancouver, BC',
-    lat: 49.3293,
-    lon: -123.1566,
-    area: 'Howe Sound'
-  },
-  {
-    id: 11,
     name: 'Bowen Island Marina & The Pier',
     address: '400 Bowen Island Trunk Rd, Bowen Island, BC',
     lat: 49.379,
@@ -103,7 +95,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Bowen Island'
   },
   {
-    id: 12,
+    id: 11,
     name: 'Crescent Beach Marina',
     address: '12555 Crescent Rd, Surrey, BC',
     lat: 49.056,
@@ -111,7 +103,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Surrey'
   },
   {
-    id: 13,
+    id: 12,
     name: 'Semiahmoo Marina',
     address: '9540 Semiahmoo Pkwy, Blaine, WA',
     lat: 48.988,
@@ -119,7 +111,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Blaine'
   },
   {
-    id: 14,
+    id: 13,
     name: 'Montague Harbour Marina',
     address: '3451 Montague Rd, Galiano Island, BC',
     lat: 48.891,
@@ -127,7 +119,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Galiano Island'
   },
   {
-    id: 15,
+    id: 14,
     name: 'Port Stalashen',
     address: '1585 Field Rd, Sechelt, BC',
     lat: 49.47,
@@ -135,7 +127,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Sunshine Coast'
   },
   {
-    id: 16,
+    id: 15,
     name: 'Poets Cove Marina',
     address: '9801 Spalding Rd, Bedwell Harbour, BC',
     lat: 48.747,
@@ -143,7 +135,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Pender Island'
   },
   {
-    id: 17,
+    id: 16,
     name: 'Newcastle Marina',
     address: '1300 Stewart Ave, Nanaimo, BC',
     lat: 49.177,
@@ -151,7 +143,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Nanaimo'
   },
   {
-    id: 18,
+    id: 17,
     name: 'Van Isle Marina Co',
     address: '2320 Harbour Rd, Sidney, BC',
     lat: 48.684,
@@ -159,7 +151,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Sidney'
   },
   {
-    id: 19,
+    id: 18,
     name: 'Port Sidney Marina',
     address: '9835 Seaport Pl, Sidney, BC',
     lat: 48.652,
@@ -167,7 +159,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Sidney'
   },
   {
-    id: 20,
+    id: 19,
     name: 'Mill Bay Marina',
     address: '740 Handy Rd, Mill Bay, BC',
     lat: 48.65,
@@ -175,7 +167,7 @@ export const TRIP_MARINAS: Marina[] = [
     area: 'Mill Bay'
   },
   {
-    id: 21,
+    id: 20,
     name: 'Canoe Cove Marina',
     address: '2300 Canoe Cove Rd, North Saanich, BC',
     lat: 48.681,
