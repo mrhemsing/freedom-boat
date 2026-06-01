@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../../lib/outlook';
+import { SEO_MARINAS, type SeoMarina } from '../../../lib/seo-slugs';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
@@ -80,6 +81,7 @@ export default async function LocationPage({
   const slackTide = getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
   const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
+  const marinaJumpGroups = buildMarinaJumpGroups();
 
   return (
     <main className="container">
@@ -109,7 +111,7 @@ export default async function LocationPage({
             <label htmlFor="marinaJump" className="miniNote" style={{ fontWeight: 700, color: 'rgba(255,255,255,0.86)' }}>
               Marina:
             </label>
-            <MarinaJump value={id} />
+            <MarinaJump value={id} groups={marinaJumpGroups} />
           </div>
         </div>
 
@@ -439,6 +441,70 @@ export default async function LocationPage({
       </footer>
     </main>
   );
+}
+
+const BC_LOCATION_ORDER = new Map([
+  ['Port Moody', 0],
+  ['West Vancouver', 1],
+  ['North Saanich', 2],
+  ['Oak Bay', 3]
+]);
+
+function buildMarinaJumpGroups() {
+  const groups = new Map<string, Array<{ label: string; path: string }>>();
+
+  for (const marina of [...SEO_MARINAS].sort(compareMarinaOptions)) {
+    const label = regionLabel(menuRegion(marina));
+    const path = marina.locationId ? `/location/${marina.locationId}` : `/marina/${marina.slug}`;
+    groups.set(label, [
+      ...(groups.get(label) ?? []),
+      {
+        label: marina.freedomClub ? marina.area : marina.name,
+        path
+      }
+    ]);
+  }
+
+  return [...groups.entries()].map(([label, options]) => ({ label, options }));
+}
+
+function compareMarinaOptions(a: SeoMarina, b: SeoMarina) {
+  return (
+    regionRank(a) - regionRank(b) ||
+    withinRegionRank(a) - withinRegionRank(b) ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function withinRegionRank(marina: SeoMarina) {
+  if (menuRegion(marina) === 'BC') {
+    const locationRank = BC_LOCATION_ORDER.get(marina.area);
+    if (marina.freedomClub && locationRank != null) return locationRank;
+    return 100 - marina.lat;
+  }
+
+  return -marina.lat;
+}
+
+function regionRank(marina: SeoMarina) {
+  const region = menuRegion(marina);
+  if (region === 'BC') return 0;
+  if (region === 'WA') return 1;
+  if (region === 'OR') return 2;
+  if (region === 'ID') return 3;
+  return 4;
+}
+
+function menuRegion(marina: SeoMarina) {
+  return marina.address.match(/,\s*(BC|WA|OR|ID)\b/)?.[1] ?? 'OTHER';
+}
+
+function regionLabel(region: string) {
+  if (region === 'BC') return 'British Columbia';
+  if (region === 'WA') return 'Washington';
+  if (region === 'OR') return 'Oregon';
+  if (region === 'ID') return 'Idaho';
+  return 'Other';
 }
 
 function getNextTideSummary({
