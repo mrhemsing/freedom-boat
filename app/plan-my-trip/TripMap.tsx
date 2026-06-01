@@ -220,10 +220,6 @@ export default function TripMap({ marinas }: TripMapProps) {
       <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
 
       <div className="plannerTopbar">
-        <a className="plannerBrand" href="/location/port-moody" aria-label="Back to conditions">
-          <span className="plannerBrandDot" />
-          <span>Freedom Boat</span>
-        </a>
         <button
           className={`plannerChip ${showLaunches ? 'active' : ''}`}
           type="button"
