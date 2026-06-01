@@ -55,13 +55,69 @@ a:hover {
 }
 
 .siteFooter {
-  margin-top: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
   text-align: left;
   color: rgba(209, 213, 219, 0.95);
   font-size: 14px;
+}
+
+.sourceLegend {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(4, 18, 31, 0.58);
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.sourceLegendTitle {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 10px;
+}
+
+.sourceLegendList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sourceLegendList li {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sourceLegendList span {
+  font-size: 12px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.sourceLegendList a {
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.96);
+  overflow-wrap: anywhere;
+}
+
+.footerBrandRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .baBadge {
@@ -940,6 +996,15 @@ hr.soft {
 
   .quickLookCard .quickItem{
     padding: 12px;
+  }
+
+  .sourceLegend {
+    padding: 12px;
+  }
+
+  .sourceLegendList {
+    grid-template-columns: 1fr;
+    gap: 9px;
   }
 
   .brandTitle{
