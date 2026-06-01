@@ -2105,8 +2105,8 @@ hr.soft {
   background: var(--planner-teal);
   color: #fff;
   box-shadow: 0 3px 8px rgba(12, 58, 76, 0.35);
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .plannerPinTail {
