@@ -3,6 +3,8 @@ export const runtime = 'nodejs';
 const IWLS_ORIGIN = 'https://api-iwls.dfo-mpo.gc.ca';
 const STATION_LIST_TTL_MS = 24 * 60 * 60 * 1000;
 const TIDE_DATA_TTL_MS = 6 * 60 * 60 * 1000;
+const STATION_LIST_STALE_SECONDS = 7 * 24 * 60 * 60;
+const TIDE_DATA_STALE_SECONDS = 24 * 60 * 60;
 const MAX_CACHE_ENTRIES = 2000;
 
 type CacheEntry = {
@@ -10,6 +12,7 @@ type CacheEntry = {
   cacheSeconds: number;
   contentType: string;
   expiresAt: number;
+  staleSeconds: number;
   status: number;
 };
 
@@ -43,6 +46,7 @@ export async function GET(request: Request, { params }: { params: { path?: strin
       cacheSeconds,
       contentType: upstreamResponse.headers.get('content-type') ?? 'application/json',
       expiresAt: Date.now() + cacheSeconds * 1000,
+      staleSeconds: staleSecondsForPath(path),
       status: upstreamResponse.status
     };
 
@@ -63,7 +67,7 @@ function proxyResponse(entry: CacheEntry, cacheStatus: string) {
   return new Response(entry.body, {
     status: entry.status,
     headers: {
-      'cache-control': `public, s-maxage=${entry.cacheSeconds}, stale-while-revalidate=43200`,
+      'cache-control': `public, s-maxage=${entry.cacheSeconds}, stale-while-revalidate=${entry.staleSeconds}`,
       'content-type': entry.contentType,
       'x-proxy-cache': cacheStatus
     }
@@ -81,6 +85,12 @@ function ttlForPath(path: string) {
   return path.startsWith('api/v1/stations') && !path.includes('/data')
     ? STATION_LIST_TTL_MS
     : TIDE_DATA_TTL_MS;
+}
+
+function staleSecondsForPath(path: string) {
+  return path.startsWith('api/v1/stations') && !path.includes('/data')
+    ? STATION_LIST_STALE_SECONDS
+    : TIDE_DATA_STALE_SECONDS;
 }
 
 function setCached(key: string, entry: CacheEntry) {
