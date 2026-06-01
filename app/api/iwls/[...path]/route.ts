@@ -7,6 +7,7 @@ const MAX_CACHE_ENTRIES = 2000;
 
 type CacheEntry = {
   body: string;
+  cacheSeconds: number;
   contentType: string;
   expiresAt: number;
   status: number;
@@ -36,10 +37,12 @@ export async function GET(request: Request, { params }: { params: { path?: strin
       cache: 'no-store'
     });
     const body = await upstreamResponse.text();
+    const cacheSeconds = ttlForPath(path) / 1000;
     const entry: CacheEntry = {
       body,
+      cacheSeconds,
       contentType: upstreamResponse.headers.get('content-type') ?? 'application/json',
-      expiresAt: Date.now() + ttlForPath(path),
+      expiresAt: Date.now() + cacheSeconds * 1000,
       status: upstreamResponse.status
     };
 
@@ -60,7 +63,7 @@ function proxyResponse(entry: CacheEntry, cacheStatus: string) {
   return new Response(entry.body, {
     status: entry.status,
     headers: {
-      'cache-control': 'public, max-age=900, stale-while-revalidate=43200',
+      'cache-control': `public, s-maxage=${entry.cacheSeconds}, stale-while-revalidate=43200`,
       'content-type': entry.contentType,
       'x-proxy-cache': cacheStatus
     }

@@ -50,6 +50,20 @@ npm run marinas:enrich
 onto that pull and writes `data/marinas.enriched.json`. The generated snapshots
 are ignored so they can be reviewed before promoting any changes into the app.
 
+Use `docs/bc-marinas-reference.md` as a regional validation checklist when
+reviewing whether an OSM pull caught the obvious transient-friendly marinas.
+
+## Vercel
+
+The app deploys as a standard Next.js project on Vercel. Planner data proxies
+live in App Router route handlers:
+
+- `app/api/iwls/[...path]/route.ts` proxies DFO / CHS IWLS tide data.
+- `app/api/overpass/route.ts` proxies OpenStreetMap Overpass queries.
+
+Those route handlers return `s-maxage` cache headers so Vercel's CDN can cache
+the upstream responses between serverless invocations.
+
 ## Roadmap
 
 See `docs/PLAN.md`.
