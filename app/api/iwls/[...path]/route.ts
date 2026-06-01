@@ -1,7 +1,9 @@
 export const runtime = 'nodejs';
 
 const IWLS_ORIGIN = 'https://api-iwls.dfo-mpo.gc.ca';
-const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+const STATION_LIST_TTL_MS = 24 * 60 * 60 * 1000;
+const TIDE_DATA_TTL_MS = 6 * 60 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 2000;
 
 type CacheEntry = {
   body: string;
@@ -13,8 +15,8 @@ type CacheEntry = {
 const cache = new Map<string, CacheEntry>();
 
 export async function GET(request: Request, { params }: { params: { path?: string[] } }) {
-  const path = params.path?.join('/') ?? '';
-  if (!path.startsWith('api/v1/')) {
+  const path = normalizeIwlsPath(params.path?.join('/') ?? '');
+  if (!path) {
     return new Response('Unsupported IWLS path', { status: 404 });
   }
 
@@ -37,11 +39,11 @@ export async function GET(request: Request, { params }: { params: { path?: strin
     const entry: CacheEntry = {
       body,
       contentType: upstreamResponse.headers.get('content-type') ?? 'application/json',
-      expiresAt: Date.now() + CACHE_TTL_MS,
+      expiresAt: Date.now() + ttlForPath(path),
       status: upstreamResponse.status
     };
 
-    if (upstreamResponse.ok) cache.set(key, entry);
+    if (upstreamResponse.ok) setCached(key, entry);
     return proxyResponse(entry, 'MISS');
   } catch {
     return new Response(JSON.stringify({ error: 'IWLS proxy request failed' }), {
@@ -63,4 +65,25 @@ function proxyResponse(entry: CacheEntry, cacheStatus: string) {
       'x-proxy-cache': cacheStatus
     }
   });
+}
+
+function normalizeIwlsPath(path: string) {
+  const cleanPath = path.replace(/^\/+/, '');
+  if (cleanPath.startsWith('api/v1/')) return cleanPath;
+  if (cleanPath.startsWith('stations')) return `api/v1/${cleanPath}`;
+  return null;
+}
+
+function ttlForPath(path: string) {
+  return path.startsWith('api/v1/stations') && !path.includes('/data')
+    ? STATION_LIST_TTL_MS
+    : TIDE_DATA_TTL_MS;
+}
+
+function setCached(key: string, entry: CacheEntry) {
+  cache.set(key, entry);
+  if (cache.size > MAX_CACHE_ENTRIES) {
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey) cache.delete(oldestKey);
+  }
 }

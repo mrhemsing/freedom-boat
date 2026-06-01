@@ -1,7 +1,8 @@
 export const runtime = 'nodejs';
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-const CACHE_TTL_MS = 30 * 60 * 1000;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 2000;
 
 type CacheEntry = {
   body: string;
@@ -14,6 +15,16 @@ const cache = new Map<string, CacheEntry>();
 
 export async function POST(request: Request) {
   const body = await request.text();
+  return overpassResponse(body, request.headers.get('content-type') ?? 'application/x-www-form-urlencoded');
+}
+
+export async function GET(request: Request) {
+  const data = new URL(request.url).searchParams.get('data') ?? '';
+  const body = data ? `data=${encodeURIComponent(data)}` : '';
+  return overpassResponse(body, 'application/x-www-form-urlencoded');
+}
+
+async function overpassResponse(body: string, contentType: string) {
   if (!body.trim()) {
     return new Response(JSON.stringify({ error: 'Missing Overpass query' }), {
       status: 400,
@@ -31,7 +42,7 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         accept: 'application/json,text/plain,*/*',
-        'content-type': request.headers.get('content-type') ?? 'application/x-www-form-urlencoded',
+        'content-type': contentType,
         'user-agent': 'freedom-boat/0.0.1 (freedom.b-average.com)'
       },
       body,
@@ -45,7 +56,7 @@ export async function POST(request: Request) {
       status: upstreamResponse.status
     };
 
-    if (upstreamResponse.ok) cache.set(body, entry);
+    if (upstreamResponse.ok) setCached(body, entry);
     return proxyResponse(entry, 'MISS');
   } catch {
     return new Response(JSON.stringify({ error: 'Overpass proxy request failed' }), {
@@ -55,6 +66,14 @@ export async function POST(request: Request) {
         'content-type': 'application/json'
       }
     });
+  }
+}
+
+function setCached(key: string, entry: CacheEntry) {
+  cache.set(key, entry);
+  if (cache.size > MAX_CACHE_ENTRIES) {
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey) cache.delete(oldestKey);
   }
 }
 
