@@ -44,7 +44,7 @@ async function overpassResponse(body: string, contentType: string) {
       headers: {
         accept: 'application/json,text/plain,*/*',
         'content-type': contentType,
-        'user-agent': 'freedom-boat/0.0.1 (freedom.b-average.com)'
+        'user-agent': 'fairtide/1.0.0 (freedom.b-average.com)'
       },
       body,
       cache: 'no-store'

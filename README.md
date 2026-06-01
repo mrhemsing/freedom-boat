@@ -1,32 +1,38 @@
-# freedom-boat
+# FAIRTIDE
 
-Hyper-local boating conditions PWA for Freedom Boat Club BC (Port Moody + North Saanich).
+Map-based marina trip planner for live wind and wave forecasts, CHS tides,
+vessel-aware boating scores, launch-depth checks, optional OSM marina pulls, and
+shareable float plans.
 
-## Goals
+This repo is a standard Next.js App Router project for Vercel. It keeps the app
+in `app/` and uses serverless route handlers for upstream data that benefits from
+same-origin proxying and CDN caching.
 
-- **Port Moody first**, North Saanich second.
-- Show **current conditions**, **hourly forecast**, **tides**, and a simple **alerts feed**.
-- Fast, installable **PWA**.
-- “On-site alerts”: alerts are computed server-side and displayed in the app (push/Telegram optional later).
+## Structure
 
-## Stack (proposed)
+```text
+app/plan-my-trip/TripMap.tsx        planner UI and map logic
+app/api/iwls/[...path]/route.ts     proxy -> DFO / CHS IWLS tides
+app/api/overpass/route.ts           proxy -> OSM Overpass
+lib/marinas.ts                      curated marina and launch data
+data/marina-access-info.json        verified access/transient/fuel/moorage overrides
+scripts/fetch-marinas.cjs           OSM marina and launch refresh pipeline
+scripts/enrich-marinas.cjs          merge verified info onto OSM pull
+docs/bc-marinas-reference.md        regional marina validation checklist
+vercel.json                         explicit Next.js project hint
+```
 
-- **Next.js** (App Router) + TypeScript
-- PWA via `next-pwa` (or a minimal service worker)
-- Server routes under `/api/*` that:
-  - fetch upstream data (cached)
-  - normalize into a stable schema
-  - compute alerts
+## What Runs Where
 
-## Locations
+| Data | How it loads | Needs a function? |
+| --- | --- | --- |
+| Map tiles | CARTO Voyager, direct from browser | No |
+| Forecast | Open-Meteo weather + marine APIs | No |
+| Tides | CHS IWLS via `/api/iwls/*` | Yes, for CORS |
+| Marinas | Curated list, optional OSM via `/api/overpass` | Yes, for caching |
 
-- Port Moody (primary)
-- North Saanich (secondary)
-
-## Data sources (MVP)
-
-- Forecast + wind: Open-Meteo (free, no-key) or equivalent.
-- Tides: TBD (likely paid marine API if worth it).
+If a live data call fails, the planner falls back to its built-in models or
+curated lists instead of showing a blank screen.
 
 ## Development
 
@@ -35,10 +41,27 @@ npm install
 npm run dev
 ```
 
+## Deploy
+
+Deploy as a normal Next.js project on Vercel. The app uses `npm run build`, and
+the route handlers under `app/api/*` become serverless functions automatically.
+
+No API keys, always-on server, or `npm start` process are required for the current
+planner. The Vercel CDN caches proxy responses using `s-maxage` headers.
+
+## Caching
+
+- IWLS station list: 24h.
+- IWLS tide predictions: 6h.
+- Overpass marina/launch geometry: 24h with week-long stale revalidation.
+
+`stale-while-revalidate` keeps responses fast while Vercel refreshes them in the
+background.
+
 ## Marina Data Refresh
 
-The planner uses the vetted TypeScript marina list in `lib/marinas.ts`.
-For an offline OpenStreetMap refresh/review pass:
+The planner uses the vetted TypeScript marina list in `lib/marinas.ts`. For an
+offline OpenStreetMap refresh/review pass:
 
 ```bash
 npm run marinas:fetch
@@ -53,17 +76,19 @@ are ignored so they can be reviewed before promoting any changes into the app.
 Use `docs/bc-marinas-reference.md` as a regional validation checklist when
 reviewing whether an OSM pull caught the obvious transient-friendly marinas.
 
-## Vercel
+## Config Knobs
 
-The app deploys as a standard Next.js project on Vercel. Planner data proxies
-live in App Router route handlers:
+In `app/plan-my-trip/TripMap.tsx`:
 
-- `app/api/iwls/[...path]/route.ts` proxies DFO / CHS IWLS tide data.
-- `app/api/overpass/route.ts` proxies OpenStreetMap Overpass queries.
+- `USE_CHS` controls live CHS tides through the IWLS proxy.
+- `USE_OSM` controls optional live OSM marina/launch loading through the Overpass
+  proxy.
+- `OVERPASS_QUERY` defines the Salish Sea OSM marina/slipway pull.
 
-Those route handlers return `s-maxage` cache headers so Vercel's CDN can cache
-the upstream responses between serverless invocations.
+## Notes
 
-## Roadmap
-
-See `docs/PLAN.md`.
+- Marina pins are snapped to the nearest embedded shoreline when they fall inland.
+- Launch ramps are not snapped because their coordinates represent ramp/waterline
+  access.
+- Ramp depths and unverified marina rates should be ground-truthed before relying
+  on them operationally.

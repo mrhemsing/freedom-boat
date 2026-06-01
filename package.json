@@ -1,7 +1,11 @@
 {
-  "name": "freedom-boat",
+  "name": "fairtide",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "description": "Map-based marina trip planner for FAIRTIDE with Vercel serverless data proxies.",
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "scripts": {
     "dev": "next dev",
