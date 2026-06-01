@@ -2102,7 +2102,7 @@ hr.soft {
   justify-content: center;
   border: 3px solid #fff;
   border-radius: 999px;
-  background: var(--pin-score, var(--planner-teal));
+  background: var(--planner-teal);
   color: #fff;
   box-shadow: 0 3px 8px rgba(12, 58, 76, 0.35);
   font-size: 15px;
@@ -2118,16 +2118,31 @@ hr.soft {
   border-right: 3px solid #fff;
   border-bottom: 3px solid #fff;
   border-bottom-right-radius: 3px;
-  background: var(--pin-score, var(--planner-teal));
+  background: var(--planner-teal);
   transform: translateX(-50%) rotate(45deg);
 }
 
+.plannerPinScore {
+  position: absolute;
+  z-index: 2;
+  top: -3px;
+  right: -3px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--pin-score, var(--planner-teal));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
 .plannerPin.freedom .plannerPinBubble {
+  background: #1456a0;
   border-color: #1456a0;
   box-shadow: 0 4px 10px rgba(20, 86, 160, 0.36);
 }
 
 .plannerPin.freedom .plannerPinTail {
+  background: #1456a0;
   border-color: #1456a0;
 }
 

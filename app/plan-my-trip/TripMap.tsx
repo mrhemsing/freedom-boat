@@ -1082,7 +1082,7 @@ function marinaIcon(L: any, marina: Marina, selectedId: number | null, inTrip: b
   const cls = `${marina.freedomClub ? 'freedom' : ''} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
   return L.divIcon({
     className: '',
-    html: `<div class="plannerPin ${cls}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinBubble"></span><span class="plannerPinTail"></span></div>`,
+    html: `<div class="plannerPin ${cls}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble">${score}</span><span class="plannerPinTail"></span></div>`,
     iconSize: [40, 46],
     iconAnchor: [20, 44],
     popupAnchor: [0, -44]
