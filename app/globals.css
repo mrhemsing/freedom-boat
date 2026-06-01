@@ -2107,6 +2107,14 @@ hr.soft {
   box-shadow: 0 3px 8px rgba(12, 58, 76, 0.35);
   font-size: 14px;
   font-weight: 600;
+  transform-origin: 50% 50%;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.plannerPinValue {
+  opacity: 0;
+  transform: scale(0.86);
+  transition: opacity 120ms ease, transform 160ms ease;
 }
 
 .plannerPinTail {
@@ -2146,9 +2154,17 @@ hr.soft {
   border-color: #1456a0;
 }
 
+.plannerPin:hover .plannerPinBubble,
 .plannerPin.sel .plannerPinBubble {
   border-color: var(--planner-navy);
-  box-shadow: 0 0 0 4px rgba(12, 58, 76, 0.18), 0 4px 10px rgba(12, 58, 76, 0.36);
+  box-shadow: 0 0 0 4px rgba(12, 58, 76, 0.18), 0 6px 14px rgba(12, 58, 76, 0.36);
+  transform: scale(1.12);
+}
+
+.plannerPin:hover .plannerPinValue,
+.plannerPin.sel .plannerPinValue {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .plannerPin.sel .plannerPinTail {
