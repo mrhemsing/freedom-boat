@@ -16,7 +16,7 @@ export default function PlanMyTripPage() {
           <a className="brand tripPlannerBrand" href="/location/port-moody" aria-label="Freedom Boat Planner home">
             <img className="fbLogo" src="/fb-logo.svg?v=7" alt="Freedom Boat Planner" width={72} height={72} />
             <span className="brandTitle">
-              <span className="brandFreedom">FREEDOM</span>
+              <span className="brandFreedom">BC FREEDOM</span>
               <span className="brandBoat">BOAT PLANNER</span>
             </span>
           </a>
