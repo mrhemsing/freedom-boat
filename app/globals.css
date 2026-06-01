@@ -1620,6 +1620,10 @@ hr.soft {
   line-height: 1.4;
 }
 
+.tripPlannerInfo {
+  display: none;
+}
+
 .tripPlannerNav {
   display: flex;
   flex-wrap: wrap;
@@ -1631,6 +1635,13 @@ hr.soft {
 .tripPlannerJumpLabel {
   color: rgba(255, 255, 255, 0.86);
   font-weight: 800;
+}
+
+.tripPlannerNav .seg {
+  border-color: rgba(31, 138, 155, 0.45);
+  background: rgba(12, 58, 76, 0.92);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(2, 12, 27, 0.22);
 }
 
 .tripPlannerPanel {
@@ -1749,6 +1760,57 @@ hr.soft {
   stroke-linejoin: round;
 }
 
+.plannerLegend {
+  position: absolute;
+  z-index: 620;
+  left: 12px;
+  bottom: 74px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: min(360px, calc(100% - 24px));
+  pointer-events: none;
+}
+
+.plannerLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--planner-navy);
+  box-shadow: 0 6px 18px rgba(12, 58, 76, 0.16);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.plannerLegend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--planner-teal);
+}
+
+.plannerLegend .scoreGood {
+  background: #2fae6b;
+}
+
+.plannerLegend .scoreFair {
+  background: #e6a13c;
+}
+
+.plannerLegend .scorePoor {
+  background: #d95c58;
+}
+
+.plannerLegend .launchShape {
+  border-radius: 3px;
+  background: #ef8a3c;
+  transform: rotate(45deg);
+}
+
 .plannerTimebar {
   display: flex;
   justify-content: flex-end;
@@ -1828,7 +1890,7 @@ hr.soft {
   justify-content: center;
   border: 3px solid #fff;
   border-radius: 999px;
-  background: var(--planner-teal);
+  background: var(--pin-score, var(--planner-teal));
   color: #fff;
   box-shadow: 0 3px 8px rgba(12, 58, 76, 0.35);
   font-size: 15px;
@@ -1844,39 +1906,34 @@ hr.soft {
   border-right: 3px solid #fff;
   border-bottom: 3px solid #fff;
   border-bottom-right-radius: 3px;
-  background: var(--planner-teal);
+  background: var(--pin-score, var(--planner-teal));
   transform: translateX(-50%) rotate(45deg);
 }
 
-.plannerPinScore {
-  position: absolute;
-  z-index: 2;
-  top: -3px;
-  right: -3px;
-  width: 14px;
-  height: 14px;
-  border: 2px solid #fff;
-  border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-.plannerPin.freedom .plannerPinBubble,
-.plannerPin.freedom .plannerPinTail {
-  background: #1456a0;
-}
-
 .plannerPin.freedom .plannerPinBubble {
-  box-shadow: 0 4px 10px rgba(20, 86, 160, 0.38);
+  border-color: #1456a0;
+  box-shadow: 0 4px 10px rgba(20, 86, 160, 0.36);
 }
 
-.plannerPin.sel .plannerPinBubble,
+.plannerPin.freedom .plannerPinTail {
+  border-color: #1456a0;
+}
+
+.plannerPin.sel .plannerPinBubble {
+  border-color: var(--planner-navy);
+  box-shadow: 0 0 0 4px rgba(12, 58, 76, 0.18), 0 4px 10px rgba(12, 58, 76, 0.36);
+}
+
 .plannerPin.sel .plannerPinTail {
-  background: var(--planner-navy);
+  border-color: var(--planner-navy);
 }
 
-.plannerPin.trip .plannerPinBubble,
+.plannerPin.trip .plannerPinBubble {
+  border-color: #e0584f;
+}
+
 .plannerPin.trip .plannerPinTail {
-  background: #e0584f;
+  border-color: #e0584f;
 }
 
 .plannerLaunchPin {
@@ -2779,6 +2836,122 @@ hr.soft {
   .tripPlannerPage {
     padding-left: 12px;
     padding-right: 12px;
+    padding-top: 8px;
+  }
+
+  .tripPlannerHeader {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 0;
+    min-height: 48px;
+    margin-bottom: 8px;
+  }
+
+  .tripPlannerHeader .headerBrand {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .tripPlannerHeader .headerInfo {
+    display: contents;
+  }
+
+  .tripPlannerBrand {
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .tripPlannerBrand .fbLogo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .tripPlannerBrand .brandTitle {
+    min-width: 0;
+    display: block;
+    line-height: 1;
+  }
+
+  .tripPlannerBrand .brandFreedom {
+    display: block;
+    overflow: hidden;
+    color: #fff;
+    font-size: 18px;
+    text-overflow: ellipsis;
+  }
+
+  .tripPlannerBrand .brandBoat,
+  .tripPlannerKicker,
+  .tripPlannerSubhead,
+  .tripPlannerJumpLabel {
+    display: none;
+  }
+
+  .tripPlannerInfo {
+    display: block;
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .tripPlannerInfo summary {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    gap: 3px;
+    border-radius: 999px;
+    background: rgba(12, 58, 76, 0.92);
+    box-shadow: 0 10px 24px rgba(2, 12, 27, 0.22);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .tripPlannerInfo summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .tripPlannerInfo summary span {
+    width: 15px;
+    height: 2px;
+    border-radius: 999px;
+    background: #fff;
+  }
+
+  .tripPlannerInfo p {
+    position: absolute;
+    z-index: 2600;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: rgba(12, 58, 76, 0.97);
+    color: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 14px 32px rgba(2, 12, 27, 0.30);
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.35;
+  }
+
+  .tripPlannerNav {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+  }
+
+  .tripPlannerNav .seg {
+    min-width: 148px !important;
+    max-width: 42vw;
+    min-height: 38px;
+    border-radius: 999px !important;
+    padding: 8px 28px 8px 12px !important;
+    font-size: 13px;
   }
 
   .tripPlannerPanel {
@@ -2788,7 +2961,7 @@ hr.soft {
   }
 
   .plannerApp {
-    min-height: calc(100dvh - 230px);
+    min-height: calc(100dvh - 142px);
     border-radius: 12px;
   }
 
@@ -2846,6 +3019,40 @@ hr.soft {
     padding: 2px;
     background: transparent;
     backdrop-filter: none;
+  }
+
+  .plannerLegend {
+    left: 10px;
+    right: 10px;
+    bottom: 70px;
+    max-width: calc(100% - 20px);
+  }
+
+  .plannerLegend span {
+    min-height: 24px;
+    padding: 4px 7px;
+    font-size: 10px;
+  }
+
+  .plannerMap .leaflet-bottom.leaflet-right {
+    right: 10px;
+    bottom: 84px;
+  }
+
+  .plannerMap .leaflet-control-zoom {
+    overflow: hidden;
+    border: 0;
+    border-radius: 999px;
+    box-shadow: 0 10px 24px rgba(12, 58, 76, 0.20);
+  }
+
+  .plannerMap .leaflet-control-zoom a {
+    width: 38px;
+    height: 36px;
+    border: 0;
+    color: var(--planner-navy);
+    font-size: 19px;
+    line-height: 36px;
   }
 
   .plannerSheet {

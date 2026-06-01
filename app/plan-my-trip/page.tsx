@@ -26,6 +26,14 @@ export default function PlanMyTripPage() {
         <div className="headerInfo">
           <div className="tripPlannerKicker">Plan my trip</div>
           <div className="tripPlannerSubhead">Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</div>
+          <details className="tripPlannerInfo">
+            <summary aria-label="Planner information">
+              <span />
+              <span />
+              <span />
+            </summary>
+            <p>Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</p>
+          </details>
           <div className="tripPlannerNav">
             <label htmlFor="marinaJump" className="miniNote tripPlannerJumpLabel">
               Marina:

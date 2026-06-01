@@ -293,7 +293,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       }).setView([49.05, -123.25], 9);
       leafletMapRef.current = map;
 
-      L.control.zoom({ position: 'topright' }).addTo(map);
+      L.control.zoom({ position: isMobilePlanner() ? 'bottomright' : 'topright' }).addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
         maxZoom: 20,
         subdomains: 'abcd',
@@ -562,6 +562,13 @@ export default function TripMap({ marinas }: TripMapProps) {
           )}
           <span>{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
         </button>
+      </div>
+
+      <div className="plannerLegend" aria-label="Map legend">
+        <span><i className="scoreGood" />Good</span>
+        <span><i className="scoreFair" />Fair</span>
+        <span><i className="scorePoor" />Poor</span>
+        <span><i className="launchShape" />Launch</span>
       </div>
 
       {mobileMarkerModal && (selected || selectedLaunch) ? (
@@ -1063,7 +1070,7 @@ function marinaIcon(L: any, marina: Marina, selectedId: number | null, inTrip: b
   const cls = `${marina.freedomClub ? 'freedom' : ''} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
   return L.divIcon({
     className: '',
-    html: `<div class="plannerPin ${cls}"><span class="plannerPinScore" style="background:${scoreColor(score)}"></span><span class="plannerPinBubble">${marina.id}</span><span class="plannerPinTail"></span></div>`,
+    html: `<div class="plannerPin ${cls}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinBubble"></span><span class="plannerPinTail"></span></div>`,
     iconSize: [40, 46],
     iconAnchor: [20, 44],
     popupAnchor: [0, -44]
