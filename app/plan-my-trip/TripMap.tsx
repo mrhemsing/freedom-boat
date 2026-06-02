@@ -27,6 +27,7 @@ type PlannerResult =
 type PlannerOutlooks = Record<string, DailyOutlook[]>;
 type CurrentForecasts = Record<string, CurrentPassForecast>;
 type LandCollisionBySegment = Record<number, boolean>;
+type ConditionsPopoverState = { title: string; href: string } | null;
 type RouteStopNode = { kind: 'stop'; marinaId: number };
 type RouteWaypointNode = { kind: 'waypoint'; id: string; lat: number; lon: number };
 type RouteNode = RouteStopNode | RouteWaypointNode;
@@ -140,6 +141,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [shareText, setShareText] = useState('');
   const [shareMessage, setShareMessage] = useState('');
   const [draftRouteMessage, setDraftRouteMessage] = useState('');
+  const [conditionsPopover, setConditionsPopover] = useState<ConditionsPopoverState>(null);
   const [dayIndex, setDayIndex] = useState(0);
   const [activeMarinas, setActiveMarinas] = useState(() => snapMarinaList(marinas));
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
@@ -221,6 +223,22 @@ export default function TripMap({ marinas }: TripMapProps) {
       document.body.style.overflow = originalOverflow;
     };
   }, [mobileMarkerModal]);
+
+  useEffect(() => {
+    if (!conditionsPopover) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setConditionsPopover(null);
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [conditionsPopover]);
 
   useEffect(() => {
     const sheet = sheetInnerRef.current;
@@ -975,13 +993,32 @@ export default function TripMap({ marinas }: TripMapProps) {
                     liveTide={liveTides[selected.id]}
                     inTrip={tripStops.includes(selected.id)}
                     onToggleTrip={() => toggleTripStop(selected.id)}
+                    onOpenConditions={() => setConditionsPopover({
+                      title: `${selected.name} conditions`,
+                      href: marinaPath(selected)
+                    })}
                     onBack={closeSelectedDetail}
                   />
                 ) : selectedLaunch ? (
-                  <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={closeSelectedDetail} />
+                  <LaunchDetail
+                    launch={selectedLaunch}
+                    dayIndex={dayIndex}
+                    onOpenConditions={() => setConditionsPopover({
+                      title: `${selectedLaunch.name} conditions`,
+                      href: `/launch/${seoSlugForLaunch(selectedLaunch)}`
+                    })}
+                    onBack={closeSelectedDetail}
+                  />
                 ) : null}
               </div>
             </div>
+          ) : null}
+          {conditionsPopover ? (
+            <ConditionsPopover
+              title={conditionsPopover.title}
+              href={conditionsPopover.href}
+              onClose={() => setConditionsPopover(null)}
+            />
           ) : null}
         </div>
 
@@ -1008,10 +1045,22 @@ export default function TripMap({ marinas }: TripMapProps) {
               liveTide={liveTides[selected.id]}
               inTrip={tripStops.includes(selected.id)}
               onToggleTrip={() => toggleTripStop(selected.id)}
+              onOpenConditions={() => setConditionsPopover({
+                title: `${selected.name} conditions`,
+                href: marinaPath(selected)
+              })}
               onBack={closeSelectedDetail}
             />
           ) : showSheetDetail && selectedLaunch ? (
-            <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={closeSelectedDetail} />
+            <LaunchDetail
+              launch={selectedLaunch}
+              dayIndex={dayIndex}
+              onOpenConditions={() => setConditionsPopover({
+                title: `${selectedLaunch.name} conditions`,
+                href: `/launch/${seoSlugForLaunch(selectedLaunch)}`
+              })}
+              onBack={closeSelectedDetail}
+            />
           ) : tripMode ? (
             <TripPlanView
               routeNodes={resolvedRouteNodes}
@@ -1222,6 +1271,7 @@ function MarinaDetail({
   liveTide,
   inTrip,
   onToggleTrip,
+  onOpenConditions,
   onBack
 }: {
   marina: Marina;
@@ -1231,6 +1281,7 @@ function MarinaDetail({
   liveTide?: LiveTide;
   inTrip: boolean;
   onToggleTrip: () => void;
+  onOpenConditions: () => void;
   onBack: () => void;
 }) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
@@ -1299,12 +1350,13 @@ function MarinaDetail({
         {inTrip ? 'Remove from float plan' : 'Add to float plan'}
       </button>
 
-      <a
+      <button
         className="plannerPrimary"
-        href={marinaPath(marina)}
+        type="button"
+        onClick={onOpenConditions}
       >
         Open conditions
-      </a>
+      </button>
       <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
         Close panel
       </button>
@@ -1386,7 +1438,41 @@ function TideSparkline({ points, nowIndex }: { points: TidePoint[]; nowIndex: nu
   );
 }
 
-function LaunchDetail({ launch, dayIndex, onBack }: { launch: BoatLaunch; dayIndex: number; onBack: () => void }) {
+function ConditionsPopover({
+  title,
+  href,
+  onClose
+}: {
+  title: string;
+  href: string;
+  onClose: () => void;
+}) {
+  return createPortal(
+    <div className="plannerConditionsOverlay" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="plannerConditionsBackdrop" onClick={onClose} />
+      <div className="plannerConditionsModal">
+        <div className="plannerConditionsTop">
+          <strong>{title}</strong>
+          <button type="button" onClick={onClose}>Close</button>
+        </div>
+        <iframe className="plannerConditionsFrame" src={href} title={title} />
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function LaunchDetail({
+  launch,
+  dayIndex,
+  onOpenConditions,
+  onBack
+}: {
+  launch: BoatLaunch;
+  dayIndex: number;
+  onOpenConditions: () => void;
+  onBack: () => void;
+}) {
   const status = launchDepthStatus(launch, plannerTimeForDay(dayIndex));
   return (
     <div className="plannerDetail">
@@ -1409,12 +1495,13 @@ function LaunchDetail({ launch, dayIndex, onBack }: { launch: BoatLaunch; dayInd
         <strong>{status.ok ? 'Launchable now' : 'Too shallow'}</strong>
         <span>{status.message}</span>
       </div>
-      <a
+      <button
         className="plannerPrimary"
-        href={`/launch/${seoSlugForLaunch(launch)}`}
+        type="button"
+        onClick={onOpenConditions}
       >
         Open launch conditions
-      </a>
+      </button>
       <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
         Close panel
       </button>
