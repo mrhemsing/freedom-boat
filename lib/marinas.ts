@@ -582,6 +582,7 @@ const FREEDOM_CLUB_ACCESS: MarinaAccessInfo = {
   moorage: 'Freedom Boat Club member access',
   verified: true
 };
+const SAME_NAME_DUPLICATE_DISTANCE_KM = 2;
 
 export const FBC_PNW_MARINAS: Marina[] = [
   {
@@ -839,7 +840,16 @@ export const PUBLIC_LAUNCHES: BoatLaunch[] = [
   { id: 8, name: 'Garry Point / Steveston', area: 'Richmond', lat: 49.1252, lon: -123.1925, type: 'Trailer', minTide: 1.5 },
   { id: 9, name: 'Blackie Spit', area: 'Crescent Beach, Surrey', lat: 49.0578, lon: -122.8818, type: 'Trailer', minTide: 1.6 },
   { id: 10, name: 'Centennial Beach', area: 'Boundary Bay, Delta', lat: 49.0028, lon: -123.027, type: 'Trailer (tide)', minTide: 1.8 },
-  { id: 11, name: 'Squamish Public Ramp', area: 'Mamquam Blind Channel', lat: 49.6938, lon: -123.1558, type: 'Trailer', minTide: 1.4 }
+  { id: 11, name: 'Squamish Public Ramp', area: 'Mamquam Blind Channel', lat: 49.6938, lon: -123.1558, type: 'Trailer', minTide: 1.4 },
+  { id: 12, name: 'Port of Everett 13-Lane Launch', area: 'Everett', lat: 48.0109, lon: -122.2223, type: 'Trailer', minTide: 1.0 },
+  { id: 13, name: 'Washington Park Boat Launch', area: 'Anacortes', lat: 48.4987, lon: -122.6927, type: 'Trailer', minTide: 1.1 },
+  { id: 14, name: 'Cornet Bay Boat Launch', area: 'Deception Pass', lat: 48.3974, lon: -122.6235, type: 'Trailer', minTide: 1.0 },
+  { id: 15, name: 'Squalicum Harbor Launch', area: 'Bellingham', lat: 48.7546, lon: -122.5007, type: 'Trailer', minTide: 1.0 },
+  { id: 16, name: 'Des Moines Marina Ramp', area: 'Des Moines', lat: 47.4006, lon: -122.328, type: 'Trailer', minTide: 1.0 },
+  { id: 17, name: 'John Wayne Marina Ramp', area: 'Sequim', lat: 48.0618, lon: -123.0409, type: 'Trailer', minTide: 1.1 },
+  { id: 18, name: 'Powell River North Harbour Ramp', area: 'Powell River', lat: 49.8405, lon: -124.5274, type: 'Trailer', minTide: 1.2 },
+  { id: 19, name: 'Comox Municipal Boat Ramp', area: 'Comox', lat: 49.6692, lon: -124.9292, type: 'Trailer', minTide: 1.1 },
+  { id: 20, name: 'Nanaimo Brechin Boat Ramp', area: 'Nanaimo', lat: 49.1889, lon: -123.9496, type: 'Trailer', minTide: 1.1 }
 ];
 
 export const BASE_MARINAS: Marina[] = [
@@ -883,8 +893,9 @@ function sameDestination(a: Marina, b: Marina) {
   const aName = normalizeDestinationName(a.name);
   const bName = normalizeDestinationName(b.name);
 
-  if (aName === bName) return true;
-  if (distanceKm(a.lat, a.lon, b.lat, b.lon) > 0.12) return false;
+  const distance = distanceKm(a.lat, a.lon, b.lat, b.lon);
+  if (aName === bName) return distance <= SAME_NAME_DUPLICATE_DISTANCE_KM;
+  if (distance > 0.12) return false;
 
   return shareMeaningfulToken(aName, bName);
 }
