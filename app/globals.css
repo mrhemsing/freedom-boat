@@ -1415,6 +1415,7 @@ hr.soft {
   .container > .globalHeader {
     left: 50%;
     width: calc(100vw - var(--scrollbar-width, 0px) - 24px);
+    margin-bottom: 16px;
   }
 
   .globalBrand {
