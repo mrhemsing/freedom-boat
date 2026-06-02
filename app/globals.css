@@ -2142,9 +2142,10 @@ hr.soft {
 }
 
 .plannerDay.active {
-  border-color: var(--planner-navy);
-  background: #f5fbfc;
-  box-shadow: 0 0 0 3px rgba(12, 58, 76, 0.18), var(--planner-shadow);
+  border-color: rgba(255, 255, 255, 0.34);
+  background: var(--planner-navy);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(12, 58, 76, 0.24), var(--planner-shadow);
 }
 
 .plannerDay.active::before {
@@ -2172,7 +2173,15 @@ hr.soft {
 }
 
 .plannerDay.active .plannerDayLabel {
-  color: #0c3a4c;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.plannerDay.active .plannerDayDate {
+  color: #fff;
+}
+
+.plannerDay.active .plannerDayScore span {
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .plannerDayDate {
