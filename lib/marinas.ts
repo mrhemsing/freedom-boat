@@ -866,7 +866,7 @@ export const SALISH_SEA_DESTINATIONS: Marina[] = mergeUniqueDestinations(
   ]
 );
 
-export const PLANNER_MARINAS: Marina[] = SALISH_SEA_DESTINATIONS;
+export const PLANNER_MARINAS: Marina[] = [...SALISH_SEA_DESTINATIONS].sort(compareDestinationNorthToSouth);
 
 export { SALISH_SEA_COUNTS, SALISH_SEA_DATASET, SALISH_SEA_LAUNCH_NOTES } from './salish-sea';
 
@@ -887,6 +887,10 @@ function mergeUniqueDestinations(primary: Marina[], additions: Marina[]) {
   }
 
   return merged;
+}
+
+function compareDestinationNorthToSouth(a: Marina, b: Marina) {
+  return b.lat - a.lat || a.lon - b.lon || a.name.localeCompare(b.name);
 }
 
 function sameDestination(a: Marina, b: Marina) {
