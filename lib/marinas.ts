@@ -1,4 +1,5 @@
 import { SALISH_SEA_MARINAS, SALISH_SEA_MARINE_PARKS } from './salish-sea';
+import type { LocationId } from './locations';
 
 export type Marina = {
   id: number;
@@ -10,7 +11,7 @@ export type Marina = {
   area: string;
   exp?: number;
   freedomClub?: boolean;
-  locationId?: 'port-moody' | 'north-saanich' | 'west-vancouver' | 'oak-bay';
+  locationId?: LocationId;
   accessInfo?: MarinaAccessInfo;
   operator?: string;
   sourceUrl?: string;
@@ -606,6 +607,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.5014,
     area: 'Bellingham',
     freedomClub: true,
+    locationId: 'bellingham',
     operator: 'FBC of San Juan Islands',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/san-juan-boat-club/bellingham',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -619,6 +621,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.6127,
     area: 'Anacortes',
     freedomClub: true,
+    locationId: 'anacortes',
     operator: 'FBC of San Juan Islands',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/san-juan-boat-club/anacortes',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -632,6 +635,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.2227,
     area: 'Everett',
     freedomClub: true,
+    locationId: 'everett',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/everett',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -645,6 +649,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.3857,
     area: 'Edmonds',
     freedomClub: true,
+    locationId: 'port-of-edmonds',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/port-of-edmonds',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -658,6 +663,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.6477,
     area: 'Poulsbo',
     freedomClub: true,
+    locationId: 'port-of-poulsbo',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/port-of-poulsbo',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -671,6 +677,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.3912,
     area: 'Seattle',
     freedomClub: true,
+    locationId: 'elliott-bay-marina',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/elliott-bay-marina',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -684,6 +691,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.3354,
     area: 'Lake Union',
     freedomClub: true,
+    locationId: 'agc-marina',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/agc-marina',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -697,6 +705,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.2086,
     area: 'Kirkland',
     freedomClub: true,
+    locationId: 'yarrow-bay-marina',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/yarrow-bay-marina',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -710,6 +719,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.2861,
     area: 'Lake Washington',
     freedomClub: true,
+    locationId: 'leschi-marina',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/leschi-marina',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -723,6 +733,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.6367,
     area: 'Port Orchard',
     freedomClub: true,
+    locationId: 'port-orchard',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/port-orchard',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -736,6 +747,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.4345,
     area: 'Tacoma',
     freedomClub: true,
+    locationId: 'tacoma',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/tacoma',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -749,6 +761,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.9004,
     area: 'Olympia',
     freedomClub: true,
+    locationId: 'olympia',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/olympia',
     accessInfo: FREEDOM_CLUB_ACCESS
@@ -762,6 +775,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.6606,
     area: 'Portland',
     freedomClub: true,
+    locationId: 'portland-tomahawk-bay-marina',
     operator: 'FBC of Portland OR',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/columbia-boat-club-inc/portland-oregon',
     accessInfo: FREEDOM_CLUB_ACCESS,
@@ -776,6 +790,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -122.3811,
     area: 'Camas/Washougal',
     freedomClub: true,
+    locationId: 'port-of-camas',
     operator: 'FBC of Portland OR',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/columbia-boat-club-inc/port-of-camas',
     accessInfo: FREEDOM_CLUB_ACCESS,
@@ -790,6 +805,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -116.7859,
     area: "Lake Coeur d'Alene",
     freedomClub: true,
+    locationId: 'lake-coeur-dalene',
     operator: 'FBC of Northern ID',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/coeur-dalene/cda',
     accessInfo: FREEDOM_CLUB_ACCESS,
@@ -804,6 +820,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     lon: -116.7563,
     area: 'Hayden Lake',
     freedomClub: true,
+    locationId: 'hayden-lake-marina',
     operator: 'FBC of Northern ID',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/coeur-dalene/hayden-lake-marina.html',
     accessInfo: FREEDOM_CLUB_ACCESS,

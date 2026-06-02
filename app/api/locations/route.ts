@@ -1,25 +1,13 @@
 import { NextResponse } from 'next/server';
+import { LOCATIONS } from '../../../lib/locations';
 
 export async function GET() {
-  return NextResponse.json([
-    {
-      id: 'port-moody',
-      name: 'Port Moody',
-      // TODO: set precise marina anchor.
-      lat: 49.282,
-      lon: -122.86
-    },
-    {
-      id: 'west-vancouver',
-      name: 'West Vancouver',
-      lat: 49.3293,
-      lon: -123.1566
-    },
-    {
-      id: 'north-saanich',
-      name: 'North Saanich',
-      lat: 48.65,
-      lon: -123.43
-    }
-  ]);
+  return NextResponse.json(
+    Object.values(LOCATIONS).map((location) => ({
+      id: location.id,
+      name: location.name,
+      lat: location.lat,
+      lon: location.lon
+    }))
+  );
 }

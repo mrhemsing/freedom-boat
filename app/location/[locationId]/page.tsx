@@ -337,7 +337,7 @@ export default async function LocationPage({
                           fontWeight: 800
                         }}
                       >
-                        Open {loc.name} live webcam
+                        Open {webcam.url === '/plan-my-trip' ? `${loc.name} on the trip map` : `${loc.name} live webcam`}
                       </a>
                     )}
                   </div>
@@ -466,13 +466,13 @@ const BC_LOCATION_ORDER = new Map([
 function buildMarinaJumpGroups() {
   const groups = new Map<string, Array<{ label: string; path: string }>>();
 
-  for (const marina of [...SEO_MARINAS].sort(compareMarinaOptions)) {
+  for (const marina of [...SEO_MARINAS].filter((marina) => marina.freedomClub && marina.locationId).sort(compareMarinaOptions)) {
     const label = regionLabel(menuRegion(marina));
     const path = marinaPath(marina);
     groups.set(label, [
       ...(groups.get(label) ?? []),
       {
-        label: marina.freedomClub ? marina.area : marina.name,
+        label: marina.area,
         path
       }
     ]);
@@ -814,7 +814,8 @@ function getLocationWebcam(id: LocationId) {
   if (id === 'north-saanich') return { videoId: 'zeKV78ULlpY' };
   if (id === 'west-vancouver') return { videoId: 'MOKktH6RcpU' };
   if (id === 'port-moody') return { videoId: 'T0oUufecXeE' };
-  return { url: 'https://oakbaymarina.com/weather/' };
+  if (id === 'oak-bay') return { url: 'https://oakbaymarina.com/weather/' };
+  return { url: '/plan-my-trip' };
 }
 
 function extractHour(isoLike?: string) {
