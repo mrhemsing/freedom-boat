@@ -32,6 +32,28 @@ export default function GlobalHeader({ active, contextLabel, showDaySlot = false
         </span>
       </a>
 
+      <details className="globalMobileMenu">
+        <summary aria-label="Open Fairtide menu">
+          <span />
+          <span />
+          <span />
+        </summary>
+        <div className="globalMobileMenuPanel" aria-label="Mobile navigation">
+          <a className={active === 'conditions' || active === 'home' ? 'active' : ''} href="/location/port-moody" aria-current={active === 'conditions' || active === 'home' ? 'page' : undefined}>
+            <strong>Port Moody</strong>
+            <span>Home marina</span>
+          </a>
+          <a className={active === 'map' ? 'active' : ''} href="/plan-my-trip" aria-current={active === 'map' ? 'page' : undefined}>
+            <strong>Map</strong>
+            <span>Trip planner</span>
+          </a>
+          <a className={active === 'browse' || active === 'area' ? 'active' : ''} href="/browse" aria-current={active === 'browse' || active === 'area' ? 'page' : undefined}>
+            <strong>Browse</strong>
+            <span>Directory</span>
+          </a>
+        </div>
+      </details>
+
       <nav className="globalPrimaryNav" aria-label="Primary navigation">
         <a className={active === 'map' ? 'active' : ''} href="/plan-my-trip" aria-current={active === 'map' ? 'page' : undefined}>Map</a>
         <a className={active === 'browse' || active === 'area' ? 'active' : ''} href="/browse" aria-current={active === 'browse' || active === 'area' ? 'page' : undefined}>Browse</a>

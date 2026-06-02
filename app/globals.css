@@ -309,6 +309,10 @@ a:hover {
   background: rgba(31, 138, 155, 0.46);
 }
 
+.globalMobileMenu {
+  display: none;
+}
+
 .homeHubPage {
   max-width: 1180px;
 }
@@ -1401,10 +1405,10 @@ hr.soft {
     position: sticky;
     top: 6px;
     z-index: 3800;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 5px 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
     min-height: 0;
-    padding: 4px 6px;
+    padding: 6px 8px;
     transition: padding 160ms ease, gap 160ms ease;
   }
 
@@ -1416,16 +1420,17 @@ hr.soft {
   .globalBrand {
     grid-column: 1;
     grid-row: 1;
-    gap: 3px;
+    gap: 6px;
   }
 
   .globalBrand .fbLogo {
-    width: 30px;
-    height: 30px;
+    width: 48px;
+    height: 48px;
   }
 
   .globalBrand .brandTitle {
-    gap: 0;
+    gap: 2px;
+    line-height: 1;
   }
 
   .globalBrand .brandFreedom {
@@ -1434,59 +1439,125 @@ hr.soft {
   }
 
   .globalBrand .brandFreedom::after {
-    content: "Fairtide";
+    content: "Fair Tide";
     color: #fff;
-    font-size: 16px;
+    font-size: 23px;
     font-weight: 950;
   }
 
   .globalBrand .brandBoat {
-    display: none;
+    display: block;
+    color: #60a5fa;
+    font-size: 17px;
+    line-height: 1;
   }
 
   .globalPrimaryNav {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    width: 100%;
-    gap: 3px;
-    padding: 2px;
+    display: none;
   }
 
-  .globalPrimaryNav a {
-    flex: 1 1 0;
-    min-height: 25px;
-    padding: 4px 8px;
-    font-size: 12px;
+  .globalMobileMenu {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    display: block;
+    justify-self: end;
+  }
+
+  .globalMobileMenu summary {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: rgba(12, 58, 76, 0.82);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(2, 12, 27, 0.20);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .globalMobileMenu summary::marker {
+    display: none;
+    content: "";
+  }
+
+  .globalMobileMenu summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .globalMobileMenu summary:hover {
+    background: rgba(31, 138, 155, 0.92);
+  }
+
+  .globalMobileMenu summary span {
+    width: 21px;
+    height: 3px;
+    display: block;
+    border-radius: 999px;
+    background: #fff;
+  }
+
+  .globalMobileMenuPanel {
+    position: absolute;
+    z-index: 4200;
+    top: calc(100% + 8px);
+    right: 0;
+    width: min(260px, calc(100vw - 24px));
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 7px;
+    background: rgba(12, 58, 76, 0.98);
+    box-shadow: 0 14px 32px rgba(2, 12, 27, 0.30);
+    backdrop-filter: blur(14px);
+  }
+
+  .globalMobileMenuPanel a {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 9px;
+    padding: 10px;
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+  }
+
+  .globalMobileMenuPanel a:hover,
+  .globalMobileMenuPanel a.active {
+    background: rgba(255, 255, 255, 0.10);
+    text-decoration: none;
+  }
+
+  .globalMobileMenuPanel strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .globalMobileMenuPanel span {
+    flex: 0 0 auto;
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .globalMobileMenuPanel a.active strong {
+    color: #bdefff;
   }
 
   .globalSearch {
-    grid-column: 2;
-    grid-row: 1;
-    min-width: 0;
-  }
-
-  .globalSearchBox {
-    min-height: 32px;
-    padding: 0 6px;
-  }
-
-  .globalSearch input {
-    min-height: 32px;
-    padding: 0 2px;
-    font-size: 12px;
-  }
-
-  .globalSearch input::placeholder {
-    color: transparent;
-  }
-
-  .globalSearchToken {
-    display: inline-flex;
-  }
-
-  .globalSearchSuggestions {
-    left: auto;
-    width: min(330px, calc(100vw - 24px));
+    display: none;
   }
 
   .globalContext {
@@ -1510,8 +1581,8 @@ hr.soft {
   }
 
   .globalHeader.scrolled .globalBrand .fbLogo {
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
   }
 
   .homeHero,
