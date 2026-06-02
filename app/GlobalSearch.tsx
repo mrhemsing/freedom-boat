@@ -5,7 +5,11 @@ import { SEARCH_SUGGESTIONS, type SearchSuggestion } from '../lib/search-suggest
 
 const MAX_SUGGESTIONS = 8;
 
-export default function GlobalSearch() {
+type GlobalSearchProps = {
+  selectedLabel?: string;
+};
+
+export default function GlobalSearch({ selectedLabel }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -56,6 +60,7 @@ export default function GlobalSearch() {
     <form className="globalSearch" action="/browse" role="search" onSubmit={submitSearch}>
       <label className="globalSearchBox">
         <span className="srOnly">Search Fairtide</span>
+        {selectedLabel ? <span className="globalSearchToken">{selectedLabel}<span className="globalSearchTokenClose" aria-hidden="true">x</span></span> : null}
         <input
           name="q"
           type="search"

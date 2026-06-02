@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import GlobalSearch from './GlobalSearch';
 
 type GlobalHeaderProps = {
@@ -7,8 +10,20 @@ type GlobalHeaderProps = {
 };
 
 export default function GlobalHeader({ active, contextLabel, showDaySlot = false }: GlobalHeaderProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    function updateScrolledState() {
+      setIsScrolled(window.scrollY > 72);
+    }
+
+    updateScrolledState();
+    window.addEventListener('scroll', updateScrolledState, { passive: true });
+    return () => window.removeEventListener('scroll', updateScrolledState);
+  }, []);
+
   return (
-    <header className="globalHeader">
+    <header className={`globalHeader ${isScrolled ? 'scrolled' : ''}`}>
       <a className={`globalBrand ${active === 'home' ? 'active' : ''}`} href="/" aria-label="FAIRTIDE home" aria-current={active === 'home' ? 'page' : undefined}>
         <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={48} height={48} />
         <span className="brandTitle">
@@ -22,7 +37,7 @@ export default function GlobalHeader({ active, contextLabel, showDaySlot = false
         <a className={active === 'browse' || active === 'area' ? 'active' : ''} href="/browse" aria-current={active === 'browse' || active === 'area' ? 'page' : undefined}>Browse</a>
       </nav>
 
-      <GlobalSearch />
+      <GlobalSearch selectedLabel="Port Moody" />
 
       <div className="globalContext">
         {showDaySlot ? <div id="planner-day-tabs-slot" className="tripPlannerDaySlot" aria-label="Trip date controls" /> : null}
