@@ -97,7 +97,7 @@ const USE_CHS = true;
 const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
-const MAX_CLUSTER_ZOOM = 9;
+const MAX_CLUSTER_ZOOM = 8;
 const CLUSTER_DISTANCE_PX = 46;
 
 export default function TripMap({ marinas }: TripMapProps) {
