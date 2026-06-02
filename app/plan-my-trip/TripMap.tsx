@@ -99,6 +99,8 @@ const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
+const DEFAULT_MARINA_FOCUS_ZOOM = 13;
+const LINKED_MARINA_FOCUS_ZOOM = DEFAULT_MARINA_FOCUS_ZOOM + 4;
 const MAX_CLUSTER_ZOOM = 8;
 const CLUSTER_DISTANCE_PX = 46;
 
@@ -876,9 +878,9 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   function focusLinkedMarina(marina: Marina) {
     revealMarinaInList(marina.id);
-    centerMapOnMarina(marina);
-    window.setTimeout(() => centerMapOnMarina(marina), 700);
-    window.setTimeout(() => centerMapOnMarina(marina), 1400);
+    centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM);
+    window.setTimeout(() => centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM), 700);
+    window.setTimeout(() => centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM), 1400);
 
     const openMarkerPopup = () => {
       markerRefs.current[marina.id]?.openPopup?.();
@@ -890,11 +892,11 @@ export default function TripMap({ marinas }: TripMapProps) {
     window.setTimeout(openMarkerPopup, 900);
   }
 
-  function centerMapOnMarina(marina: Marina) {
+  function centerMapOnMarina(marina: Marina, targetZoom = DEFAULT_MARINA_FOCUS_ZOOM) {
     const applyCenter = () => {
       const map = leafletMapRef.current;
       if (!map) return;
-      map.setView([marina.lat, marina.lon], Math.max(map.getZoom(), 13), { animate: true });
+      map.setView([marina.lat, marina.lon], Math.max(map.getZoom(), targetZoom), { animate: true });
       clusterRefreshRef.current?.();
     };
 
