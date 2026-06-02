@@ -856,6 +856,20 @@ export default function TripMap({ marinas }: TripMapProps) {
     schedulePendingMarinaScroll();
   }
 
+  function centerMapOnMarina(marina: Marina) {
+    const applyCenter = () => {
+      const map = leafletMapRef.current;
+      if (!map) return;
+      map.setView([marina.lat, marina.lon], Math.max(map.getZoom(), 13), { animate: true });
+      clusterRefreshRef.current?.();
+    };
+
+    applyCenter();
+    window.requestAnimationFrame(applyCenter);
+    window.setTimeout(applyCenter, 120);
+    window.setTimeout(applyCenter, 320);
+  }
+
   function openLaunch(launch: BoatLaunch) {
     rememberListScroll();
     setSelectedLaunchId(launch.id);
@@ -920,8 +934,8 @@ export default function TripMap({ marinas }: TripMapProps) {
     });
   }
 
-  function toggleTripStop(marinaId: number) {
-    preserveMapViewportAfterUpdate();
+  function toggleTripStop(marinaId: number, preserveViewport = true) {
+    if (preserveViewport) preserveMapViewportAfterUpdate();
     setRouteNodes((nodes) => {
       const marina = activeMarinas.find((candidate) => candidate.id === marinaId);
       if (nodes.some((node) => node.kind === 'stop' && node.marinaId === marinaId)) {
@@ -936,6 +950,11 @@ export default function TripMap({ marinas }: TripMapProps) {
     });
     setShareText('');
     setShareMessage('');
+  }
+
+  function toggleTripStopFromList(marina: Marina) {
+    centerMapOnMarina(marina);
+    toggleTripStop(marina.id, false);
   }
 
   function restorePlanToast() {
@@ -1410,7 +1429,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                         name={marina.name}
                         inPlan={inPlan}
                         order={order}
-                        onToggle={() => toggleTripStop(marina.id)}
+                        onToggle={() => toggleTripStopFromList(marina)}
                       />
                     </div>
                   );
