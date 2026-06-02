@@ -2463,44 +2463,6 @@ hr.soft {
   transform: rotate(45deg);
 }
 
-.tripMe {
-  position: relative;
-  width: 34px;
-  height: 34px;
-}
-
-.tripMeRing {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: rgba(56, 182, 255, 0.25);
-  animation: plannerPulse 2.4s infinite;
-}
-
-.tripMeCore {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-bottom: 18px solid #1fb6e6;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
-  transform: translate(-50%, -50%);
-}
-
-@keyframes plannerPulse {
-  from {
-    opacity: 0.9;
-    transform: scale(0.6);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1.8);
-  }
-}
-
 .plannerSheet {
   position: absolute;
   z-index: 700;

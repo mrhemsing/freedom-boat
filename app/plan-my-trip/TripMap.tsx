@@ -506,16 +506,6 @@ export default function TripMap({ marinas }: TripMapProps) {
         attribution: '&copy; CARTO &copy; OpenStreetMap'
       }).addTo(map);
 
-      L.marker([HOME.lat, HOME.lon], {
-        icon: L.divIcon({
-          className: '',
-          html: '<div class="tripMe"><div class="tripMeRing"></div><div class="tripMeCore"></div></div>',
-          iconSize: [34, 34],
-          iconAnchor: [17, 17]
-        }),
-        zIndexOffset: 700
-      }).addTo(map);
-
       const bounds = L.latLngBounds([]);
       const initialBounds = L.latLngBounds([]);
 
