@@ -3532,7 +3532,7 @@ hr.soft {
   position: absolute;
   z-index: 2;
   top: 14px;
-  right: 14px;
+  right: 34px;
   min-height: 36px;
   border: 0;
   border-radius: 999px;
@@ -4497,6 +4497,10 @@ hr.soft {
   .plannerConditionsModal {
     height: calc(100dvh - 20px);
     border-radius: 16px;
+  }
+
+  .plannerConditionsClose {
+    right: 24px;
   }
 
   .plannerName {
