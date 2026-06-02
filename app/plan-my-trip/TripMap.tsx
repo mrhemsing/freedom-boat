@@ -11,7 +11,7 @@ import {
 import { snapMarinaList } from '../../lib/marina-snap';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
 import { degToCardinal } from '../../lib/format';
-import { marinaPath, seoSlugForLaunch } from '../../lib/seo-slugs';
+import { marinaPath, seoSlugForLaunch, seoSlugForMarina } from '../../lib/seo-slugs';
 import { CURRENT_PASSES, type CurrentEvent, type CurrentPassForecast } from '../../lib/current-passes';
 
 type TripMapProps = {
@@ -110,6 +110,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const showSheetDetailRef = useRef(false);
   const pendingListScrollMarinaIdRef = useRef<number | null>(null);
   const pendingListScrollFrameRef = useRef<number | null>(null);
+  const initialInteractiveMapHandledRef = useRef(false);
   const tripStopSetRef = useRef<Set<number>>(new Set());
   const leafletMapRef = useRef<any>(null);
   const initialMapBoundsRef = useRef<any>(null);
@@ -191,6 +192,19 @@ export default function TripMap({ marinas }: TripMapProps) {
   useEffect(() => {
     showSheetDetailRef.current = showSheetDetail;
   }, [showSheetDetail]);
+
+  useEffect(() => {
+    if (initialInteractiveMapHandledRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const marinaSlug = params.get('marina');
+    if (!marinaSlug) return;
+
+    const marina = activeMarinas.find((candidate) => seoSlugForMarina(candidate) === marinaSlug);
+    if (!marina) return;
+
+    initialInteractiveMapHandledRef.current = true;
+    focusLinkedMarina(marina);
+  }, [activeMarinas]);
 
   useEffect(() => {
     tripStopSetRef.current = tripStopSet;
@@ -854,6 +868,22 @@ export default function TripMap({ marinas }: TripMapProps) {
     setSheetState('full');
     setIsFullscreen(false);
     schedulePendingMarinaScroll();
+  }
+
+  function focusLinkedMarina(marina: Marina) {
+    revealMarinaInList(marina.id);
+    centerMapOnMarina(marina);
+    window.setTimeout(() => centerMapOnMarina(marina), 700);
+    window.setTimeout(() => centerMapOnMarina(marina), 1400);
+
+    const openMarkerPopup = () => {
+      markerRefs.current[marina.id]?.openPopup?.();
+    };
+
+    window.requestAnimationFrame(openMarkerPopup);
+    window.setTimeout(openMarkerPopup, 160);
+    window.setTimeout(openMarkerPopup, 420);
+    window.setTimeout(openMarkerPopup, 900);
   }
 
   function centerMapOnMarina(marina: Marina) {
