@@ -3553,6 +3553,21 @@ hr.soft {
   cursor: pointer;
 }
 
+.plannerSpeedInput {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.plannerSpeedInput span {
+  color: var(--planner-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .plannerDepartMeridiem {
   display: grid;
   gap: 4px;
@@ -3660,7 +3675,7 @@ hr.soft {
   background: linear-gradient(90deg, rgba(38, 166, 154, 0.08), transparent);
 }
 
-.plannerLeg div {
+.plannerLeg > div {
   min-width: 0;
   display: grid;
   gap: 4px;
@@ -3677,6 +3692,40 @@ hr.soft {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   font-weight: 800;
+}
+
+.plannerStopMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 3px 0 2px;
+}
+
+.plannerStopMetrics div {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  border-radius: 8px;
+  padding: 6px 7px;
+  background: rgba(12, 58, 76, 0.045);
+}
+
+.plannerStopMetrics dt {
+  color: var(--planner-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.plannerStopMetrics dd {
+  margin: 0;
+  color: var(--planner-navy);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
 }
 
 .plannerLeg button {

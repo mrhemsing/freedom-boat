@@ -1133,7 +1133,6 @@ export default function TripMap({ marinas }: TripMapProps) {
               }}
               onDepartChange={setDepartAt}
               onSpeedChange={setSpeedKt}
-              onToggleRouteEditing={() => setIsRouteEditing((value) => !value)}
               onRemoveStop={toggleTripStop}
               onReorderStop={reorderTripStop}
               onRemoveWaypoint={(id) => {
@@ -1653,7 +1652,6 @@ function TripPlanView({
   onBrowse,
   onDepartChange,
   onSpeedChange,
-  onToggleRouteEditing,
   onRemoveStop,
   onReorderStop,
   onRemoveWaypoint,
@@ -1675,7 +1673,6 @@ function TripPlanView({
   onBrowse: () => void;
   onDepartChange: (value: string) => void;
   onSpeedChange: (value: number) => void;
-  onToggleRouteEditing: () => void;
   onRemoveStop: (id: number) => void;
   onReorderStop: (fromIndex: number, toIndex: number) => void;
   onRemoveWaypoint: (id: string) => void;
@@ -1685,6 +1682,13 @@ function TripPlanView({
   const summary = tripSummary(legs);
   const stopCount = routeNodes.filter((node) => node.kind === 'stop').length;
   const waypointCount = routeNodes.length - stopCount;
+  const tripSubtitle = [
+    VESSELS[vesselKey].label,
+    stopCount ? `${stopCount} stops${waypointCount ? ` + ${waypointCount} waypoints` : ''}` : 'Add stops from the map or list',
+    stopCount >= 2 ? `${summary.distance.toFixed(1)} nm` : null,
+    stopCount >= 2 ? `~${formatDuration(summary.durationMinutes)}` : null,
+    stopCount >= 2 ? `ETA ${formatShortTime(summary.finish)}` : null
+  ].filter(Boolean).join(' - ');
   const departParts = departInputParts(departAt);
   const updateDepartPart = (patch: Partial<DepartInputParts>) => {
     onDepartChange(updateDepartInput(departAt, patch));
@@ -1699,7 +1703,7 @@ function TripPlanView({
         Back to marinas
       </button>
       <h1>Float plan</h1>
-      <p>{VESSELS[vesselKey].label} - {stopCount ? `${stopCount} stops${waypointCount ? ` + ${waypointCount} waypoints` : ''}` : 'Add stops from the map or list'}</p>
+      <p>{tripSubtitle}</p>
 
       <div className="plannerTripControls">
         <label className="plannerDepartDate">
@@ -1739,38 +1743,31 @@ function TripPlanView({
         </div>
         <label>
           <span>Speed</span>
-          <input
-            type="number"
-            min="4"
-            max="45"
-            step="1"
-            value={speedKt}
-            onChange={(event) => onSpeedChange(Number(event.target.value) || DEFAULT_SPEED_KT)}
-          />
+          <span className="plannerSpeedInput">
+            <input
+              type="number"
+              min="4"
+              max="45"
+              step="1"
+              value={speedKt}
+              onChange={(event) => onSpeedChange(Number(event.target.value) || DEFAULT_SPEED_KT)}
+            />
+            <span>kt</span>
+          </span>
         </label>
       </div>
 
       {stopCount ? (
         <>
-          <div className="plannerRouteActions">
-            <button
-              className={`plannerPrimary plannerRouteEditButton ${isRouteEditing ? 'active' : ''}`}
-              type="button"
-              disabled={stopCount < 2}
-              onClick={onToggleRouteEditing}
-            >
-              {isRouteEditing ? 'Done editing' : 'Edit route'}
-            </button>
-          </div>
-          <p className="plannerTinyText">
-            {stopCount < 2
-              ? 'Add a second stop to show direct distance and ETA estimates.'
-              : isRouteEditing
-                ? 'Click the map line to add a manual waypoint. Drag handles to shape your own course; verify on charts.'
-                : waypointCount
-                  ? 'Manual waypoints are user-shaped course references. Verify on charts.'
-                  : 'Distances are direct estimates. The map line is a direct reference, not a navigable route.'}
-          </p>
+          {stopCount < 2 || isRouteEditing || waypointCount ? (
+            <p className="plannerTinyText">
+              {stopCount < 2
+                ? 'Add a second stop to show direct distance and ETA estimates.'
+                : isRouteEditing
+                  ? 'Click the map line to add a manual waypoint. Drag handles to shape your own course; verify on charts.'
+                  : 'Manual waypoints are user-shaped course references. Verify on charts.'}
+            </p>
+          ) : null}
           {stopCount >= 2 ? (
             <div className="plannerRouteNotice">
               {waypointCount
@@ -1819,9 +1816,7 @@ function TripPlanView({
                   <span className="plannerLegNode stop">{leg.stopIndex}</span>
                   <div>
                     <strong>{leg.marina.name}</strong>
-                    <span>
-                      {formatShortTime(leg.arrive)} - {leg.cumulativeDistance.toFixed(1)} nm direct total - {leg.segmentDistance.toFixed(1)} nm direct leg - {windLabel(leg.conditions)} / {leg.conditions.wave.toFixed(1)}m - sunset {formatShortTime(leg.daylight.sunset)}{leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}
-                    </span>
+                    <StopMetricGrid leg={leg} />
                     {warning ? <em className={`plannerWarning ${warning.level}`}>{warning.text}</em> : null}
                     {leg.daylight.warning ? <em className={`plannerWarning ${leg.daylight.level}`}>{leg.daylight.warning}</em> : null}
                     {leg.currentAdvisories.map((advisory) => (
@@ -1835,7 +1830,7 @@ function TripPlanView({
               );
             })}
           </div>
-          <button className="plannerPrimary" type="button" onClick={onShare}>Share float plan</button>
+          <button className="plannerPrimary plannerSharePlanButton" type="button" onClick={onShare}>Share float plan</button>
           {shareMessage ? <div className="plannerShareMessage">{shareMessage}</div> : null}
           {shareText ? <textarea className="plannerShareText" readOnly value={shareText} /> : null}
         </>
@@ -1846,6 +1841,29 @@ function TripPlanView({
         </div>
       )}
     </div>
+  );
+}
+
+function StopMetricGrid({ leg }: { leg: StopRouteLeg }) {
+  const metrics = [
+    { label: 'Arrive', value: formatShortTime(leg.arrive) },
+    leg.stopIndex > 1 ? { label: 'Leg', value: `${leg.segmentDistance.toFixed(1)} nm direct` } : null,
+    leg.stopIndex > 1 ? { label: 'Total', value: `${leg.cumulativeDistance.toFixed(1)} nm direct` } : null,
+    { label: 'Wind', value: windLabel(leg.conditions) },
+    { label: 'Seas', value: `${leg.conditions.wave.toFixed(1)}m` },
+    { label: 'Sunset', value: formatShortTime(leg.daylight.sunset) },
+    leg.tide ? { label: 'Tide', value: `${leg.tide.height.toFixed(1)}m` } : null
+  ].filter(Boolean) as Array<{ label: string; value: string }>;
+
+  return (
+    <dl className="plannerStopMetrics">
+      {metrics.map((metric) => (
+        <div key={metric.label}>
+          <dt>{metric.label}</dt>
+          <dd>{metric.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -2109,9 +2127,9 @@ function scoreColor(score: number) {
 }
 
 function verdict(score: number) {
-  if (score >= 80) return 'Great day';
-  if (score >= 65) return 'Good';
-  if (score >= 50) return 'Fair';
+  if (score >= 85) return 'Great day';
+  if (score >= 75) return 'Good';
+  if (score >= 55) return 'Fair';
   return 'Marginal';
 }
 
@@ -2645,12 +2663,16 @@ function buildTripLegs(
 
 function tripSummary(legs: TripLeg[]) {
   const stops = legs.filter((leg): leg is StopRouteLeg => leg.kind === 'stop');
-  if (!stops.length) return { score: 50, maxWind: 0, maxWave: 0, finish: new Date() };
+  const finish = legs[legs.length - 1]?.arrive ?? new Date();
+  const start = stops[0]?.arrive ?? finish;
+  if (!stops.length) return { score: 50, maxWind: 0, maxWave: 0, finish, distance: 0, durationMinutes: 0 };
   return {
     score: Math.round(stops.reduce((sum, leg) => sum + leg.score, 0) / stops.length),
     maxWind: Math.max(...stops.map((leg) => leg.conditions.wind)),
     maxWave: Math.max(...stops.map((leg) => leg.conditions.wave)),
-    finish: legs[legs.length - 1].arrive
+    finish,
+    distance: legs[legs.length - 1]?.cumulativeDistance ?? 0,
+    durationMinutes: Math.max(0, Math.round((finish.getTime() - start.getTime()) / 60000))
   };
 }
 
@@ -2675,7 +2697,10 @@ function buildFloatPlanText(
     ''
   ];
   legs.filter((leg): leg is StopRouteLeg => leg.kind === 'stop').forEach((leg) => {
-    lines.push(`${leg.stopIndex}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)} - ${leg.cumulativeDistance.toFixed(1)} nm direct total - wind ${windLabel(leg.conditions)} - seas ${leg.conditions.wave.toFixed(1)}m - sunset ${formatShortTime(leg.daylight.sunset)}${leg.daylight.warning ? ` - ${leg.daylight.warning}` : ''}${leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}`);
+    const distance = leg.stopIndex > 1
+      ? ` - leg ${leg.segmentDistance.toFixed(1)} nm direct - total ${leg.cumulativeDistance.toFixed(1)} nm direct`
+      : '';
+    lines.push(`${leg.stopIndex}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)}${distance} - wind ${windLabel(leg.conditions)} - seas ${leg.conditions.wave.toFixed(1)}m - sunset ${formatShortTime(leg.daylight.sunset)}${leg.daylight.warning ? ` - ${leg.daylight.warning}` : ''}${leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}`);
     leg.currentAdvisories.forEach((advisory) => {
       lines.push(`   Current advisory: ${advisory.text}`);
     });
@@ -2690,6 +2715,14 @@ function buildFloatPlanText(
 
 function formatShortDateTime(value: Date) {
   return `${value.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })} ${formatShortTime(value)}`;
+}
+
+function formatDuration(minutes: number) {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(safeMinutes / 60);
+  const mins = safeMinutes % 60;
+  if (!hours) return `${mins}m`;
+  return mins ? `${hours}h ${mins}m` : `${hours}h`;
 }
 
 type TidePoint = {
