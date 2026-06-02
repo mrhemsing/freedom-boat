@@ -2312,11 +2312,85 @@ hr.soft {
 }
 
 .plannerPin.trip .plannerPinBubble {
-  border-color: #e0584f;
+  border-color: var(--planner-navy);
+  background: var(--planner-navy);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(12, 58, 76, 0.18), 0 5px 14px rgba(12, 58, 76, 0.34);
 }
 
 .plannerPin.trip .plannerPinTail {
-  border-color: #e0584f;
+  border-color: var(--planner-navy);
+}
+
+.plannerPinPopup {
+  min-width: 210px;
+  display: grid;
+  gap: 8px;
+  color: var(--planner-navy);
+  font-family: inherit;
+}
+
+.plannerPinPopupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.plannerPinPopup strong {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.plannerPinPopup span {
+  color: var(--planner-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.plannerPinPopupOrder {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--planner-navy);
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+.plannerPinPopupActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.plannerPinPopupActions button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 11px;
+  background: var(--planner-teal);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.plannerPinPopupActions button[aria-pressed="true"] {
+  background: var(--planner-navy);
+}
+
+.plannerPinPopupActions button:last-child {
+  background: #eef7f9;
+  color: var(--planner-teal-dark);
+}
+
+.plannerPinPopupActions em {
+  display: none;
 }
 
 .plannerLaunchPin {
@@ -2736,6 +2810,25 @@ hr.soft {
   text-align: left;
 }
 
+.plannerRowMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.plannerRowInPlan {
+  background: rgba(12, 58, 76, 0.045);
+}
+
 .plannerIdx {
   position: relative;
   flex: 0 0 auto;
@@ -2771,6 +2864,11 @@ hr.soft {
 
 .plannerIdxFreedom i {
   border-color: #fff;
+}
+
+.plannerIdxInPlan {
+  background: var(--planner-navy);
+  color: #fff;
 }
 
 .plannerLaunchIdx {
@@ -2836,7 +2934,9 @@ hr.soft {
 }
 
 .plannerDetail {
-  padding-bottom: 4px;
+  position: relative;
+  min-height: 100%;
+  padding-bottom: 82px;
 }
 
 .plannerBack {
@@ -2851,6 +2951,51 @@ hr.soft {
   font: inherit;
   font-size: 14px;
   font-weight: 800;
+}
+
+.plannerDetailHeader {
+  position: sticky;
+  z-index: 4;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -2px 0 8px;
+  padding: 2px 0 8px;
+  background: #fff;
+}
+
+.plannerDetailHeader .plannerBack {
+  padding-bottom: 0;
+}
+
+.plannerDetailClose {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #eef7f9;
+  color: var(--planner-teal-dark);
+  cursor: pointer;
+}
+
+.plannerDetailClose svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.plannerDetailTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .plannerDetail h1 {
@@ -3123,14 +3268,105 @@ hr.soft {
   text-decoration: none;
 }
 
-.plannerTripAdd.remove {
-  background: #e0584f;
-}
-
-.plannerCloseBottom {
-  margin-top: 10px;
+.plannerSecondary {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
   background: #eef7f9;
   color: var(--planner-teal-dark);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.plannerPlanToggle {
+  flex: 0 0 auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid var(--planner-teal-tint);
+  border-radius: 13px;
+  padding: 9px 12px;
+  background: #fff;
+  color: var(--planner-teal-dark);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.plannerPlanToggle.primary {
+  width: 100%;
+  min-height: 52px;
+  border-color: var(--planner-teal);
+  background: var(--planner-teal);
+  color: #fff;
+  font-size: 16px;
+}
+
+.plannerPlanToggle.active {
+  border-color: var(--planner-navy);
+  background: var(--planner-navy);
+  color: #fff;
+}
+
+.plannerPlanToggleIcon {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--planner-teal);
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.plannerPlanToggle.active .plannerPlanToggleIcon,
+.plannerPlanToggle.primary .plannerPlanToggleIcon {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.plannerPlanToggle.compact {
+  min-width: 44px;
+  padding: 8px;
+}
+
+.plannerPlanToggle.compact .plannerPlanToggleText {
+  display: none;
+}
+
+.plannerPlanToggleHover {
+  display: none;
+}
+
+.plannerPlanToggle.active:hover .plannerPlanToggleText {
+  display: none;
+}
+
+.plannerPlanToggle.active:hover .plannerPlanToggleHover {
+  display: inline;
+}
+
+.plannerDetailFooter {
+  position: sticky;
+  z-index: 5;
+  bottom: -26px;
+  margin: 18px -18px -26px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid var(--planner-line);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -10px 24px rgba(12, 58, 76, 0.10);
 }
 
 .plannerConditionsOverlay {
@@ -3375,6 +3611,52 @@ hr.soft {
   font: inherit;
   font-size: 12px;
   font-weight: 850;
+}
+
+.plannerStopLeg {
+  cursor: grab;
+}
+
+.plannerStopLeg:active {
+  cursor: grabbing;
+}
+
+.plannerToast {
+  position: absolute;
+  z-index: 5400;
+  left: 18px;
+  bottom: 18px;
+  max-width: min(360px, calc(100% - 36px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  padding: 11px 12px 11px 14px;
+  background: var(--planner-navy);
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(8, 28, 40, 0.24);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.plannerToast span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plannerToast button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #fff;
+  color: var(--planner-navy);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .plannerTripEmpty {

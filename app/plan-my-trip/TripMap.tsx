@@ -31,6 +31,7 @@ type ConditionsPopoverState = { title: string; href: string } | null;
 type RouteStopNode = { kind: 'stop'; marinaId: number };
 type RouteWaypointNode = { kind: 'waypoint'; id: string; lat: number; lon: number };
 type RouteNode = RouteStopNode | RouteWaypointNode;
+type PlanToast = { message: string; undoNodes: RouteNode[] } | null;
 type ResolvedStopNode = RouteStopNode & {
   name: string;
   lat: number;
@@ -142,6 +143,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [shareMessage, setShareMessage] = useState('');
   const [draftRouteMessage, setDraftRouteMessage] = useState('');
   const [conditionsPopover, setConditionsPopover] = useState<ConditionsPopoverState>(null);
+  const [planToast, setPlanToast] = useState<PlanToast>(null);
   const [dayIndex, setDayIndex] = useState(0);
   const [activeMarinas, setActiveMarinas] = useState(() => snapMarinaList(marinas));
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
@@ -153,6 +155,10 @@ export default function TripMap({ marinas }: TripMapProps) {
   const tripStops = useMemo(() => routeNodes
     .filter((node): node is RouteStopNode => node.kind === 'stop')
     .map((node) => node.marinaId), [routeNodes]);
+  const tripStopSet = useMemo(() => new Set(tripStops), [tripStops]);
+  const tripStopOrder = useMemo(() => {
+    return new Map(tripStops.map((id, index) => [id, index + 1]));
+  }, [tripStops]);
   const resolvedRouteNodes = useMemo(() => resolveRouteNodes(routeNodes, activeMarinas), [routeNodes, activeMarinas]);
   const landCollisions = useMemo(() => detectLandCollisions(resolvedRouteNodes), [resolvedRouteNodes]);
   const marinaListIndex = useMemo(() => {
@@ -192,6 +198,12 @@ export default function TripMap({ marinas }: TripMapProps) {
     ]);
     clusterRefreshRef.current?.();
   }, [selectedId, tripStops]);
+
+  useEffect(() => {
+    if (!planToast) return;
+    const timer = window.setTimeout(() => setPlanToast(null), 5200);
+    return () => window.clearTimeout(timer);
+  }, [planToast]);
 
   useEffect(() => {
     setActiveMarinas(snapMarinaList(marinas));
@@ -445,6 +457,28 @@ export default function TripMap({ marinas }: TripMapProps) {
       map.on('click', (event: { latlng: { lat: number; lng: number } }) => {
         routeClickHandlerRef.current?.(event.latlng);
       });
+      const handlePopupButtonClick = (event: MouseEvent) => {
+        const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>('[data-planner-pin-action]');
+        if (!button) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const action = button.dataset.plannerPinAction;
+        const id = Number(button.dataset.marinaId);
+        const marina = activeMarinas.find((candidate) => candidate.id === id);
+        if (!marina) return;
+        if (action === 'toggle') {
+          toggleTripStop(id);
+          map.closePopup();
+        } else if (action === 'detail') {
+          rememberListScroll();
+          setSelectedId(id);
+          setSelectedLaunchId(null);
+          setMobileMarkerModal(false);
+          setSheetState('full');
+          setIsFullscreen(false);
+        }
+      };
+      map.getContainer().addEventListener('click', handlePopupButtonClick);
 
       L.control.zoom({ position: isMobilePlanner() ? 'bottomright' : 'topleft' }).addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
@@ -473,21 +507,20 @@ export default function TripMap({ marinas }: TripMapProps) {
           initialBounds.extend([marina.lat, marina.lon]);
         }
         const marker = L.marker([marina.lat, marina.lon], {
-          icon: marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks),
+          icon: marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, tripStopOrder.get(marina.id), selectedId, tripStopSet.has(marina.id), dayIndex, vessel, weeklyOutlooks),
           bubblingMouseEvents: false,
           zIndexOffset: marina.freedomClub ? 600 : 0
         }).addTo(map);
+        marker.bindPopup(marinaPopupHtml(marina, dayIndex, vessel, weeklyOutlooks, tripStopSet.has(marina.id), tripStopOrder.get(marina.id)));
         marker.on('click', () => {
-          rememberListScroll();
-          setSelectedId(marina.id);
-          setSelectedLaunchId(null);
           if (isMobilePlanner()) {
+            rememberListScroll();
+            setSelectedId(marina.id);
+            setSelectedLaunchId(null);
             setMobileMarkerModal(true);
             setSheetState('collapsed');
           } else {
-            setMobileMarkerModal(false);
-            setSheetState('full');
-            setIsFullscreen(false);
+            marker.openPopup();
           }
         });
         markerRefs.current[marina.id] = marker;
@@ -557,6 +590,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         routeLineRef.current = null;
         leafletMapRef.current = null;
         initialMapBoundsRef.current = null;
+        map.getContainer().removeEventListener('click', handlePopupButtonClick);
         map.remove();
       };
     }
@@ -567,7 +601,27 @@ export default function TripMap({ marinas }: TripMapProps) {
       disposed = true;
       cleanup?.();
     };
-  }, [launches, marinaListIndex, showLaunches, visibleMarinas, weeklyOutlooks]);
+  }, [activeMarinas, dayIndex, launches, marinaListIndex, showLaunches, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
+
+  useEffect(() => {
+    let disposed = false;
+    import('leaflet').then((L) => {
+      if (disposed) return;
+      visibleMarinas.forEach((marina) => {
+        const marker = markerRefs.current[marina.id];
+        if (!marker) return;
+        const listIndex = marinaListIndex.get(marina.id) ?? marina.id;
+        const order = tripStopOrder.get(marina.id);
+        const inPlan = tripStopSet.has(marina.id);
+        marker.setIcon(marinaIcon(L, marina, listIndex, order, selectedId, inPlan, dayIndex, vessel, weeklyOutlooks));
+        marker.getPopup?.()?.setContent(marinaPopupHtml(marina, dayIndex, vessel, weeklyOutlooks, inPlan, order));
+      });
+    });
+    clusterRefreshRef.current?.();
+    return () => {
+      disposed = true;
+    };
+  }, [dayIndex, marinaListIndex, selectedId, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
 
   useEffect(() => {
     isRouteEditingRef.current = isRouteEditing;
@@ -599,8 +653,11 @@ export default function TripMap({ marinas }: TripMapProps) {
       visibleMarinas.forEach((marina) => {
         const marker = markerRefs.current[marina.id];
         if (marker) {
-          marker.setIcon(marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks));
-          marker.setZIndexOffset(selectedId === marina.id || tripStops.includes(marina.id) || marina.freedomClub ? 700 : 0);
+          const order = tripStopOrder.get(marina.id);
+          const inPlan = tripStopSet.has(marina.id);
+          marker.setIcon(marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, order, selectedId, inPlan, dayIndex, vessel, weeklyOutlooks));
+          marker.getPopup?.()?.setContent(marinaPopupHtml(marina, dayIndex, vessel, weeklyOutlooks, inPlan, order));
+          marker.setZIndexOffset(selectedId === marina.id || inPlan || marina.freedomClub ? 700 : 0);
         }
       });
       clusterRefreshRef.current?.();
@@ -608,7 +665,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       active = false;
     };
-  }, [marinaListIndex, selectedId, tripStops, dayIndex, vessel, visibleMarinas, weeklyOutlooks]);
+  }, [dayIndex, marinaListIndex, selectedId, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
 
   useEffect(() => {
     routeClickHandlerRef.current = (latlng) => {
@@ -766,15 +823,37 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   function toggleTripStop(marinaId: number) {
     setRouteNodes((nodes) => {
+      const marina = activeMarinas.find((candidate) => candidate.id === marinaId);
       if (nodes.some((node) => node.kind === 'stop' && node.marinaId === marinaId)) {
-        return cleanRouteNodes(nodes.filter((node) => node.kind !== 'stop' || node.marinaId !== marinaId));
+        setPlanToast({
+          message: `Removed ${marina?.name ?? 'destination'}`,
+          undoNodes: nodes
+        });
+        return removeStopAndAdjacentWaypoints(nodes, marinaId);
       }
+      setPlanToast(null);
       return [...nodes, { kind: 'stop', marinaId }];
     });
-    setTripMode(true);
     setShareText('');
     setShareMessage('');
     setDraftRouteMessage('');
+  }
+
+  function restorePlanToast() {
+    if (!planToast) return;
+    setRouteNodes(planToast.undoNodes);
+    setPlanToast(null);
+    setShareText('');
+    setShareMessage('');
+    setDraftRouteMessage('');
+  }
+
+  function reorderTripStop(fromIndex: number, toIndex: number) {
+    setRouteNodes((nodes) => reorderStopNodes(nodes, fromIndex, toIndex));
+    setTripMode(true);
+    setShareText('');
+    setShareMessage('');
+    setDraftRouteMessage('Route order updated. Waypoints were cleared so timing and advisories follow the new stop order.');
   }
 
   function draftWaterRoute() {
@@ -991,7 +1070,8 @@ export default function TripMap({ marinas }: TripMapProps) {
                     vessel={vessel}
                     weeklyOutlooks={weeklyOutlooks}
                     liveTide={liveTides[selected.id]}
-                    inTrip={tripStops.includes(selected.id)}
+                    inTrip={tripStopSet.has(selected.id)}
+                    planOrder={tripStopOrder.get(selected.id)}
                     onToggleTrip={() => toggleTripStop(selected.id)}
                     onOpenConditions={() => setConditionsPopover({
                       title: `${selected.name} conditions`,
@@ -1043,7 +1123,8 @@ export default function TripMap({ marinas }: TripMapProps) {
               vessel={vessel}
               weeklyOutlooks={weeklyOutlooks}
               liveTide={liveTides[selected.id]}
-              inTrip={tripStops.includes(selected.id)}
+              inTrip={tripStopSet.has(selected.id)}
+              planOrder={tripStopOrder.get(selected.id)}
               onToggleTrip={() => toggleTripStop(selected.id)}
               onOpenConditions={() => setConditionsPopover({
                 title: `${selected.name} conditions`,
@@ -1087,6 +1168,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               onDraftWaterRoute={draftWaterRoute}
               onToggleRouteEditing={() => setIsRouteEditing((value) => !value)}
               onRemoveStop={toggleTripStop}
+              onReorderStop={reorderTripStop}
               onRemoveWaypoint={(id) => {
                 setRouteNodes((nodes) => nodes.filter((node) => node.kind !== 'waypoint' || node.id !== id));
                 setShareText('');
@@ -1228,29 +1310,42 @@ export default function TripMap({ marinas }: TripMapProps) {
                   const { marina } = result;
                   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
                   const listIndex = marinaListIndex.get(marina.id) ?? marina.id;
+                  const inPlan = tripStopSet.has(marina.id);
+                  const order = tripStopOrder.get(marina.id);
                   return (
-                    <button
+                    <div
                       key={`marina-${marina.id}`}
-                      type="button"
-                      className={`plannerRow ${marina.freedomClub ? 'plannerRowFreedom' : ''}`}
-                      onClick={() => openMarina(marina)}
+                      className={`plannerRow ${marina.freedomClub ? 'plannerRowFreedom' : ''} ${inPlan ? 'plannerRowInPlan' : ''}`}
                     >
-                      <span className={`plannerIdx ${marina.freedomClub ? 'plannerIdxFreedom' : ''}`}>
-                        {listIndex}
-                        <i style={{ background: scoreColor(score) }} />
-                      </span>
-                      <span className="plannerBody">
-                        <span className="plannerName">
-                          {marina.name}
-                          {marina.freedomClub ? <em>Freedom Boat Club</em> : null}
+                      <button
+                        type="button"
+                        className="plannerRowMain"
+                        onClick={() => openMarina(marina)}
+                      >
+                        <span className={`plannerIdx ${marina.freedomClub ? 'plannerIdxFreedom' : ''} ${inPlan ? 'plannerIdxInPlan' : ''}`}>
+                          {inPlan ? order : listIndex}
+                          <i style={{ background: scoreColor(score) }} />
                         </span>
-                        <span className="plannerAddr">{marina.address}</span>
-                      </span>
-                      <span className="plannerRight">
-                        <b>{distanceFromHome(marina).toFixed(1)} nm</b>
-                        <span>{score} score - {windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks))} - {verdict(score)}</span>
-                      </span>
-                    </button>
+                        <span className="plannerBody">
+                          <span className="plannerName">
+                            {marina.name}
+                            {marina.freedomClub ? <em>Freedom Boat Club</em> : null}
+                          </span>
+                          <span className="plannerAddr">{marina.address}</span>
+                        </span>
+                        <span className="plannerRight">
+                          <b>{distanceFromHome(marina).toFixed(1)} nm</b>
+                          <span>{score} score - {windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks))} - {verdict(score)}</span>
+                        </span>
+                      </button>
+                      <PlanToggleButton
+                        compact
+                        name={marina.name}
+                        inPlan={inPlan}
+                        order={order}
+                        onToggle={() => toggleTripStop(marina.id)}
+                      />
+                    </div>
                   );
                 })}
               </div>
@@ -1258,6 +1353,12 @@ export default function TripMap({ marinas }: TripMapProps) {
           )}
         </div>
       </section>
+      {planToast ? (
+        <div className="plannerToast" role="status" aria-live="polite">
+          <span>{planToast.message}</span>
+          <button type="button" onClick={restorePlanToast}>Undo</button>
+        </div>
+      ) : null}
       </div>
     </div>
   );
@@ -1270,6 +1371,7 @@ function MarinaDetail({
   weeklyOutlooks,
   liveTide,
   inTrip,
+  planOrder,
   onToggleTrip,
   onOpenConditions,
   onBack
@@ -1280,6 +1382,7 @@ function MarinaDetail({
   weeklyOutlooks: PlannerOutlooks;
   liveTide?: LiveTide;
   inTrip: boolean;
+  planOrder?: number;
   onToggleTrip: () => void;
   onOpenConditions: () => void;
   onBack: () => void;
@@ -1294,14 +1397,33 @@ function MarinaDetail({
 
   return (
     <div className="plannerDetail">
-      <button className="plannerBack" type="button" onClick={onBack}>
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        All marinas
-      </button>
-      <h1>{marina.name}</h1>
-      <p>{marina.address} - {distanceFromHome(marina).toFixed(1)} nm</p>
+      <div className="plannerDetailHeader">
+        <button className="plannerBack" type="button" onClick={onBack}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          All marinas
+        </button>
+        <button className="plannerDetailClose" type="button" aria-label="Close destination detail" onClick={onBack}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+            <line x1="6" y1="6" x2="18" y2="18" />
+            <line x1="18" y1="6" x2="6" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div className="plannerDetailTitleRow">
+        <div>
+          <h1>{marina.name}</h1>
+          <p>{marina.address} - {distanceFromHome(marina).toFixed(1)} nm</p>
+        </div>
+        <PlanToggleButton
+          compact
+          name={marina.name}
+          inPlan={inTrip}
+          order={planOrder}
+          onToggle={onToggleTrip}
+        />
+      </div>
 
       {info ? (
         <div className="plannerTags">
@@ -1346,21 +1468,54 @@ function MarinaDetail({
 
       {tide ? <TideCard tide={tide} /> : <NonTidalWaterCard marina={marina} />}
 
-      <button className={`plannerPrimary plannerTripAdd ${inTrip ? 'remove' : ''}`} type="button" onClick={onToggleTrip}>
-        {inTrip ? 'Remove from float plan' : 'Add to float plan'}
-      </button>
-
       <button
-        className="plannerPrimary"
+        className="plannerSecondary"
         type="button"
         onClick={onOpenConditions}
       >
         Open conditions
       </button>
-      <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
-        Close panel
-      </button>
+      <div className="plannerDetailFooter">
+        <PlanToggleButton
+          primary
+          name={marina.name}
+          inPlan={inTrip}
+          order={planOrder}
+          onToggle={onToggleTrip}
+        />
+      </div>
     </div>
+  );
+}
+
+function PlanToggleButton({
+  name,
+  inPlan,
+  order,
+  compact = false,
+  primary = false,
+  onToggle
+}: {
+  name: string;
+  inPlan: boolean;
+  order?: number;
+  compact?: boolean;
+  primary?: boolean;
+  onToggle: () => void;
+}) {
+  const label = inPlan ? `Remove ${name} from float plan` : `Add ${name} to float plan`;
+  return (
+    <button
+      className={`plannerPlanToggle ${compact ? 'compact' : ''} ${primary ? 'primary' : ''} ${inPlan ? 'active' : ''}`}
+      type="button"
+      aria-pressed={inPlan}
+      aria-label={label}
+      onClick={onToggle}
+    >
+      <span className="plannerPlanToggleIcon">{inPlan ? (order ?? '') : '+'}</span>
+      <span className="plannerPlanToggleText">{inPlan ? 'In plan' : 'Add'}</span>
+      {inPlan ? <span className="plannerPlanToggleHover">Remove</span> : null}
+    </button>
   );
 }
 
@@ -1476,12 +1631,20 @@ function LaunchDetail({
   const status = launchDepthStatus(launch, plannerTimeForDay(dayIndex));
   return (
     <div className="plannerDetail">
-      <button className="plannerBack" type="button" onClick={onBack}>
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        All launches
-      </button>
+      <div className="plannerDetailHeader">
+        <button className="plannerBack" type="button" onClick={onBack}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          All launches
+        </button>
+        <button className="plannerDetailClose" type="button" aria-label="Close launch detail" onClick={onBack}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+            <line x1="6" y1="6" x2="18" y2="18" />
+            <line x1="18" y1="6" x2="6" y2="18" />
+          </svg>
+        </button>
+      </div>
       <h1>{launch.name}</h1>
       <p>{launch.area} - {distanceFromHome(launch).toFixed(1)} nm</p>
       <div className="plannerTags">
@@ -1496,14 +1659,11 @@ function LaunchDetail({
         <span>{status.message}</span>
       </div>
       <button
-        className="plannerPrimary"
+        className="plannerSecondary"
         type="button"
         onClick={onOpenConditions}
       >
         Open launch conditions
-      </button>
-      <button className="plannerPrimary plannerCloseBottom" type="button" onClick={onBack}>
-        Close panel
       </button>
     </div>
   );
@@ -1531,6 +1691,7 @@ function TripPlanView({
   onDraftWaterRoute,
   onToggleRouteEditing,
   onRemoveStop,
+  onReorderStop,
   onRemoveWaypoint,
   onShare
 }: {
@@ -1555,6 +1716,7 @@ function TripPlanView({
   onDraftWaterRoute: () => void;
   onToggleRouteEditing: () => void;
   onRemoveStop: (id: number) => void;
+  onReorderStop: (fromIndex: number, toIndex: number) => void;
   onRemoveWaypoint: (id: string) => void;
   onShare: () => void;
 }) {
@@ -1647,7 +1809,24 @@ function TripPlanView({
 
               const warning = vesselWarning(leg.conditions, vessel);
               return (
-                <div className="plannerLeg" key={leg.marina.id}>
+                <div
+                  className="plannerLeg plannerStopLeg"
+                  key={leg.marina.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', String(leg.stopIndex - 1));
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+                    if (Number.isFinite(fromIndex)) onReorderStop(fromIndex, leg.stopIndex - 1);
+                  }}
+                >
                   <span className="plannerLegNode">{leg.stopIndex}</span>
                   <div>
                     <strong>{leg.marina.name}</strong>
@@ -1682,17 +1861,48 @@ function TripPlanView({
   );
 }
 
-function marinaIcon(L: any, marina: Marina, listIndex: number, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
+function marinaIcon(L: any, marina: Marina, listIndex: number, tripOrder: number | undefined, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
   const cls = `${marina.freedomClub ? 'freedom' : ''} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
   const title = escapeHtml(`${listIndex}. ${marina.name} - score ${score}`);
+  const bubble = inTrip ? tripOrder ?? listIndex : listIndex;
   return L.divIcon({
     className: '',
-    html: `<div class="plannerPin ${cls}" title="${title}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble">${listIndex}</span><span class="plannerPinTail"></span></div>`,
+    html: `<div class="plannerPin ${cls}" title="${title}" style="--pin-score:${scoreColor(score)}"><span class="plannerPinScore"></span><span class="plannerPinBubble">${bubble}</span><span class="plannerPinTail"></span></div>`,
     iconSize: [40, 46],
     iconAnchor: [20, 44],
     popupAnchor: [0, -44]
   });
+}
+
+function marinaPopupHtml(
+  marina: Marina,
+  dayIndex: number,
+  vessel: VesselProfile,
+  weeklyOutlooks: PlannerOutlooks,
+  inPlan: boolean,
+  order?: number
+) {
+  const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
+  const distance = distanceFromHome(marina).toFixed(1);
+  const label = inPlan ? 'Remove' : 'Add';
+  const badge = inPlan ? `<span class="plannerPinPopupOrder">${order ?? ''}</span>` : '';
+  return `
+    <div class="plannerPinPopup">
+      <div class="plannerPinPopupHead">
+        <strong>${escapeHtml(marina.name)}</strong>
+        ${badge}
+      </div>
+      <span>${score} score · ${distance} nm · ${escapeHtml(windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks)))}</span>
+      <div class="plannerPinPopupActions">
+        <button type="button" data-planner-pin-action="toggle" data-marina-id="${marina.id}" aria-pressed="${inPlan}">
+          ${inPlan ? '✓ In plan' : '+ Add'}
+          <em>${label}</em>
+        </button>
+        <button type="button" data-planner-pin-action="detail" data-marina-id="${marina.id}">Details</button>
+      </div>
+    </div>
+  `;
 }
 
 function launchIcon(L: any, launch: BoatLaunch) {
@@ -2288,6 +2498,42 @@ function countRouteStops(nodes: RouteNode[]) {
 
 function cleanRouteNodes(nodes: RouteNode[]) {
   return countRouteStops(nodes) >= 2 ? nodes : nodes.filter((node) => node.kind === 'stop');
+}
+
+function removeStopAndAdjacentWaypoints(nodes: RouteNode[], marinaId: number) {
+  const index = nodes.findIndex((node) => node.kind === 'stop' && node.marinaId === marinaId);
+  if (index === -1) return nodes;
+
+  const next = nodes.filter((node, candidateIndex) => {
+    if (candidateIndex === index) return false;
+    if (node.kind !== 'waypoint') return true;
+    return !(candidateIndex > previousStopIndex(nodes, index) && candidateIndex < nextStopIndex(nodes, index));
+  });
+  return cleanRouteNodes(next);
+}
+
+function previousStopIndex(nodes: RouteNode[], index: number) {
+  for (let i = index - 1; i >= 0; i -= 1) {
+    if (nodes[i].kind === 'stop') return i;
+  }
+  return -1;
+}
+
+function nextStopIndex(nodes: RouteNode[], index: number) {
+  for (let i = index + 1; i < nodes.length; i += 1) {
+    if (nodes[i].kind === 'stop') return i;
+  }
+  return nodes.length;
+}
+
+function reorderStopNodes(nodes: RouteNode[], fromIndex: number, toIndex: number) {
+  const stops = nodes.filter((node): node is RouteStopNode => node.kind === 'stop');
+  if (fromIndex < 0 || toIndex < 0 || fromIndex >= stops.length || toIndex >= stops.length || fromIndex === toIndex) {
+    return nodes;
+  }
+  const [moved] = stops.splice(fromIndex, 1);
+  stops.splice(toIndex, 0, moved);
+  return cleanRouteNodes(stops);
 }
 
 function waypointId() {
