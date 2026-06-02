@@ -71,6 +71,15 @@ a:hover {
   color: #fff;
 }
 
+.container > .globalHeader {
+  position: relative;
+  left: calc(50% + 8px);
+  width: calc(100vw - 24px);
+  margin-left: 0;
+  margin-right: 0;
+  transform: translateX(-50%);
+}
+
 .globalBrand {
   display: inline-flex;
   align-items: center;
@@ -1237,6 +1246,10 @@ hr.soft {
   .globalHeader {
     grid-template-columns: 1fr auto;
     gap: 10px;
+  }
+
+  .container > .globalHeader {
+    left: calc(50% + 2px);
   }
 
   .globalBrand {
