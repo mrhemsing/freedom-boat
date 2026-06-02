@@ -16,7 +16,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' }}>{children}</body>
+      <body style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' }}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(() => {
+  const setScrollbarWidth = () => {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.style.setProperty('--scrollbar-width', scrollbarWidth + 'px');
+    document.documentElement.style.setProperty('--scrollbar-half-width', (scrollbarWidth / 2) + 'px');
+  };
+  setScrollbarWidth();
+  window.addEventListener('resize', setScrollbarWidth, { passive: true });
+})();
+`
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
