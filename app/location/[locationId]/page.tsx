@@ -369,7 +369,7 @@ export default async function LocationPage({
                           fontWeight: 800
                         }}
                       >
-                        No live webcam currently available
+                        Live webcam currently unavailable
                       </div>
                     )}
                   </div>
