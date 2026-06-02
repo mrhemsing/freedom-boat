@@ -1831,6 +1831,7 @@ hr.soft {
 
 .tripPlannerBrand {
   width: fit-content;
+  gap: 4px;
   text-decoration: none;
 }
 
@@ -1845,7 +1846,7 @@ hr.soft {
 .tripPlannerHeader .tripPlannerBrand .fbLogo {
   width: 48px;
   height: 48px;
-  margin-right: 12px;
+  margin-right: 0;
 }
 
 .tripPlannerHeader .tripPlannerBrand .brandTitle {
@@ -4108,7 +4109,7 @@ hr.soft {
   }
 
   .tripPlannerBrand {
-    gap: 6px;
+    gap: 4px;
     min-width: 0;
   }
 
