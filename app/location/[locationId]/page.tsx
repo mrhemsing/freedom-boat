@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
-import { isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
+import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../../lib/outlook';
 import { marinaPath, SEO_MARINAS, type SeoMarina } from '../../../lib/seo-slugs';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
@@ -195,7 +195,7 @@ export default async function LocationPage({
                       <div className="dayTempLine">{round(d.minTempC, 0) ?? '—'}/{round(d.maxTempC, 0) ?? '—'}°C</div>
                       <div className="dayScorePill" title="Boating score (higher is better)">{d.score}/100</div>
                       <div className="dayMeta">
-                        <div><span className="dayMetaIcon" style={{ fontSize: 11 }}>🌀</span>Max wind {round(d.maxWind, 0)} kt</div>
+                        <div><span className="dayMetaIcon" style={{ fontSize: 11 }}>🌀</span>Max wind {round(d.maxWind, 0)} kt {degToCardinal(d.maxWindDirDeg) ?? ''}</div>
                         <div><span className="dayMetaIcon">💨</span>Max gust {round(d.maxGust, 0)} kt</div>
                         <div><span className="dayMetaIcon">☁</span>P.O.P. {round(d.maxPrecipProb, 0)}%</div>
                         <div><span className="dayMetaIcon">💧</span>Rain {round(d.totalPrecipMm, 1)} mm</div>

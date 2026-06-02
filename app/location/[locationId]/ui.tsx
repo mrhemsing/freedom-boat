@@ -119,6 +119,9 @@ export function ForecastStrip({ forecast }: { forecast: any[] }) {
               <div className="forecastTimeText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{isoToLocalTime(h.t)}</div>
               <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{ws ?? '—'} kt</div>
               <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
+                <WindArrow deg={h.windDirDeg} />
+              </div>
+              <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
                 gust {wg ?? '—'}
               </div>
               <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
@@ -222,4 +225,3 @@ export function TideList({ events }: { events: Array<{ t: string; kind: 'high' |
 }
 
 // (Icons object removed)
-

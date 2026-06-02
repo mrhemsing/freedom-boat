@@ -9,6 +9,7 @@ import {
 } from '../../lib/marinas';
 import { snapMarinaList } from '../../lib/marina-snap';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
+import { degToCardinal } from '../../lib/format';
 import { marinaPath, seoSlugForLaunch } from '../../lib/seo-slugs';
 
 type TripMapProps = {
@@ -626,6 +627,10 @@ export default function TripMap({ marinas }: TripMapProps) {
       : averageScore(activeMarinas, index, vessel, weeklyOutlooks);
   }
 
+  function timebarWind(index: number) {
+    return selected ? windLabel(conditionsFor(selected, index, weeklyOutlooks)) : null;
+  }
+
   return (
     <div className={`plannerWrap ${isFullscreen ? 'plannerWrapExpanded' : ''}`}>
       <div
@@ -635,6 +640,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       >
         {DAYS.map((label, index) => {
           const score = timebarScore(index);
+          const wind = timebarWind(index);
           return (
             <button
               key={label}
@@ -644,7 +650,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             >
               <span>{label}</span>
               <b>{dayNumber(index)}</b>
-              <em style={{ color: scoreColor(score) }}>{score}</em>
+              <em style={{ color: scoreColor(score) }}>{wind ? `${score} / ${wind}` : score}</em>
             </button>
           );
         })}
@@ -937,7 +943,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                       </span>
                       <span className="plannerRight">
                         <b>{distanceFromHome(marina).toFixed(1)} nm</b>
-                        <span>{score} score - {Math.round(windFor(marina, dayIndex, weeklyOutlooks))} kt - {verdict(score)}</span>
+                        <span>{score} score - {windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks))} - {verdict(score)}</span>
                       </span>
                     </button>
                   );
@@ -1015,7 +1021,7 @@ function MarinaDetail({
       <div className="plannerMetrics">
         <div>
           <span>Wind</span>
-          <strong>{conditions.wind} <small>kt</small></strong>
+          <strong>{windLabel(conditions)}</strong>
         </div>
         <div>
           <span>Gust</span>
@@ -1277,9 +1283,10 @@ function TripPlanView({
                   <div>
                     <strong>{leg.marina.name}</strong>
                     <span>
-                      {formatShortTime(leg.arrive)} - {leg.cumulativeDistance.toFixed(1)} nm total - {leg.segmentDistance.toFixed(1)} nm leg - {leg.conditions.wind} kt / {leg.conditions.wave.toFixed(1)}m{leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}
+                      {formatShortTime(leg.arrive)} - {leg.cumulativeDistance.toFixed(1)} nm total - {leg.segmentDistance.toFixed(1)} nm leg - {windLabel(leg.conditions)} / {leg.conditions.wave.toFixed(1)}m - sunset {formatShortTime(leg.daylight.sunset)}{leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}
                     </span>
                     {warning ? <em className={`plannerWarning ${warning.level}`}>{warning.text}</em> : null}
+                    {leg.daylight.warning ? <em className={`plannerWarning ${leg.daylight.level}`}>{leg.daylight.warning}</em> : null}
                     <button type="button" onClick={() => onRemoveStop(leg.marina.id)}>Remove</button>
                   </div>
                 </div>
@@ -1382,15 +1389,21 @@ function windFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutloo
 function conditionsFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks = {}) {
   const outlook = outlookFor(marina, dayIndex, weeklyOutlooks);
   const wind = outlook?.maxWind ?? windFor(marina, dayIndex, weeklyOutlooks);
+  const windDirDeg = outlook?.maxWindDirDeg;
   const gust = outlook?.maxGust ?? wind + 5 + (marina.id % 4);
   const exposure = marina.freedomClub ? 0.2 : (marina.exp ?? 0.45);
   const wave = Math.max(0.2, (wind - 5) * 0.05 + exposure * 0.35);
-  return { wind, gust, wave };
+  return { wind, windDirDeg, gust, wave };
 }
 
 function outlookFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks) {
   if (!marina.locationId) return null;
   return weeklyOutlooks[marina.locationId]?.[dayIndex] ?? null;
+}
+
+function windLabel(conditions: Pick<ReturnType<typeof conditionsFor>, 'wind' | 'windDirDeg'>) {
+  const dir = degToCardinal(conditions.windDirDeg);
+  return `${Math.round(conditions.wind)} kt${dir ? ` ${dir}` : ''}`;
 }
 
 function vesselWarning(conditions: ReturnType<typeof conditionsFor>, vessel: VesselProfile) {
@@ -1434,6 +1447,62 @@ function dayIndexForArrival(depart: Date, arrive: Date, fallbackDayIndex: number
   arrivalDay.setHours(0, 0, 0, 0);
   const offset = Math.round((arrivalDay.getTime() - departDay.getTime()) / 86400000);
   return Math.max(0, Math.min(4, fallbackDayIndex + offset));
+}
+
+function daylightArrival(marina: Pick<Marina, 'lat' | 'lon'>, arrive: Date): DaylightArrival {
+  const sunset = estimateSunset(marina.lat, marina.lon, arrive);
+  const minutesFromSunset = Math.round((sunset.getTime() - arrive.getTime()) / 60000);
+  if (minutesFromSunset < 0) {
+    return {
+      sunset,
+      minutesFromSunset,
+      level: 'poor',
+      warning: `Arrives after sunset (${formatShortTime(sunset)})`
+    };
+  }
+  if (minutesFromSunset <= 30) {
+    return {
+      sunset,
+      minutesFromSunset,
+      level: 'fair',
+      warning: `Arrives ${minutesFromSunset} min before sunset`
+    };
+  }
+  return { sunset, minutesFromSunset, level: null, warning: null };
+}
+
+function estimateSunset(lat: number, lon: number, date: Date) {
+  const localNoon = new Date(date);
+  localNoon.setHours(12, 0, 0, 0);
+  const startOfYear = new Date(localNoon.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((localNoon.getTime() - startOfYear.getTime()) / 86400000);
+  const rad = Math.PI / 180;
+  const gamma = (2 * Math.PI / 365) * (dayOfYear - 1 + 0.5);
+  const equationOfTime = 229.18 * (
+    0.000075
+    + 0.001868 * Math.cos(gamma)
+    - 0.032077 * Math.sin(gamma)
+    - 0.014615 * Math.cos(2 * gamma)
+    - 0.040849 * Math.sin(2 * gamma)
+  );
+  const decl =
+    0.006918
+    - 0.399912 * Math.cos(gamma)
+    + 0.070257 * Math.sin(gamma)
+    - 0.006758 * Math.cos(2 * gamma)
+    + 0.000907 * Math.sin(2 * gamma)
+    - 0.002697 * Math.cos(3 * gamma)
+    + 0.00148 * Math.sin(3 * gamma);
+  const latRad = lat * rad;
+  const zenith = 90.833 * rad;
+  const cosHourAngle = (Math.cos(zenith) / (Math.cos(latRad) * Math.cos(decl))) - Math.tan(latRad) * Math.tan(decl);
+  const hourAngle = Math.acos(Math.max(-1, Math.min(1, cosHourAngle))) / rad;
+  const tzOffsetMinutes = -localNoon.getTimezoneOffset();
+  const sunsetMinutes = 720 - 4 * (lon - hourAngle) - equationOfTime + tzOffsetMinutes;
+  const sunset = new Date(localNoon);
+  sunset.setHours(0, 0, 0, 0);
+  sunset.setMinutes(Math.round(sunsetMinutes));
+  return sunset;
 }
 
 function defaultDepartInput() {
@@ -1650,6 +1719,14 @@ type StopRouteLeg = {
   conditions: ReturnType<typeof conditionsFor>;
   score: number;
   tide: TideState | null;
+  daylight: DaylightArrival;
+};
+
+type DaylightArrival = {
+  sunset: Date;
+  minutesFromSunset: number;
+  level: 'fair' | 'poor' | null;
+  warning: string | null;
 };
 
 type WaypointRouteLeg = {
@@ -1697,6 +1774,7 @@ function buildTripLegs(
     const tide = node.marina.waterType === 'lake' || node.marina.waterType === 'river'
       ? null
       : tideState(node.marina, cursor, liveTides[node.marina.id]);
+    const daylight = daylightArrival(node.marina, cursor);
     return {
       kind: 'stop',
       stopIndex,
@@ -1706,7 +1784,8 @@ function buildTripLegs(
       arrive: new Date(cursor),
       conditions,
       score: marinaScore(node.marina, arrivalDayIndex, vessel, weeklyOutlooks),
-      tide
+      tide,
+      daylight
     };
   });
 }
@@ -1742,7 +1821,7 @@ function buildFloatPlanText(
     ''
   ];
   legs.filter((leg): leg is StopRouteLeg => leg.kind === 'stop').forEach((leg) => {
-    lines.push(`${leg.stopIndex}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)} - ${leg.cumulativeDistance.toFixed(1)} nm total - wind ${leg.conditions.wind} kt - seas ${leg.conditions.wave.toFixed(1)}m${leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}`);
+    lines.push(`${leg.stopIndex}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)} - ${leg.cumulativeDistance.toFixed(1)} nm total - wind ${windLabel(leg.conditions)} - seas ${leg.conditions.wave.toFixed(1)}m - sunset ${formatShortTime(leg.daylight.sunset)}${leg.daylight.warning ? ` - ${leg.daylight.warning}` : ''}${leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}`);
   });
   lines.push('');
   lines.push(`Max wind/seas: ${summary.maxWind} kt / ${summary.maxWave.toFixed(1)}m`);

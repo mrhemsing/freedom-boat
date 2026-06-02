@@ -2101,7 +2101,7 @@ hr.soft {
 
 .plannerDay {
   flex: 0 0 auto;
-  min-width: 58px;
+  min-width: 74px;
   border: 2px solid transparent;
   border-radius: 12px;
   padding: 7px 11px;
@@ -2136,6 +2136,7 @@ hr.soft {
 .plannerDay em {
   margin-top: 2px;
   font-size: 10px;
+  white-space: nowrap;
 }
 
 .plannerPin {

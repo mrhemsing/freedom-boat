@@ -4,6 +4,7 @@ export type ForecastHour = {
   t: string;
   tempC?: number;
   windSpeedKts: number;
+  windDirDeg?: number;
   windGustKts?: number;
   precipMm?: number;
   precipProbPct?: number;
@@ -20,6 +21,7 @@ export type DailyOutlook = {
   label: string;
   score: number;
   maxWind: number;
+  maxWindDirDeg?: number;
   maxGust: number;
   maxPrecipProb: number;
   totalPrecipMm: number;
@@ -70,6 +72,10 @@ export function buildWeeklyOutlook(
   for (const day of daysSorted) {
     const rows = byDay.get(day) ?? [];
     const maxWind = Math.max(...rows.map((r) => (typeof r.windSpeedKts === 'number' ? r.windSpeedKts : 0)), 0);
+    const maxWindRow = rows.find((r) => r.windSpeedKts === maxWind);
+    const maxWindDirDeg = typeof maxWindRow?.windDirDeg === 'number' && Number.isFinite(maxWindRow.windDirDeg)
+      ? maxWindRow.windDirDeg
+      : undefined;
     const maxGust = Math.max(...rows.map((r) => (typeof r.windGustKts === 'number' ? r.windGustKts : r.windSpeedKts ?? 0)), 0);
     const maxPrecipProb = Math.max(...rows.map((r) => (typeof r.precipProbPct === 'number' ? r.precipProbPct : 0)), 0);
     const totalPrecipMm = rows.reduce((acc, r) => acc + (typeof r.precipMm === 'number' ? r.precipMm : 0), 0);
@@ -97,6 +103,7 @@ export function buildWeeklyOutlook(
       label: isoToLocalDay(`${day}T12:00:00`),
       score,
       maxWind,
+      maxWindDirDeg,
       maxGust,
       maxPrecipProb,
       totalPrecipMm,
