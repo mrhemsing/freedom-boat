@@ -595,7 +595,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       disposed = true;
       cleanup?.();
     };
-  }, [activeMarinas, dayIndex, launches, marinaListIndex, showLaunches, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
+  }, [activeMarinas, launches, showLaunches, visibleMarinas]);
 
   useEffect(() => {
     let disposed = false;
