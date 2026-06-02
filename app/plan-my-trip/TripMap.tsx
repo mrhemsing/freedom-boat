@@ -101,6 +101,7 @@ const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
 const DEFAULT_MARINA_FOCUS_ZOOM = 13;
 const LINKED_MARINA_FOCUS_ZOOM = DEFAULT_MARINA_FOCUS_ZOOM + 4;
+const MOBILE_LINKED_MARINA_FOCUS_ZOOM = 10;
 const MAX_CLUSTER_ZOOM = 8;
 const CLUSTER_DISTANCE_PX = 46;
 
@@ -877,6 +878,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   function focusLinkedMarina(marina: Marina) {
+    const linkedFocusZoom = isMobilePlanner() ? MOBILE_LINKED_MARINA_FOCUS_ZOOM : LINKED_MARINA_FOCUS_ZOOM;
     if (isMobilePlanner()) {
       pendingListScrollMarinaIdRef.current = marina.id;
       setQuery('');
@@ -890,9 +892,9 @@ export default function TripMap({ marinas }: TripMapProps) {
     } else {
       revealMarinaInList(marina.id);
     }
-    centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM);
-    window.setTimeout(() => centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM), 700);
-    window.setTimeout(() => centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM), 1400);
+    centerMapOnMarina(marina, linkedFocusZoom);
+    window.setTimeout(() => centerMapOnMarina(marina, linkedFocusZoom), 700);
+    window.setTimeout(() => centerMapOnMarina(marina, linkedFocusZoom), 1400);
 
     const openMarkerPopup = () => {
       markerRefs.current[marina.id]?.openPopup?.();
