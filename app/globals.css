@@ -2887,10 +2887,10 @@ hr.soft {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   border: 0;
   border-bottom: 1px solid var(--planner-line);
-  padding: 15px 4px;
+  padding: 14px 2px;
   background: transparent;
   color: var(--planner-navy);
   cursor: pointer;
@@ -2901,9 +2901,14 @@ hr.soft {
 .plannerRowMain {
   flex: 1 1 auto;
   min-width: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-areas:
+    "idx body"
+    "idx meta";
   align-items: center;
-  gap: 14px;
+  column-gap: 12px;
+  row-gap: 3px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -2919,6 +2924,7 @@ hr.soft {
 
 .plannerIdx {
   position: relative;
+  grid-area: idx;
   flex: 0 0 auto;
   width: 42px;
   height: 42px;
@@ -2965,27 +2971,29 @@ hr.soft {
 }
 
 .plannerBody {
+  grid-area: body;
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: 3px;
+  gap: 2px;
 }
 
 .plannerName {
-  display: flex;
-  align-items: center;
+  display: block;
   gap: 6px;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   color: var(--planner-navy);
   font-size: 16px;
   font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.15;
+  white-space: normal;
 }
 
 .plannerName em {
-  flex: 0 0 auto;
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: 2px;
   border-radius: 999px;
   padding: 3px 6px;
   background: rgba(20, 86, 160, 0.12);
@@ -3004,21 +3012,28 @@ hr.soft {
 }
 
 .plannerRight {
-  flex: 0 0 auto;
-  display: grid;
-  gap: 3px;
-  text-align: right;
+  grid-area: meta;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
 }
 
 .plannerRight b {
+  flex: 0 0 auto;
   color: var(--planner-teal-dark);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 14px;
 }
 
 .plannerRight span {
+  min-width: 0;
+  overflow: hidden;
   color: var(--planner-muted);
   font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .plannerDetail {
@@ -3426,12 +3441,43 @@ hr.soft {
 }
 
 .plannerPlanToggle.compact {
-  min-width: 44px;
-  padding: 8px;
+  min-width: 34px;
+  min-height: 34px;
+  border-color: rgba(14, 116, 144, 0.34);
+  border-radius: 999px;
+  padding: 4px;
+  background: transparent;
+  color: var(--planner-teal);
+  box-shadow: none;
+}
+
+.plannerPlanToggle.compact:hover,
+.plannerPlanToggle.compact:focus-visible {
+  border-color: var(--planner-teal);
+  background: #eef7f9;
 }
 
 .plannerPlanToggle.compact .plannerPlanToggleText {
   display: none;
+}
+
+.plannerPlanToggle.compact .plannerPlanToggleIcon {
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  color: currentColor;
+  font-size: 15px;
+}
+
+.plannerPlanToggle.compact.active {
+  border-color: #6D28D9;
+  background: rgba(109, 40, 217, 0.1);
+  color: #6D28D9;
+}
+
+.plannerPlanToggle.compact.active .plannerPlanToggleIcon {
+  background: transparent;
+  color: currentColor;
 }
 
 .plannerPlanToggleHover {
