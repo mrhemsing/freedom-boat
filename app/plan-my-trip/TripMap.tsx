@@ -791,7 +791,24 @@ export default function TripMap({ marinas }: TripMapProps) {
     listScrollTopRef.current = sheetInnerRef.current?.scrollTop ?? 0;
   }
 
+  function preserveMapViewportAfterUpdate() {
+    const map = leafletMapRef.current;
+    if (!map) return;
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const restore = () => {
+      const liveMap = leafletMapRef.current;
+      if (!liveMap) return;
+      liveMap.setView(center, zoom, { animate: false });
+    };
+    window.requestAnimationFrame(() => {
+      window.setTimeout(restore, 0);
+      window.setTimeout(restore, 160);
+    });
+  }
+
   function toggleTripStop(marinaId: number) {
+    preserveMapViewportAfterUpdate();
     setRouteNodes((nodes) => {
       const marina = activeMarinas.find((candidate) => candidate.id === marinaId);
       if (nodes.some((node) => node.kind === 'stop' && node.marinaId === marinaId)) {
