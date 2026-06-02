@@ -102,6 +102,10 @@ const MAX_CHS_STATION_KM = 60;
 export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const timebarRef = useRef<HTMLDivElement | null>(null);
+  const sheetInnerRef = useRef<HTMLDivElement | null>(null);
+  const listScrollTopRef = useRef(0);
+  const restoreListScrollRef = useRef(false);
+  const showSheetDetailRef = useRef(false);
   const leafletMapRef = useRef<any>(null);
   const initialMapBoundsRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
@@ -175,6 +179,10 @@ export default function TripMap({ marinas }: TripMapProps) {
   const showSheetDetail = Boolean((selected || selectedLaunch) && !mobileMarkerModal);
 
   useEffect(() => {
+    showSheetDetailRef.current = showSheetDetail;
+  }, [showSheetDetail]);
+
+  useEffect(() => {
     alwaysVisibleClusterIdsRef.current = new Set([
       ...(selectedId == null ? [] : [selectedId]),
       ...tripStops
@@ -212,6 +220,25 @@ export default function TripMap({ marinas }: TripMapProps) {
       document.body.style.overflow = originalOverflow;
     };
   }, [mobileMarkerModal]);
+
+  useEffect(() => {
+    const sheet = sheetInnerRef.current;
+    if (!sheet) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      if (showSheetDetail) {
+        sheet.scrollTo({ top: 0, behavior: 'auto' });
+        return;
+      }
+
+      if (restoreListScrollRef.current) {
+        sheet.scrollTo({ top: listScrollTopRef.current, behavior: 'auto' });
+        restoreListScrollRef.current = false;
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectedId, selectedLaunchId, showSheetDetail]);
 
   useEffect(() => {
     if (!mobileMarkerModal) return;
@@ -432,6 +459,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           zIndexOffset: marina.freedomClub ? 600 : 0
         }).addTo(map);
         marker.on('click', () => {
+          rememberListScroll();
           setSelectedId(marina.id);
           setSelectedLaunchId(null);
           if (isMobilePlanner()) {
@@ -472,6 +500,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             zIndexOffset: 500
           }).addTo(map);
           marker.on('click', () => {
+            rememberListScroll();
             setSelectedId(null);
             setSelectedLaunchId(launch.id);
             if (isMobilePlanner()) {
@@ -686,6 +715,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }, [isRouteEditing, landCollisions, resolvedRouteNodes, routeNodes]);
 
   function openMarina(marina: Marina) {
+    rememberListScroll();
     setSelectedId(marina.id);
     setSelectedLaunchId(null);
     setMobileMarkerModal(false);
@@ -695,6 +725,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   function openLaunch(launch: BoatLaunch) {
+    rememberListScroll();
     setSelectedLaunchId(launch.id);
     setSelectedId(null);
     setMobileMarkerModal(false);
@@ -703,9 +734,15 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   function closeSelectedDetail() {
+    restoreListScrollRef.current = true;
     setSelectedId(null);
     setSelectedLaunchId(null);
     setMobileMarkerModal(false);
+  }
+
+  function rememberListScroll() {
+    if (showSheetDetailRef.current) return;
+    listScrollTopRef.current = sheetInnerRef.current?.scrollTop ?? 0;
   }
 
   function toggleTripStop(marinaId: number) {
@@ -960,7 +997,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           <span />
         </button>
 
-        <div className="plannerSheetInner">
+        <div className="plannerSheetInner" ref={sheetInnerRef}>
           {showSheetDetail && selected ? (
             <MarinaDetail
               marina={selected}
