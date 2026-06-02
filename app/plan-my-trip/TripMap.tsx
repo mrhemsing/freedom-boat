@@ -98,6 +98,7 @@ const USE_CHS = true;
 const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
+const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
 const MAX_CLUSTER_ZOOM = 8;
 const CLUSTER_DISTANCE_PX = 46;
 
@@ -478,7 +479,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         dragging: true,
         doubleClickZoom: true,
         touchZoom: true
-      }).setView([49.25, -123.12], 11);
+      }).setView([49.25, -123.12], DEFAULT_PLANNER_OVERVIEW_ZOOM);
       leafletMapRef.current = map;
       map.on('click', (event: { latlng: { lat: number; lng: number } }) => {
         routeClickHandlerRef.current?.(event.latlng);
@@ -2218,7 +2219,7 @@ function fitPlannerMap(map: any, bounds: any, isExpanded: boolean) {
   const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
   map.fitBounds(bounds.pad(0.16), {
     animate: false,
-    maxZoom: 11,
+    maxZoom: DEFAULT_PLANNER_OVERVIEW_ZOOM,
     paddingTopLeft: [0, 0],
     paddingBottomRight: isDesktop && !isExpanded ? [24, 0] : [0, 0]
   });
