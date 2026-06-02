@@ -98,6 +98,7 @@ const USE_CHS = true;
 const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
+const MAX_CLUSTER_ZOOM = 10;
 
 export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -1627,7 +1628,15 @@ function updatePlannerClusters(
   clusterMarkers.forEach((marker) => marker.remove());
   clusterMarkers.length = 0;
 
-  const clusterDistancePx = map.getZoom() >= 14 ? 22 : 46;
+  if (map.getZoom() > MAX_CLUSTER_ZOOM) {
+    marinas.forEach((marina) => {
+      const marker = markers[marina.id];
+      if (marker && !marker._map) marker.addTo(map);
+    });
+    return;
+  }
+
+  const clusterDistancePx = 46;
   const clusters: Array<{
     lat: number;
     lon: number;
