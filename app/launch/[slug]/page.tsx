@@ -23,7 +23,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function LaunchSeoPage({ params }: { params: { slug: string } }) {
+export default async function LaunchSeoPage({
+  params,
+  searchParams
+}: {
+  params: { slug: string };
+  searchParams?: { embed?: string };
+}) {
   const launch = getLaunchBySlug(params.slug);
   if (!launch) return notFound();
 
@@ -31,19 +37,24 @@ export default async function LaunchSeoPage({ params }: { params: { slug: string
   const area = areaHubForPlace(launch);
   const nearby = nearbyMarinas(launch.lat, launch.lon);
   const minTide = launch.minTide ?? (launch.type.toLowerCase().includes('hand') ? 0.8 : 1.2);
+  const isPlannerEmbed = searchParams?.embed === 'planner';
 
   return (
     <main className="container seoPage">
       <header className="seoHero">
-        <a className="seoBrand" href="/plan-my-trip" aria-label="FAIRTIDE map">
-          <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={64} height={64} />
-          <span>FAIRTIDE</span>
-        </a>
-        <nav className="seoBreadcrumb" aria-label="Breadcrumb">
-          <a href="/plan-my-trip">Map</a>
-          <span>/</span>
-          <a href={`/area/${area.slug}`}>{area.name}</a>
-        </nav>
+        {!isPlannerEmbed ? (
+          <>
+            <a className="seoBrand" href="/plan-my-trip" aria-label="FAIRTIDE map">
+              <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={64} height={64} />
+              <span>FAIRTIDE</span>
+            </a>
+            <nav className="seoBreadcrumb" aria-label="Breadcrumb">
+              <a href="/plan-my-trip">Map</a>
+              <span>/</span>
+              <a href={`/area/${area.slug}`}>{area.name}</a>
+            </nav>
+          </>
+        ) : null}
         <h1>{launch.name} Boat Launch & Tides</h1>
         <p>{snapshot.summary}</p>
         <div className="seoActions">

@@ -47,7 +47,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function MarinaSeoPage({ params }: { params: { slug: string } }) {
+export default async function MarinaSeoPage({
+  params,
+  searchParams
+}: {
+  params: { slug: string };
+  searchParams?: { embed?: string };
+}) {
   const marina = getMarinaBySlug(params.slug);
   if (!marina) return notFound();
   if (marina.locationId) redirect(marinaPath(marina));
@@ -59,19 +65,24 @@ export default async function MarinaSeoPage({ params }: { params: { slug: string
   const access = marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
   const area = areaHubForPlace(marina);
   const title = marinaPageTitle(marina);
+  const isPlannerEmbed = searchParams?.embed === 'planner';
 
   return (
     <main className="container seoPage">
       <header className="seoHero">
-        <a className="seoBrand" href="/plan-my-trip" aria-label="FAIRTIDE map">
-          <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={64} height={64} />
-          <span>FAIRTIDE</span>
-        </a>
-        <nav className="seoBreadcrumb" aria-label="Breadcrumb">
-          <a href="/plan-my-trip">Map</a>
-          <span>/</span>
-          <a href={`/area/${area.slug}`}>{area.name}</a>
-        </nav>
+        {!isPlannerEmbed ? (
+          <>
+            <a className="seoBrand" href="/plan-my-trip" aria-label="FAIRTIDE map">
+              <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={64} height={64} />
+              <span>FAIRTIDE</span>
+            </a>
+            <nav className="seoBreadcrumb" aria-label="Breadcrumb">
+              <a href="/plan-my-trip">Map</a>
+              <span>/</span>
+              <a href={`/area/${area.slug}`}>{area.name}</a>
+            </nav>
+          </>
+        ) : null}
         <h1>{title}</h1>
         <p>{snapshot.summary}</p>
         <div className="seoActions">

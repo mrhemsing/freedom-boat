@@ -1165,7 +1165,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                     onToggleTrip={() => toggleTripStop(selected.id)}
                     onOpenConditions={() => setConditionsPopover({
                       title: `${selected.name} conditions`,
-                      href: marinaPath(selected)
+                      href: conditionsEmbedPath(marinaPath(selected))
                     })}
                     onBack={closeSelectedDetail}
                   />
@@ -1175,7 +1175,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                     dayIndex={dayIndex}
                     onOpenConditions={() => setConditionsPopover({
                       title: `${selectedLaunch.name} conditions`,
-                      href: `/launch/${seoSlugForLaunch(selectedLaunch)}`
+                      href: conditionsEmbedPath(`/launch/${seoSlugForLaunch(selectedLaunch)}`)
                     })}
                     onBack={closeSelectedDetail}
                   />
@@ -1218,7 +1218,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               onToggleTrip={() => toggleTripStop(selected.id)}
               onOpenConditions={() => setConditionsPopover({
                 title: `${selected.name} conditions`,
-                href: marinaPath(selected)
+                href: conditionsEmbedPath(marinaPath(selected))
               })}
               onBack={closeSelectedDetail}
             />
@@ -1228,7 +1228,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               dayIndex={dayIndex}
               onOpenConditions={() => setConditionsPopover({
                 title: `${selectedLaunch.name} conditions`,
-                href: `/launch/${seoSlugForLaunch(selectedLaunch)}`
+                href: conditionsEmbedPath(`/launch/${seoSlugForLaunch(selectedLaunch)}`)
               })}
               onBack={closeSelectedDetail}
             />
@@ -1700,6 +1700,10 @@ function ConditionsPopover({
     </div>,
     document.body
   );
+}
+
+function conditionsEmbedPath(path: string) {
+  return `${path}${path.includes('?') ? '&' : '?'}embed=planner`;
 }
 
 function LaunchDetail({
