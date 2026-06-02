@@ -1,4 +1,4 @@
-import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, PUBLIC_LAUNCHES, TRIP_MARINAS, type BoatLaunch, type Marina } from './marinas';
+import { PLANNER_MARINAS, PUBLIC_LAUNCHES, type BoatLaunch, type Marina } from './marinas';
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://fairtide.app';
 
@@ -14,37 +14,37 @@ export const AREA_HUBS: AreaHub[] = [
     slug: 'sunshine-coast',
     name: 'Sunshine Coast',
     description: 'Marina conditions, tide windows, and transient moorage from Gibsons through Powell River and Lund.',
-    match: (place) => /sunshine coast|gibsons|pender harbour|halfmoon|powell river|lund|secret cove/i.test(place.area)
+    match: (place) => /sunshine coast|gibsons|keats|gambier|pender harbour|madeira|garden bay|halfmoon|powell river|lund|secret cove|smuggler cove/i.test(place.area)
   },
   {
     slug: 'howe-sound',
     name: 'Howe Sound',
     description: 'Boating conditions, marina tides, guest moorage, and public launch options around Howe Sound.',
-    match: (place) => /west vancouver|horseshoe bay|bowen|lions bay|deep cove/i.test(place.area)
+    match: (place) => /howe sound|west vancouver|horseshoe bay|bowen|snug cove|lions bay|deep cove/i.test(place.area)
   },
   {
     slug: 'gulf-islands',
     name: 'Gulf Islands',
     description: 'Tides, marina conditions, fuel, and transient moorage for Gulf Islands cruising stops.',
-    match: (place) => /galiano|north pender|south pender|pender island|sidney|north saanich|mill bay|oak bay/i.test(place.area)
+    match: (place) => /gulf islands|salt spring|ganges|galiano|thetis|gabriola|prevost|portland|cabbage|sidney spit|north pender|south pender|pender island|sidney|north saanich|saanich|mill bay|oak bay/i.test(place.area)
   },
   {
     slug: 'discovery-islands',
     name: 'Discovery Islands',
     description: 'Boating conditions, marina access, and Discovery Passage stops around Quadra, Cortes, and Desolation Sound.',
-    match: (place) => /discovery islands|desolation sound|quadra|cortes|campbell river/i.test(place.area)
+    match: (place) => /discovery islands|desolation sound|redonda|prideaux|tenedos|grace harbour|malaspina|copeland|refuge cove|squirrel cove|quadra|cortes|campbell river/i.test(place.area)
   },
   {
     slug: 'vancouver-island-east',
     name: 'Vancouver Island East Coast',
     description: 'East Vancouver Island marina conditions from French Creek and Nanaimo north to Comox and Courtenay.',
-    match: (place) => /comox|courtenay|french creek|nanoose|nanaimo|ladysmith/i.test(place.area)
+    match: (place) => /victoria|esquimalt|maple bay|cowichan|comox|courtenay|french creek|nanoose|nanaimo|newcastle|ladysmith/i.test(place.area)
   },
   {
     slug: 'puget-sound',
     name: 'Puget Sound',
     description: 'Freedom Club locations, boating conditions, marina access, and forecast windows around Puget Sound.',
-    match: (place) => /bellingham|anacortes|everett|edmonds|poulsbo|seattle|lake union|kirkland|lake washington|port orchard|tacoma|olympia/i.test(place.area)
+    match: (place) => /puget sound|south sound|central sound|san juans|san juan|orcas|lopez|bellingham|blaine|point roberts|anacortes|skagit|la conner|whidbey|deception pass|everett|edmonds|kingston|bainbridge|poulsbo|silverdale|brownsville|bremerton|port orchard|seattle|lake union|kirkland|lake washington|des moines|tacoma|gig harbor|olympia|shelton|grapeview|hood canal|union|brinnon|quilcene|port ludlow|port hadlock|port townsend|sequim|port angeles/i.test(place.area)
   },
   {
     slug: 'columbia-river',
@@ -62,7 +62,7 @@ export const AREA_HUBS: AreaHub[] = [
     slug: 'salish-sea',
     name: 'Salish Sea',
     description: 'Daily boating conditions, tide windows, marinas, and public launches across the Salish Sea.',
-    match: (place) => /vancouver|richmond|port moody|north vancouver|surrey|blaine|gibsons|sunshine coast|lions bay|deep cove|west vancouver|horseshoe bay|bowen|galiano|pender|sidney|north saanich|mill bay|oak bay|comox|courtenay|french creek|nanoose|campbell river|powell river|lund|discovery islands|desolation sound/i.test(place.area)
+    match: (place) => /salish sea|vancouver|richmond|port moody|north vancouver|surrey|blaine|gibsons|sunshine coast|howe sound|lions bay|deep cove|west vancouver|horseshoe bay|bowen|gulf islands|salt spring|galiano|pender|sidney|north saanich|saanich|mill bay|oak bay|victoria|maple bay|comox|courtenay|french creek|nanoose|nanaimo|campbell river|powell river|lund|discovery islands|desolation sound|puget sound|san juan|san juans|orcas|lopez|bellingham|anacortes|everett|edmonds|poulsbo|seattle|tacoma|olympia|hood canal|port townsend|sequim|port angeles/i.test(place.area)
   },
   {
     slug: 'pacific-northwest',
@@ -72,7 +72,7 @@ export const AREA_HUBS: AreaHub[] = [
   }
 ];
 
-export const SEO_MARINAS = [...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS, ...FBC_PNW_MARINAS].map((marina) => ({
+export const SEO_MARINAS = PLANNER_MARINAS.map((marina) => ({
   ...marina,
   slug: seoSlugForMarina(marina)
 }));

@@ -80,7 +80,7 @@ export default async function LaunchSeoPage({ params }: { params: { slug: string
           <div><dt>Fee</dt><dd>{launch.fee ?? 'Verify locally'}</dd></div>
         </dl>
 
-        <h2>Nearby Marinas</h2>
+        <h2>Nearby Destinations</h2>
         <div className="seoLinkGrid">
           {nearby.map((marina) => (
             <a key={marina.slug} href={marinaPath(marina)}>

@@ -6,12 +6,12 @@ type BrowseType = 'all' | 'areas' | 'marinas' | 'launches';
 const FILTERS: { label: string; type: BrowseType }[] = [
   { label: 'All', type: 'all' },
   { label: 'Areas', type: 'areas' },
-  { label: 'Marinas', type: 'marinas' },
+  { label: 'Destinations', type: 'marinas' },
   { label: 'Launches', type: 'launches' }
 ];
 
 export const metadata: Metadata = {
-  title: 'Browse Marinas, Launches & Area Guides | Fairtide',
+  title: 'Browse Marinas, Marine Parks, Launches & Area Guides | Fairtide',
   description: 'Browse Fairtide marina condition pages, public boat launches, and Pacific Northwest area guides.',
   alternates: {
     canonical: canonicalUrl('/browse')
@@ -72,7 +72,7 @@ export default function BrowsePage({
 
         {showMarinas ? (
           <>
-            <h2>Marinas</h2>
+            <h2>Destinations</h2>
             <div className="seoLinkGrid">
               {SEO_MARINAS.map((marina) => (
                 <a key={marina.slug} href={marinaPath(marina)}>

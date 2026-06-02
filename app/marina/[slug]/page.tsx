@@ -116,7 +116,7 @@ export default async function MarinaSeoPage({ params }: { params: { slug: string
           ) : null}
         </dl>
 
-        <h2>Marinas Near {marina.name}</h2>
+        <h2>Destinations Near {marina.name}</h2>
         <div className="seoLinkGrid">
           {nearby.map((near) => (
             <a key={near.slug} href={marinaPath(near)}>

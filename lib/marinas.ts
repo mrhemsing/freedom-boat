@@ -1,3 +1,5 @@
+import { SALISH_SEA_MARINAS, SALISH_SEA_MARINE_PARKS } from './salish-sea';
+
 export type Marina = {
   id: number;
   osmId?: string;
@@ -823,9 +825,86 @@ export const PUBLIC_LAUNCHES: BoatLaunch[] = [
   { id: 11, name: 'Squamish Public Ramp', area: 'Mamquam Blind Channel', lat: 49.6938, lon: -123.1558, type: 'Trailer', minTide: 1.4 }
 ];
 
+export const BASE_MARINAS: Marina[] = [
+  ...TRIP_MARINAS,
+  ...ADDITIONAL_PUBLIC_MARINAS,
+  ...FBC_PNW_MARINAS
+];
+
+export const SALISH_SEA_DESTINATIONS: Marina[] = mergeUniqueDestinations(
+  BASE_MARINAS,
+  [
+    ...SALISH_SEA_MARINAS,
+    ...SALISH_SEA_MARINE_PARKS
+  ]
+);
+
+export const PLANNER_MARINAS: Marina[] = SALISH_SEA_DESTINATIONS;
+
+export { SALISH_SEA_COUNTS, SALISH_SEA_DATASET, SALISH_SEA_LAUNCH_NOTES } from './salish-sea';
+
 export const TRIP_MAP_BOUNDS = {
-  north: 49.53,
-  south: 48.62,
-  west: -124.02,
-  east: -122.63
+  north: 50.25,
+  south: 47.0,
+  west: -125.35,
+  east: -122.2
 };
+
+function mergeUniqueDestinations(primary: Marina[], additions: Marina[]) {
+  const merged = [...primary];
+
+  for (const destination of additions) {
+    if (!merged.some((existing) => sameDestination(existing, destination))) {
+      merged.push(destination);
+    }
+  }
+
+  return merged;
+}
+
+function sameDestination(a: Marina, b: Marina) {
+  const aName = normalizeDestinationName(a.name);
+  const bName = normalizeDestinationName(b.name);
+
+  if (aName === bName) return true;
+  if (distanceKm(a.lat, a.lon, b.lat, b.lon) > 0.12) return false;
+
+  return shareMeaningfulToken(aName, bName);
+}
+
+function normalizeDestinationName(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\b(freedom boat club|marina|harbour|harbor|port|of|the|authority|auth|resort|marine|small craft|public dock|landing)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function shareMeaningfulToken(a: string, b: string) {
+  const aTokens = meaningfulTokens(a);
+  const bTokens = meaningfulTokens(b);
+  return aTokens.some((token) => bTokens.includes(token));
+}
+
+function meaningfulTokens(value: string) {
+  return value.split(' ').filter((token) => token.length > 3);
+}
+
+function distanceKm(aLat: number, aLon: number, bLat: number, bLon: number) {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(bLat - aLat);
+  const dLon = toRadians(bLon - aLon);
+  const lat1 = toRadians(aLat);
+  const lat2 = toRadians(bLat);
+  const haversine =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  return 2 * earthRadiusKm * Math.asin(Math.sqrt(haversine));
+}
+
+function toRadians(value: number) {
+  return value * Math.PI / 180;
+}

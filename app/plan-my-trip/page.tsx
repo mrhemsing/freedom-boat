@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ADDITIONAL_PUBLIC_MARINAS, FBC_PNW_MARINAS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
+import { FBC_PNW_MARINAS, PLANNER_MARINAS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
 import { marinaPath } from '../../lib/seo-slugs';
 import TripMap from './TripMap';
 
@@ -56,7 +56,7 @@ export default function PlanMyTripPage() {
       </header>
 
       <section className="tripPlannerPanel" aria-label="Plan my trip map">
-        <TripMap marinas={[...TRIP_MARINAS, ...ADDITIONAL_PUBLIC_MARINAS, ...FBC_PNW_MARINAS]} />
+        <TripMap marinas={PLANNER_MARINAS} />
       </section>
 
       <footer className="siteFooter">

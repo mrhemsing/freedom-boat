@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const hub = getAreaHubBySlug(params.slug);
   if (!hub) return {};
   return {
-    title: `${hub.name} Marinas, Boat Launches & Boating Conditions | Fairtide`,
+    title: `${hub.name} Marinas, Marine Parks, Boat Launches & Boating Conditions | Fairtide`,
     description: hub.description,
     alternates: {
       canonical: canonicalUrl(`/area/${hub.slug}`)
@@ -40,7 +40,7 @@ export default function AreaHubPage({ params }: { params: { slug: string } }) {
           <span>/</span>
           <span>{hub.name}</span>
         </nav>
-        <h1>{hub.name} Marinas, Boat Launches & Boating Conditions</h1>
+        <h1>{hub.name} Destinations, Boat Launches & Boating Conditions</h1>
         <p>{hub.description}</p>
         <div className="seoActions">
           <a className="seoButton seoButtonPrimary" href="/plan-my-trip">Open interactive map</a>
@@ -49,7 +49,7 @@ export default function AreaHubPage({ params }: { params: { slug: string } }) {
       </header>
 
       <section className="seoContent">
-        <h2>{hub.name} Marinas</h2>
+        <h2>{hub.name} Destinations</h2>
         <div className="seoLinkGrid">
           {marinas.map((marina) => (
             <a key={marina.slug} href={marinaPath(marina)}>

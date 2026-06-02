@@ -663,7 +663,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder={showLaunches ? 'Search marinas and launches' : 'Search marinas'}
+                    placeholder={showLaunches ? 'Search destinations and launches' : 'Search destinations'}
                     autoComplete="off"
                   />
                   {query ? (
@@ -675,7 +675,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                 <button
                   className="plannerCollapse"
                   type="button"
-                  aria-label={sheetState === 'collapsed' ? 'Open marina sheet' : 'Collapse marina sheet'}
+                  aria-label={sheetState === 'collapsed' ? 'Open destination sheet' : 'Collapse destination sheet'}
                   onClick={() => setSheetState(sheetState === 'collapsed' ? 'full' : 'collapsed')}
                 >
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -727,7 +727,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               </label>
 
               <div className="plannerResultsHead">
-                {query ? `Results - ${filtered.length}` : showLaunches ? 'Marinas and launches' : 'Marinas'}
+                {query ? `Results - ${filtered.length}` : showLaunches ? 'Destinations and launches' : 'Destinations'}
               </div>
 
               <div className="plannerRows">
