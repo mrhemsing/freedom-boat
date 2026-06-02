@@ -328,6 +328,11 @@ a:hover {
   background: #fff;
 }
 
+.marinaJumpMenu summary,
+.marinaJumpBars {
+  border-radius: 8px;
+}
+
 .marinaJumpPanel {
   position: absolute;
   z-index: 2600;
