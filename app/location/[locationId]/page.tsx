@@ -105,24 +105,18 @@ export default async function LocationPage({
             {now?.asOf ? <span style={{ opacity: 0.75 }}>{` • as of ${formatAsOf(now.asOf)}`}</span> : null}
           </div>
           {loc.address ? <div className="locationAddress" style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
-          <div className="marinaJumpWrap">
-            <MarinaJump value={id} groups={marinaJumpGroups} />
+          <div className="locationControlRow">
+            <div className="marinaJumpWrap">
+              <MarinaJump value={id} groups={marinaJumpGroups} />
+            </div>
+            <div className="mobileSunBadgeWrap">
+              <SunBadge sunrise={now?.sun?.sunrise} sunset={now?.sun?.sunset} />
+            </div>
           </div>
         </div>
 
         <div className="sunBadgeWrap" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <span className="badge" style={{ padding: 8, alignItems: 'stretch', borderRadius: 14 }}>
-            <span style={{ display: 'grid', gap: 6 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(255, 206, 64, 0.95)' }}>
-                <span style={{ display: 'inline-flex' }}><IconSunrise size={17} /></span>
-                <span style={{ color: 'rgba(255,255,255,0.90)', fontSize: 13 }}>{now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : '—'}</span>
-              </span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(251, 113, 133, 0.95)' }}>
-                <span style={{ display: 'inline-flex' }}><IconSunset size={17} /></span>
-                <span style={{ color: 'rgba(255,255,255,0.90)', fontSize: 13 }}>{now?.sun?.sunset ? formatAsOf(now.sun.sunset) : '—'}</span>
-              </span>
-            </span>
-          </span>
+          <SunBadge sunrise={now?.sun?.sunrise} sunset={now?.sun?.sunset} />
         </div>
       </header>
 
@@ -488,6 +482,23 @@ export default async function LocationPage({
         </div>
       </footer>
     </main>
+  );
+}
+
+function SunBadge({ sunrise, sunset }: { sunrise?: string; sunset?: string }) {
+  return (
+    <span className="badge sunBadge">
+      <span className="sunBadgeStack">
+        <span className="sunBadgeTime sunBadgeRise">
+          <span className="sunBadgeIcon"><IconSunrise size={17} /></span>
+          <span>{sunrise ? formatAsOf(sunrise) : '—'}</span>
+        </span>
+        <span className="sunBadgeTime sunBadgeSet">
+          <span className="sunBadgeIcon"><IconSunset size={17} /></span>
+          <span>{sunset ? formatAsOf(sunset) : '—'}</span>
+        </span>
+      </span>
+    </span>
   );
 }
 
