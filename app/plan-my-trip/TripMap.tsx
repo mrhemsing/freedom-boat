@@ -115,6 +115,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const initialMapBoundsRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
+  const userLocationMarkerRef = useRef<any>(null);
   const clusterMarkerRefs = useRef<any[]>([]);
   const clusterRefreshRef = useRef<(() => void) | null>(null);
   const alwaysVisibleClusterIdsRef = useRef<Set<number>>(new Set());
@@ -499,6 +500,63 @@ export default function TripMap({ marinas }: TripMapProps) {
       map.getContainer().addEventListener('click', handlePopupButtonClick);
 
       L.control.zoom({ position: isMobilePlanner() ? 'bottomright' : 'topleft' }).addTo(map);
+      const locateControl = new L.Control({ position: isMobilePlanner() ? 'bottomright' : 'topleft' });
+      locateControl.onAdd = () => {
+        const container = L.DomUtil.create('div', 'leaflet-bar plannerLocateControl');
+        const button = L.DomUtil.create('button', 'plannerLocateButton', container);
+        button.type = 'button';
+        button.title = 'Show my location';
+        button.setAttribute('aria-label', 'Show my location');
+        button.innerHTML = '<span aria-hidden="true"></span>';
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
+        L.DomEvent.on(button, 'click', (event: Event) => {
+          L.DomEvent.preventDefault(event);
+          if (!navigator.geolocation) {
+            button.title = 'Location is not available in this browser';
+            return;
+          }
+
+          button.classList.add('is-loading');
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const latlng: [number, number] = [position.coords.latitude, position.coords.longitude];
+              const icon = L.divIcon({
+                className: '',
+                html: '<div class="tripMe"><div class="tripMeRing"></div><div class="tripMeCore"></div></div>',
+                iconSize: [34, 34],
+                iconAnchor: [17, 17]
+              });
+
+              if (userLocationMarkerRef.current) {
+                userLocationMarkerRef.current.setLatLng(latlng);
+                userLocationMarkerRef.current.setIcon(icon);
+              } else {
+                userLocationMarkerRef.current = L.marker(latlng, {
+                  icon,
+                  zIndexOffset: 900
+                }).addTo(map);
+              }
+
+              map.setView(latlng, Math.max(map.getZoom(), 13), { animate: true });
+              button.classList.remove('is-loading');
+              button.classList.add('is-active');
+              button.title = 'Location shown';
+            },
+            () => {
+              button.classList.remove('is-loading');
+              button.title = 'Location permission was denied';
+            },
+            {
+              enableHighAccuracy: true,
+              maximumAge: 60000,
+              timeout: 10000
+            }
+          );
+        });
+        return container;
+      };
+      locateControl.addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
         maxZoom: 20,
         subdomains: 'abcd',
@@ -595,6 +653,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         clusterMarkerRefs.current = [];
         clusterRefreshRef.current = null;
         waypointMarkerRefs.current = {};
+        userLocationMarkerRef.current = null;
         routeLineRef.current = null;
         leafletMapRef.current = null;
         initialMapBoundsRef.current = null;
