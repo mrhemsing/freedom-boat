@@ -29,6 +29,7 @@ type RouteStopNode = { kind: 'stop'; marinaId: number };
 type RouteWaypointNode = { kind: 'waypoint'; id: string; lat: number; lon: number };
 type RouteNode = RouteStopNode | RouteWaypointNode;
 type PlanToast = { message: string; undoNodes: RouteNode[] } | null;
+type DepartInputParts = { date: string; hour: string; minute: string; meridiem: 'AM' | 'PM' };
 type ResolvedStopNode = RouteStopNode & {
   name: string;
   lat: number;
@@ -1684,6 +1685,10 @@ function TripPlanView({
   const summary = tripSummary(legs);
   const stopCount = routeNodes.filter((node) => node.kind === 'stop').length;
   const waypointCount = routeNodes.length - stopCount;
+  const departParts = departInputParts(departAt);
+  const updateDepartPart = (patch: Partial<DepartInputParts>) => {
+    onDepartChange(updateDepartInput(departAt, patch));
+  };
 
   return (
     <div className="plannerDetail plannerTripView">
@@ -1697,10 +1702,41 @@ function TripPlanView({
       <p>{VESSELS[vesselKey].label} - {stopCount ? `${stopCount} stops${waypointCount ? ` + ${waypointCount} waypoints` : ''}` : 'Add stops from the map or list'}</p>
 
       <div className="plannerTripControls">
-        <label>
+        <label className="plannerDepartDate">
           <span>Depart</span>
-          <input type="datetime-local" value={departAt} onChange={(event) => onDepartChange(event.target.value)} />
+          <input type="date" value={departParts.date} onChange={(event) => updateDepartPart({ date: event.target.value })} />
         </label>
+        <div className="plannerDepartTime" aria-label="Departure time">
+          <label>
+            <span>Hour</span>
+            <select value={departParts.hour} onChange={(event) => updateDepartPart({ hour: event.target.value })}>
+              {Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0')).map((hour) => (
+                <option key={hour} value={hour}>{hour}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Min</span>
+            <select value={departParts.minute} onChange={(event) => updateDepartPart({ minute: event.target.value })}>
+              {Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0')).map((minute) => (
+                <option key={minute} value={minute}>{minute}</option>
+              ))}
+            </select>
+          </label>
+          <div className="plannerDepartMeridiem" role="group" aria-label="AM or PM">
+            {(['AM', 'PM'] as const).map((meridiem) => (
+              <button
+                key={meridiem}
+                type="button"
+                className={departParts.meridiem === meridiem ? 'active' : ''}
+                aria-pressed={departParts.meridiem === meridiem}
+                onClick={() => updateDepartPart({ meridiem })}
+              >
+                {meridiem}
+              </button>
+            ))}
+          </div>
+        </div>
         <label>
           <span>Speed</span>
           <input
@@ -2247,14 +2283,42 @@ function estimateSunset(lat: number, lon: number, date: Date) {
 
 function defaultDepartInput() {
   const date = new Date();
-  date.setMinutes(0, 0, 0);
-  date.setHours(date.getHours() + 1);
+  date.setHours(9, 0, 0, 0);
+  if (date.getTime() <= Date.now()) {
+    date.setDate(date.getDate() + 1);
+  }
   return toLocalInput(date);
 }
 
 function toLocalInput(date: Date) {
   const pad = (value: number) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function departInputParts(value: string): DepartInputParts {
+  const fallback = defaultDepartInput();
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(value || fallback)
+    ?? /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(fallback);
+  const date = match?.[1] ?? fallback.slice(0, 10);
+  const hour24 = Math.max(0, Math.min(23, Number(match?.[2] ?? 9)));
+  const minute = String(Math.max(0, Math.min(59, Number(match?.[3] ?? 0)))).padStart(2, '0');
+  const hour12 = hour24 % 12 || 12;
+  return {
+    date,
+    hour: String(hour12).padStart(2, '0'),
+    minute,
+    meridiem: hour24 >= 12 ? 'PM' : 'AM'
+  };
+}
+
+function updateDepartInput(current: string, patch: Partial<DepartInputParts>) {
+  const parts = { ...departInputParts(current), ...patch };
+  const hour12 = Math.max(1, Math.min(12, Number(parts.hour) || 9));
+  const minute = String(Math.max(0, Math.min(59, Number(parts.minute) || 0))).padStart(2, '0');
+  const hour24 = parts.meridiem === 'PM'
+    ? (hour12 === 12 ? 12 : hour12 + 12)
+    : (hour12 === 12 ? 0 : hour12);
+  return `${parts.date}T${String(hour24).padStart(2, '0')}:${minute}`;
 }
 
 function restoreFloatPlanFromHash(marinas: Marina[]) {

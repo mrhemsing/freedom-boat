@@ -3489,7 +3489,7 @@ hr.soft {
 
 .plannerTripControls {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(86px, 0.65fr);
+  grid-template-columns: minmax(0, 1fr) minmax(86px, 0.42fr);
   gap: 10px;
   margin-top: 14px;
 }
@@ -3510,7 +3510,33 @@ hr.soft {
   text-transform: uppercase;
 }
 
-.plannerTripControls input {
+.plannerDepartDate {
+  grid-column: 1;
+}
+
+.plannerDepartTime {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: minmax(54px, 1fr) minmax(54px, 1fr) 52px;
+  gap: 8px;
+  border-radius: 13px;
+  padding: 9px 10px;
+  background: var(--planner-teal-tint-2);
+}
+
+.plannerTripControls > label:last-child {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-content: start;
+}
+
+.plannerDepartTime label {
+  padding: 0;
+  background: transparent;
+}
+
+.plannerTripControls input,
+.plannerTripControls select {
   width: 100%;
   border: 0;
   outline: 0;
@@ -3520,6 +3546,35 @@ hr.soft {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 14px;
   font-weight: 850;
+}
+
+.plannerTripControls select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.plannerDepartMeridiem {
+  display: grid;
+  gap: 4px;
+}
+
+.plannerDepartMeridiem button {
+  min-height: 30px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--planner-navy);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.plannerDepartMeridiem button.active {
+  background: #0b82f0;
+  border-color: #075fb2;
+  box-shadow: 0 0 0 2px rgba(7, 95, 178, 0.16);
+  color: #ffffff;
 }
 
 .plannerRouteActions {
