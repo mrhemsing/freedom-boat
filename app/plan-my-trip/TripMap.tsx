@@ -147,6 +147,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [conditionsPopover, setConditionsPopover] = useState<ConditionsPopoverState>(null);
   const [planToast, setPlanToast] = useState<PlanToast>(null);
   const [dayIndex, setDayIndex] = useState(0);
+  const [mapReadyTick, setMapReadyTick] = useState(0);
   const [activeMarinas, setActiveMarinas] = useState(() => snapMarinaList(marinas));
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
   const [liveTides, setLiveTides] = useState<Record<number, LiveTide>>({});
@@ -201,10 +202,11 @@ export default function TripMap({ marinas }: TripMapProps) {
 
     const marina = activeMarinas.find((candidate) => seoSlugForMarina(candidate) === marinaSlug);
     if (!marina) return;
+    if (!leafletMapRef.current || !markerRefs.current[marina.id]) return;
 
     initialInteractiveMapHandledRef.current = true;
     focusLinkedMarina(marina);
-  }, [activeMarinas]);
+  }, [activeMarinas, mapReadyTick]);
 
   useEffect(() => {
     tripStopSetRef.current = tripStopSet;
@@ -652,6 +654,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       const loadBounds = initialBounds.isValid() ? initialBounds : bounds;
       initialMapBoundsRef.current = loadBounds;
       fitPlannerMap(map, loadBounds, false);
+      setMapReadyTick((tick) => tick + 1);
 
       setTimeout(() => {
         if (!disposed && leafletMapRef.current === map) {

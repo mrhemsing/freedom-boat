@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../../lib/outlook';
-import { marinaPath, SEO_MARINAS, type SeoMarina } from '../../../lib/seo-slugs';
+import { marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
@@ -77,6 +77,7 @@ export default async function LocationPage({
   const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
   const marinaJumpGroups = buildMarinaJumpGroups();
+  const mapHref = plannerMapHrefForLocation(id);
 
   return (
     <main className="container">
@@ -92,7 +93,7 @@ export default async function LocationPage({
             </div>
           </div>
         </div>
-        <a className="planMapButton" href="/plan-my-trip" aria-label="Plan my trip">
+        <a className="planMapButton" href={mapHref} aria-label={`Open ${loc.name} on trip map`}>
           <IconMap size={22} />
         </a>
 
@@ -511,6 +512,11 @@ function buildMarinaJumpGroups() {
   }
 
   return [...groups.entries()].map(([label, options]) => ({ label, options }));
+}
+
+function plannerMapHrefForLocation(locationId: LocationId) {
+  const marina = SEO_MARINAS.find((candidate) => candidate.locationId === locationId);
+  return marina ? `/plan-my-trip?marina=${seoSlugForMarina(marina)}` : '/plan-my-trip';
 }
 
 function compareMarinaOptions(a: SeoMarina, b: SeoMarina) {
