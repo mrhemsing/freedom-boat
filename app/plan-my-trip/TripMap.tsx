@@ -20,6 +20,17 @@ type PlannerResult =
   | { kind: 'marina'; marina: Marina }
   | { kind: 'launch'; launch: BoatLaunch };
 type PlannerOutlooks = Record<string, DailyOutlook[]>;
+type RouteStopNode = { kind: 'stop'; marinaId: number };
+type RouteWaypointNode = { kind: 'waypoint'; id: string; lat: number; lon: number };
+type RouteNode = RouteStopNode | RouteWaypointNode;
+type ResolvedStopNode = RouteStopNode & {
+  name: string;
+  lat: number;
+  lon: number;
+  marina: Marina;
+};
+type ResolvedWaypointNode = RouteWaypointNode & { name: string };
+type ResolvedRouteNode = ResolvedStopNode | ResolvedWaypointNode;
 type VesselKey = 'kayak' | 'small' | 'cruiser' | 'large' | 'sail';
 type VesselProfile = {
   label: string;
@@ -88,6 +99,10 @@ export default function TripMap({ marinas }: TripMapProps) {
   const initialMapBoundsRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
+  const routeLineRef = useRef<any>(null);
+  const waypointMarkerRefs = useRef<Record<string, any>>({});
+  const routeClickHandlerRef = useRef<((latlng: { lat: number; lng: number }) => void) | null>(null);
+  const isRouteEditingRef = useRef(false);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedLaunchId, setSelectedLaunchId] = useState<number | null>(null);
@@ -98,8 +113,9 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [tripMode, setTripMode] = useState(false);
   const [showLaunches, setShowLaunches] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRouteEditing, setIsRouteEditing] = useState(false);
   const [vesselKey, setVesselKey] = useState<VesselKey>('cruiser');
-  const [tripStops, setTripStops] = useState<number[]>([]);
+  const [routeNodes, setRouteNodes] = useState<RouteNode[]>([]);
   const [departAt, setDepartAt] = useState(() => defaultDepartInput());
   const [speedKt, setSpeedKt] = useState(DEFAULT_SPEED_KT);
   const [shareText, setShareText] = useState('');
@@ -111,9 +127,10 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [weeklyOutlooks, setWeeklyOutlooks] = useState<PlannerOutlooks>({});
   const restoredPlanRef = useRef(false);
   const vessel = VESSELS[vesselKey];
-  const tripMarinas = tripStops
-    .map((id) => activeMarinas.find((marina) => marina.id === id))
-    .filter(Boolean) as Marina[];
+  const tripStops = useMemo(() => routeNodes
+    .filter((node): node is RouteStopNode => node.kind === 'stop')
+    .map((node) => node.marinaId), [routeNodes]);
+  const resolvedRouteNodes = useMemo(() => resolveRouteNodes(routeNodes, activeMarinas), [routeNodes, activeMarinas]);
   const marinaListIndex = useMemo(() => {
     return new Map(activeMarinas.map((marina, index) => [marina.id, index + 1]));
   }, [activeMarinas]);
@@ -220,7 +237,7 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   useEffect(() => {
     const available = new Set(activeMarinas.map((marina) => marina.id));
-    setTripStops((stops) => stops.filter((id) => available.has(id)));
+    setRouteNodes((nodes) => cleanRouteNodes(nodes.filter((node) => node.kind === 'waypoint' || available.has(node.marinaId))));
   }, [activeMarinas]);
 
   useEffect(() => {
@@ -231,8 +248,8 @@ export default function TripMap({ marinas }: TripMapProps) {
     setVesselKey(restored.vesselKey);
     setDepartAt(restored.departAt);
     setSpeedKt(restored.speedKt);
-    setTripStops(restored.stops);
-    if (restored.stops.length) {
+    setRouteNodes(restored.nodes);
+    if (restored.nodes.some((node) => node.kind === 'stop')) {
       setTripMode(true);
       setSheetState('full');
     }
@@ -244,9 +261,10 @@ export default function TripMap({ marinas }: TripMapProps) {
       vesselKey,
       departAt,
       speedKt,
-      stops: tripStops
+      nodes: routeNodes,
+      marinas: activeMarinas
     });
-  }, [departAt, speedKt, tripStops, vesselKey]);
+  }, [activeMarinas, departAt, routeNodes, speedKt, vesselKey]);
 
   useEffect(() => {
     if (!USE_OSM) return;
@@ -300,6 +318,9 @@ export default function TripMap({ marinas }: TripMapProps) {
         touchZoom: true
       }).setView([49.05, -123.25], 9);
       leafletMapRef.current = map;
+      map.on('click', (event: { latlng: { lat: number; lng: number } }) => {
+        routeClickHandlerRef.current?.(event.latlng);
+      });
 
       L.control.zoom({ position: isMobilePlanner() ? 'bottomright' : 'topleft' }).addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
@@ -329,6 +350,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         }
         const marker = L.marker([marina.lat, marina.lon], {
           icon: marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks),
+          bubblingMouseEvents: false,
           zIndexOffset: marina.freedomClub ? 600 : 0
         }).addTo(map);
         marker.on('click', () => {
@@ -354,6 +376,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           }
           const marker = L.marker([launch.lat, launch.lon], {
             icon: launchIcon(L, launch),
+            bubblingMouseEvents: false,
             zIndexOffset: 500
           }).addTo(map);
           marker.on('click', () => {
@@ -386,6 +409,8 @@ export default function TripMap({ marinas }: TripMapProps) {
       cleanup = () => {
         markerRefs.current = {};
         launchMarkerRefs.current = {};
+        waypointMarkerRefs.current = {};
+        routeLineRef.current = null;
         leafletMapRef.current = null;
         initialMapBoundsRef.current = null;
         map.remove();
@@ -399,6 +424,10 @@ export default function TripMap({ marinas }: TripMapProps) {
       cleanup?.();
     };
   }, [activeMarinas, launches, marinaListIndex, showLaunches, weeklyOutlooks]);
+
+  useEffect(() => {
+    isRouteEditingRef.current = isRouteEditing;
+  }, [isRouteEditing]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -436,6 +465,107 @@ export default function TripMap({ marinas }: TripMapProps) {
     };
   }, [activeMarinas, marinaListIndex, selectedId, tripStops, dayIndex, vessel, weeklyOutlooks]);
 
+  useEffect(() => {
+    routeClickHandlerRef.current = (latlng) => {
+      if (!isRouteEditing || countRouteStops(routeNodes) < 2) return;
+      const resolved = resolveRouteNodes(routeNodes, activeMarinas);
+      if (resolved.length < 2) return;
+      const insertAt = nearestLegIndex(resolved, { lat: latlng.lat, lon: latlng.lng }) + 1;
+      const waypoint: RouteWaypointNode = {
+        kind: 'waypoint',
+        id: waypointId(),
+        lat: latlng.lat,
+        lon: latlng.lng
+      };
+      setRouteNodes((nodes) => [
+        ...nodes.slice(0, insertAt),
+        waypoint,
+        ...nodes.slice(insertAt)
+      ]);
+      setShareText('');
+      setShareMessage('');
+    };
+  }, [activeMarinas, isRouteEditing, routeNodes]);
+
+  useEffect(() => {
+    let active = true;
+    import('leaflet').then((L) => {
+      if (!active) return;
+      const map = leafletMapRef.current;
+      if (!map) return;
+      const coordinates: Array<[number, number]> = resolvedRouteNodes.map((node) => [node.lat, node.lon]);
+
+      if (countRouteStops(routeNodes) >= 2 && coordinates.length >= 2) {
+        if (routeLineRef.current) {
+          routeLineRef.current.setLatLngs(coordinates);
+        } else {
+          routeLineRef.current = L.polyline(coordinates, {
+            color: '#0e7490',
+            weight: 4,
+            opacity: 0.9,
+            dashArray: '10 8',
+            lineCap: 'round',
+            lineJoin: 'round'
+          }).addTo(map);
+        }
+      } else if (routeLineRef.current) {
+        routeLineRef.current.remove();
+        routeLineRef.current = null;
+      }
+
+      const liveWaypointIds = new Set(countRouteStops(routeNodes) >= 2
+        ? routeNodes.filter((node): node is RouteWaypointNode => node.kind === 'waypoint').map((node) => node.id)
+        : []);
+      Object.entries(waypointMarkerRefs.current).forEach(([id, marker]) => {
+        if (!liveWaypointIds.has(id)) {
+          marker.remove();
+          delete waypointMarkerRefs.current[id];
+        }
+      });
+
+      routeNodes.forEach((node) => {
+        if (countRouteStops(routeNodes) < 2) return;
+        if (node.kind !== 'waypoint') return;
+        const marker = waypointMarkerRefs.current[node.id];
+        if (marker) {
+          marker.setLatLng([node.lat, node.lon]);
+          if (isRouteEditing) {
+            marker.dragging?.enable?.();
+          } else {
+            marker.dragging?.disable?.();
+          }
+          return;
+        }
+
+        const nextMarker = L.marker([node.lat, node.lon], {
+          draggable: isRouteEditing,
+          icon: waypointIcon(L),
+          bubblingMouseEvents: false,
+          zIndexOffset: 650
+        }).addTo(map);
+        nextMarker.on('drag', (event: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+          const point = event.target.getLatLng();
+          setRouteNodes((nodes) => nodes.map((candidate) => candidate.kind === 'waypoint' && candidate.id === node.id
+            ? { ...candidate, lat: point.lat, lon: point.lng }
+            : candidate));
+          setShareText('');
+          setShareMessage('');
+        });
+        nextMarker.on('click', () => {
+          if (!isRouteEditingRef.current) return;
+          setRouteNodes((nodes) => nodes.filter((candidate) => candidate.kind !== 'waypoint' || candidate.id !== node.id));
+          setShareText('');
+          setShareMessage('');
+        });
+        waypointMarkerRefs.current[node.id] = nextMarker;
+      });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [isRouteEditing, resolvedRouteNodes, routeNodes]);
+
   function openMarina(marina: Marina) {
     setSelectedId(marina.id);
     setSelectedLaunchId(null);
@@ -460,18 +590,19 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   function toggleTripStop(marinaId: number) {
-    setTripStops((stops) => (
-      stops.includes(marinaId)
-        ? stops.filter((id) => id !== marinaId)
-        : [...stops, marinaId]
-    ));
+    setRouteNodes((nodes) => {
+      if (nodes.some((node) => node.kind === 'stop' && node.marinaId === marinaId)) {
+        return cleanRouteNodes(nodes.filter((node) => node.kind !== 'stop' || node.marinaId !== marinaId));
+      }
+      return [...nodes, { kind: 'stop', marinaId }];
+    });
     setTripMode(true);
     setShareText('');
     setShareMessage('');
   }
 
   async function shareFloatPlan() {
-    const text = buildFloatPlanText(tripMarinas, vessel, departAt, speedKt, dayIndex, weeklyOutlooks);
+    const text = buildFloatPlanText(resolvedRouteNodes, vessel, departAt, speedKt, dayIndex, weeklyOutlooks, liveTides);
     const url = typeof window === 'undefined' ? '' : window.location.href;
     setShareText('');
     setShareMessage('');
@@ -541,6 +672,27 @@ export default function TripMap({ marinas }: TripMapProps) {
                 <polygon points="3 11 22 2 13 21 11 13 3 11" />
               </svg>
               <span>Plan a trip</span>
+            </button>
+            <button
+              className={`plannerChip plannerRouteChip ${isRouteEditing ? 'active' : ''}`}
+              type="button"
+              aria-pressed={isRouteEditing}
+              disabled={tripStops.length < 2}
+              onClick={() => {
+                setIsRouteEditing((value) => !value);
+                setTripMode(true);
+                setSheetState('full');
+                setSelectedId(null);
+                setSelectedLaunchId(null);
+                setMobileMarkerModal(false);
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                <circle cx="5" cy="19" r="2" />
+                <circle cx="19" cy="5" r="2" />
+                <path d="M7 18c5-1 3-11 10-12" />
+              </svg>
+              <span>Edit route</span>
             </button>
             <button
               className={`plannerChip plannerFullscreenChip ${isFullscreen ? 'active' : ''}`}
@@ -633,13 +785,15 @@ export default function TripMap({ marinas }: TripMapProps) {
             <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={closeSelectedDetail} />
           ) : tripMode ? (
             <TripPlanView
-              marinas={tripMarinas}
+              routeNodes={resolvedRouteNodes}
               vessel={vessel}
               vesselKey={vesselKey}
               departAt={departAt}
               speedKt={speedKt}
               dayIndex={dayIndex}
               weeklyOutlooks={weeklyOutlooks}
+              liveTides={liveTides}
+              isRouteEditing={isRouteEditing}
               shareText={shareText}
               shareMessage={shareMessage}
               onBack={() => setTripMode(false)}
@@ -649,7 +803,13 @@ export default function TripMap({ marinas }: TripMapProps) {
               }}
               onDepartChange={setDepartAt}
               onSpeedChange={setSpeedKt}
+              onToggleRouteEditing={() => setIsRouteEditing((value) => !value)}
               onRemoveStop={toggleTripStop}
+              onRemoveWaypoint={(id) => {
+                setRouteNodes((nodes) => nodes.filter((node) => node.kind !== 'waypoint' || node.id !== id));
+                setShareText('');
+                setShareMessage('');
+              }}
               onShare={shareFloatPlan}
             />
           ) : (
@@ -1001,40 +1161,50 @@ function LaunchDetail({ launch, dayIndex, onBack }: { launch: BoatLaunch; dayInd
 }
 
 function TripPlanView({
-  marinas,
+  routeNodes,
   vessel,
   vesselKey,
   departAt,
   speedKt,
   dayIndex,
   weeklyOutlooks,
+  liveTides,
+  isRouteEditing,
   shareText,
   shareMessage,
   onBack,
   onBrowse,
   onDepartChange,
   onSpeedChange,
+  onToggleRouteEditing,
   onRemoveStop,
+  onRemoveWaypoint,
   onShare
 }: {
-  marinas: Marina[];
+  routeNodes: ResolvedRouteNode[];
   vessel: VesselProfile;
   vesselKey: VesselKey;
   departAt: string;
   speedKt: number;
   dayIndex: number;
   weeklyOutlooks: PlannerOutlooks;
+  liveTides: Record<number, LiveTide>;
+  isRouteEditing: boolean;
   shareText: string;
   shareMessage: string;
   onBack: () => void;
   onBrowse: () => void;
   onDepartChange: (value: string) => void;
   onSpeedChange: (value: number) => void;
+  onToggleRouteEditing: () => void;
   onRemoveStop: (id: number) => void;
+  onRemoveWaypoint: (id: string) => void;
   onShare: () => void;
 }) {
-  const legs = buildTripLegs(marinas, departAt, speedKt, dayIndex, vessel, weeklyOutlooks);
+  const legs = buildTripLegs(routeNodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides);
   const summary = tripSummary(legs);
+  const stopCount = routeNodes.filter((node) => node.kind === 'stop').length;
+  const waypointCount = routeNodes.length - stopCount;
 
   return (
     <div className="plannerDetail plannerTripView">
@@ -1045,7 +1215,7 @@ function TripPlanView({
         Back to marinas
       </button>
       <h1>Float plan</h1>
-      <p>{VESSELS[vesselKey].label} - {marinas.length ? `${marinas.length} stops` : 'Add stops from the map or list'}</p>
+      <p>{VESSELS[vesselKey].label} - {stopCount ? `${stopCount} stops${waypointCount ? ` + ${waypointCount} waypoints` : ''}` : 'Add stops from the map or list'}</p>
 
       <div className="plannerTripControls">
         <label>
@@ -1065,20 +1235,50 @@ function TripPlanView({
         </label>
       </div>
 
-      {marinas.length ? (
+      {stopCount ? (
         <>
+          <button
+            className={`plannerPrimary plannerRouteEditButton ${isRouteEditing ? 'active' : ''}`}
+            type="button"
+            disabled={stopCount < 2}
+            onClick={onToggleRouteEditing}
+          >
+            {isRouteEditing ? 'Done editing route' : 'Edit route'}
+          </button>
+          <p className="plannerTinyText">
+            {stopCount < 2
+              ? 'Add a second stop to draw and bend the route.'
+              : isRouteEditing
+                ? 'Click the map line to add a waypoint. Drag handles to bend the route; click a handle to delete it.'
+                : 'Route distance and ETAs follow the drawn line.'}
+          </p>
           <div className="plannerVerdictBar" style={{ background: scoreColor(summary.score) }}>
             {verdict(summary.score)} for {vessel.label.toLowerCase()}
           </div>
           <div className="plannerTripLegs">
             {legs.map((leg, index) => {
+              if (leg.kind === 'waypoint') {
+                return (
+                  <div className="plannerLeg plannerWaypointLeg" key={leg.id}>
+                    <span className="plannerLegNode waypoint">•</span>
+                    <div>
+                      <strong>Waypoint</strong>
+                      <span>{leg.cumulativeDistance.toFixed(1)} nm from start</span>
+                      <button type="button" onClick={() => onRemoveWaypoint(leg.id)}>Delete waypoint</button>
+                    </div>
+                  </div>
+                );
+              }
+
               const warning = vesselWarning(leg.conditions, vessel);
               return (
                 <div className="plannerLeg" key={leg.marina.id}>
-                  <span className="plannerLegNode">{index + 1}</span>
+                  <span className="plannerLegNode">{leg.stopIndex}</span>
                   <div>
                     <strong>{leg.marina.name}</strong>
-                    <span>{formatShortTime(leg.arrive)} - {leg.distance.toFixed(1)} nm - {leg.conditions.wind} kt / {leg.conditions.wave.toFixed(1)}m</span>
+                    <span>
+                      {formatShortTime(leg.arrive)} - {leg.cumulativeDistance.toFixed(1)} nm total - {leg.segmentDistance.toFixed(1)} nm leg - {leg.conditions.wind} kt / {leg.conditions.wave.toFixed(1)}m{leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}
+                    </span>
                     {warning ? <em className={`plannerWarning ${warning.level}`}>{warning.text}</em> : null}
                     <button type="button" onClick={() => onRemoveStop(leg.marina.id)}>Remove</button>
                   </div>
@@ -1222,6 +1422,20 @@ function distanceFromHome(place: { lat: number; lon: number }) {
   return metres / 1852;
 }
 
+function legNm(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
+  return haversine(a.lat, a.lon, b.lat, b.lon) / 1852;
+}
+
+function dayIndexForArrival(depart: Date, arrive: Date, fallbackDayIndex: number) {
+  if (Number.isNaN(depart.getTime()) || Number.isNaN(arrive.getTime())) return fallbackDayIndex;
+  const departDay = new Date(depart);
+  departDay.setHours(0, 0, 0, 0);
+  const arrivalDay = new Date(arrive);
+  arrivalDay.setHours(0, 0, 0, 0);
+  const offset = Math.round((arrivalDay.getTime() - departDay.getTime()) / 86400000);
+  return Math.max(0, Math.min(4, fallbackDayIndex + offset));
+}
+
 function defaultDepartInput() {
   const date = new Date();
   date.setMinutes(0, 0, 0);
@@ -1242,20 +1456,17 @@ function restoreFloatPlanFromHash(marinas: Marina[]) {
     const vesselKey: VesselKey = vesselParam && vesselParam in VESSELS ? vesselParam as VesselKey : 'cruiser';
     const departAt = params.get('d') || defaultDepartInput();
     const speedKt = Math.max(4, Math.min(45, Number(params.get('s')) || DEFAULT_SPEED_KT));
-    const available = new Set(marinas.map((marina) => marina.id));
-    const stops = (params.get('stops') || '')
-      .split(',')
-      .map((value) => Number(value))
-      .filter((id) => available.has(id));
-    return { vesselKey, departAt, speedKt, stops };
+    const route = params.get('route');
+    const nodes = route ? parseRouteTokens(route, marinas) : restoreLegacyStops(params.get('stops'), marinas);
+    return { vesselKey, departAt, speedKt, nodes };
   } catch {
     return null;
   }
 }
 
-function writeFloatPlanHash(plan: { vesselKey: VesselKey; departAt: string; speedKt: number; stops: number[] }) {
+function writeFloatPlanHash(plan: { vesselKey: VesselKey; departAt: string; speedKt: number; nodes: RouteNode[]; marinas: Marina[] }) {
   if (typeof window === 'undefined') return;
-  if (!plan.stops.length) {
+  if (!plan.nodes.some((node) => node.kind === 'stop')) {
     if (window.location.hash.startsWith('#plan=')) {
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     }
@@ -1265,9 +1476,124 @@ function writeFloatPlanHash(plan: { vesselKey: VesselKey; departAt: string; spee
   params.set('v', plan.vesselKey);
   params.set('d', plan.departAt);
   params.set('s', String(plan.speedKt));
-  params.set('stops', plan.stops.join(','));
+  params.set('route', encodeRouteNodes(plan.nodes, plan.marinas));
   const next = `${window.location.pathname}${window.location.search}#plan=${params.toString()}`;
   window.history.replaceState(null, '', next);
+}
+
+function parseRouteTokens(route: string, marinas: Marina[]): RouteNode[] {
+  const byToken = new Map<string, Marina>();
+  marinas.forEach((marina) => {
+    byToken.set(stopTokenForMarina(marina), marina);
+    byToken.set(String(marina.id), marina);
+  });
+
+  return route.split('|').flatMap((token): RouteNode[] => {
+    if (token.startsWith('s:')) {
+      const marina = byToken.get(decodeURIComponent(token.slice(2)));
+      return marina ? [{ kind: 'stop', marinaId: marina.id }] : [];
+    }
+    if (token.startsWith('w:')) {
+      const [latValue, lonValue] = token.slice(2).split(',');
+      const lat = Number(latValue);
+      const lon = Number(lonValue);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return [];
+      return [{ kind: 'waypoint', id: waypointId(), lat, lon }];
+    }
+    return [];
+  });
+}
+
+function restoreLegacyStops(stopsParam: string | null, marinas: Marina[]): RouteNode[] {
+  const available = new Set(marinas.map((marina) => marina.id));
+  return (stopsParam || '')
+    .split(',')
+    .map((value) => Number(value))
+    .filter((id) => available.has(id))
+    .map((marinaId) => ({ kind: 'stop' as const, marinaId }));
+}
+
+function encodeRouteNodes(nodes: RouteNode[], marinas: Marina[]) {
+  const byId = new Map(marinas.map((marina) => [marina.id, marina]));
+  return nodes.flatMap((node) => {
+    if (node.kind === 'waypoint') return [`w:${node.lat.toFixed(5)},${node.lon.toFixed(5)}`];
+    const marina = byId.get(node.marinaId);
+    return marina ? [`s:${encodeURIComponent(stopTokenForMarina(marina))}`] : [];
+  }).join('|');
+}
+
+function stopTokenForMarina(marina: Marina) {
+  return marina.osmId || String(marina.id);
+}
+
+function resolveRouteNodes(nodes: RouteNode[], marinas: Marina[]): ResolvedRouteNode[] {
+  const byId = new Map(marinas.map((marina) => [marina.id, marina]));
+  return nodes.flatMap((node): ResolvedRouteNode[] => {
+    if (node.kind === 'waypoint') {
+      return [{
+        ...node,
+        name: 'Waypoint',
+        lat: node.lat,
+        lon: node.lon
+      }];
+    }
+
+    const marina = byId.get(node.marinaId);
+    return marina ? [{
+      ...node,
+      name: marina.name,
+      lat: marina.lat,
+      lon: marina.lon,
+      marina
+    }] : [];
+  });
+}
+
+function countRouteStops(nodes: RouteNode[]) {
+  return nodes.filter((node) => node.kind === 'stop').length;
+}
+
+function cleanRouteNodes(nodes: RouteNode[]) {
+  return countRouteStops(nodes) >= 2 ? nodes : nodes.filter((node) => node.kind === 'stop');
+}
+
+function waypointId() {
+  return `wp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function waypointIcon(L: any) {
+  return L.divIcon({
+    className: '',
+    html: '<div class="plannerWaypointPin" title="Drag waypoint. Click to delete."><span></span></div>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+}
+
+function nearestLegIndex(nodes: Array<Pick<ResolvedRouteNode, 'lat' | 'lon'>>, point: { lat: number; lon: number }) {
+  let best = { index: 0, distance: Number.POSITIVE_INFINITY };
+  for (let index = 0; index < nodes.length - 1; index += 1) {
+    const distance = pointToSegmentDistance(point, nodes[index], nodes[index + 1]);
+    if (distance < best.distance) best = { index, distance };
+  }
+  return best.index;
+}
+
+function pointToSegmentDistance(point: { lat: number; lon: number }, a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
+  const scale = Math.cos(toRadians((a.lat + b.lat) / 2));
+  const px = point.lon * scale;
+  const py = point.lat;
+  const ax = a.lon * scale;
+  const ay = a.lat;
+  const bx = b.lon * scale;
+  const by = b.lat;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lengthSquared = dx * dx + dy * dy || 1;
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lengthSquared));
+  const x = ax + t * dx;
+  const y = ay + t * dy;
+  return Math.hypot(px - x, py - y);
 }
 
 function launchAsMarina(launch: BoatLaunch): Marina {
@@ -1312,45 +1638,100 @@ function launchDepthStatus(launch: BoatLaunch, when: Date) {
   };
 }
 
-type TripLeg = {
+type TripLeg = StopRouteLeg | WaypointRouteLeg;
+
+type StopRouteLeg = {
+  kind: 'stop';
+  stopIndex: number;
   marina: Marina;
-  distance: number;
+  segmentDistance: number;
+  cumulativeDistance: number;
   arrive: Date;
   conditions: ReturnType<typeof conditionsFor>;
   score: number;
+  tide: TideState | null;
 };
 
-function buildTripLegs(marinas: Marina[], departAt: string, speedKt: number, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}): TripLeg[] {
+type WaypointRouteLeg = {
+  kind: 'waypoint';
+  id: string;
+  segmentDistance: number;
+  cumulativeDistance: number;
+  arrive: Date;
+};
+
+function buildTripLegs(
+  nodes: ResolvedRouteNode[],
+  departAt: string,
+  speedKt: number,
+  dayIndex: number,
+  vessel: VesselProfile,
+  weeklyOutlooks: PlannerOutlooks = {},
+  liveTides: Record<number, LiveTide> = {}
+): TripLeg[] {
   const speed = Math.max(4, speedKt || DEFAULT_SPEED_KT);
-  let previous = HOME;
+  const depart = new Date(departAt || defaultDepartInput());
   let cursor = new Date(departAt || defaultDepartInput());
-  return marinas.map((marina) => {
-    const distance = haversine(previous.lat, previous.lon, marina.lat, marina.lon) / 1852;
-    cursor = new Date(cursor.getTime() + (distance / speed) * 3600000);
-    previous = marina;
-    const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
+  let cumulativeDistance = 0;
+  let stopIndex = 0;
+
+  return nodes.map((node, index): TripLeg => {
+    const previous = nodes[index - 1];
+    const segmentDistance = previous ? legNm(previous, node) : 0;
+    cumulativeDistance += segmentDistance;
+    cursor = new Date(cursor.getTime() + (segmentDistance / speed) * 3600000);
+
+    if (node.kind === 'waypoint') {
+      return {
+        kind: 'waypoint',
+        id: node.id,
+        segmentDistance,
+        cumulativeDistance,
+        arrive: new Date(cursor)
+      };
+    }
+
+    stopIndex += 1;
+    const arrivalDayIndex = dayIndexForArrival(depart, cursor, dayIndex);
+    const conditions = conditionsFor(node.marina, arrivalDayIndex, weeklyOutlooks);
+    const tide = node.marina.waterType === 'lake' || node.marina.waterType === 'river'
+      ? null
+      : tideState(node.marina, cursor, liveTides[node.marina.id]);
     return {
-      marina,
-      distance,
+      kind: 'stop',
+      stopIndex,
+      marina: node.marina,
+      segmentDistance,
+      cumulativeDistance,
       arrive: new Date(cursor),
       conditions,
-      score: marinaScore(marina, dayIndex, vessel, weeklyOutlooks)
+      score: marinaScore(node.marina, arrivalDayIndex, vessel, weeklyOutlooks),
+      tide
     };
   });
 }
 
 function tripSummary(legs: TripLeg[]) {
-  if (!legs.length) return { score: 50, maxWind: 0, maxWave: 0, finish: new Date() };
+  const stops = legs.filter((leg): leg is StopRouteLeg => leg.kind === 'stop');
+  if (!stops.length) return { score: 50, maxWind: 0, maxWave: 0, finish: new Date() };
   return {
-    score: Math.round(legs.reduce((sum, leg) => sum + leg.score, 0) / legs.length),
-    maxWind: Math.max(...legs.map((leg) => leg.conditions.wind)),
-    maxWave: Math.max(...legs.map((leg) => leg.conditions.wave)),
+    score: Math.round(stops.reduce((sum, leg) => sum + leg.score, 0) / stops.length),
+    maxWind: Math.max(...stops.map((leg) => leg.conditions.wind)),
+    maxWave: Math.max(...stops.map((leg) => leg.conditions.wave)),
     finish: legs[legs.length - 1].arrive
   };
 }
 
-function buildFloatPlanText(marinas: Marina[], vessel: VesselProfile, departAt: string, speedKt: number, dayIndex: number, weeklyOutlooks: PlannerOutlooks = {}) {
-  const legs = buildTripLegs(marinas, departAt, speedKt, dayIndex, vessel, weeklyOutlooks);
+function buildFloatPlanText(
+  nodes: ResolvedRouteNode[],
+  vessel: VesselProfile,
+  departAt: string,
+  speedKt: number,
+  dayIndex: number,
+  weeklyOutlooks: PlannerOutlooks = {},
+  liveTides: Record<number, LiveTide> = {}
+) {
+  const legs = buildTripLegs(nodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides);
   const summary = tripSummary(legs);
   const depart = new Date(departAt || defaultDepartInput());
   const lines = [
@@ -1360,8 +1741,8 @@ function buildFloatPlanText(marinas: Marina[], vessel: VesselProfile, departAt: 
     `Cruise speed: ${speedKt || DEFAULT_SPEED_KT} kt`,
     ''
   ];
-  legs.forEach((leg, index) => {
-    lines.push(`${index + 1}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)} - ${leg.distance.toFixed(1)} nm - wind ${leg.conditions.wind} kt - seas ${leg.conditions.wave.toFixed(1)}m`);
+  legs.filter((leg): leg is StopRouteLeg => leg.kind === 'stop').forEach((leg) => {
+    lines.push(`${leg.stopIndex}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)} - ${leg.cumulativeDistance.toFixed(1)} nm total - wind ${leg.conditions.wind} kt - seas ${leg.conditions.wave.toFixed(1)}m${leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}`);
   });
   lines.push('');
   lines.push(`Max wind/seas: ${summary.maxWind} kt / ${summary.maxWave.toFixed(1)}m`);
@@ -1562,13 +1943,16 @@ function escapeHtml(value: string) {
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   const radius = 6371000;
-  const toRad = (value: number) => value * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * radius * Math.asin(Math.sqrt(a));
+}
+
+function toRadians(value: number) {
+  return value * Math.PI / 180;
 }
 
 async function loadCHSTides(marinas: Marina[]) {

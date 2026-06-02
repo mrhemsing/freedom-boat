@@ -2016,6 +2016,11 @@ hr.soft {
   color: #fff;
 }
 
+.plannerChip:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .plannerFullscreenChip {
   min-width: 44px;
 }
@@ -2230,6 +2235,31 @@ hr.soft {
   stroke-linecap: round;
   stroke-linejoin: round;
   transform: rotate(-45deg);
+}
+
+.plannerWaypointPin {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #0e7490;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 3px 10px rgba(12, 58, 76, 0.28);
+  cursor: grab;
+}
+
+.plannerWaypointPin:active {
+  cursor: grabbing;
+}
+
+.plannerWaypointPin span {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #0e7490;
+  border-radius: 3px;
+  background: #fff;
+  transform: rotate(45deg);
 }
 
 .tripMe {
@@ -2984,6 +3014,20 @@ hr.soft {
   font-weight: 850;
 }
 
+.plannerRouteEditButton {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.plannerRouteEditButton.active {
+  background: var(--planner-navy);
+}
+
+.plannerRouteEditButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .plannerVerdictBar {
   margin-top: 14px;
   border-radius: 14px;
@@ -3016,6 +3060,16 @@ hr.soft {
   color: #fff;
   font-size: 14px;
   font-weight: 900;
+}
+
+.plannerLegNode.waypoint {
+  border: 2px solid var(--planner-teal);
+  background: #fff;
+  color: var(--planner-teal);
+}
+
+.plannerWaypointLeg {
+  background: linear-gradient(90deg, rgba(38, 166, 154, 0.08), transparent);
 }
 
 .plannerLeg div {
