@@ -2455,6 +2455,80 @@ hr.soft {
   font-weight: 850;
 }
 
+.plannerFilterTools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -2px 0 8px;
+}
+
+.plannerIconFilter {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--planner-teal-tint);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--planner-teal-dark);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.plannerIconFilter:hover,
+.plannerIconFilter:focus-visible {
+  border-color: var(--planner-teal);
+  transform: translateY(-1px);
+}
+
+.plannerIconFilter:focus-visible {
+  outline: 3px solid rgba(19, 184, 166, 0.22);
+  outline-offset: 2px;
+}
+
+.plannerIconFilter.active {
+  border-color: var(--planner-teal);
+  background: var(--planner-teal);
+  color: #fff;
+}
+
+.plannerIconFilter svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.plannerIconFilter::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  z-index: 20;
+  max-width: 190px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--planner-navy);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(4px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.plannerIconFilter:hover::after,
+.plannerIconFilter:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 .plannerFilterRow {
   display: flex;
   align-items: center;

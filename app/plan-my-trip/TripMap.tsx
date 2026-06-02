@@ -118,6 +118,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [timebarHeight, setTimebarHeight] = useState(0);
   const [tripMode, setTripMode] = useState(false);
   const [showLaunches, setShowLaunches] = useState(false);
+  const [showFreedomOnly, setShowFreedomOnly] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isRouteEditing, setIsRouteEditing] = useState(false);
   const [vesselKey, setVesselKey] = useState<VesselKey>('cruiser');
@@ -142,10 +143,13 @@ export default function TripMap({ marinas }: TripMapProps) {
   const marinaListIndex = useMemo(() => {
     return new Map(activeMarinas.map((marina, index) => [marina.id, index + 1]));
   }, [activeMarinas]);
+  const visibleMarinas = useMemo(() => {
+    return showFreedomOnly ? activeMarinas.filter((marina) => marina.freedomClub) : activeMarinas;
+  }, [activeMarinas, showFreedomOnly]);
 
   const filtered = useMemo<PlannerResult[]>(() => {
     const q = query.trim().toLowerCase();
-    const marinaResults = activeMarinas
+    const marinaResults = visibleMarinas
       .filter((marina) => !q || `${marina.name} ${marina.address} ${marina.area}`.toLowerCase().includes(q))
       .map((marina) => ({ kind: 'marina' as const, marina }));
 
@@ -156,7 +160,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       : [];
 
     return [...marinaResults, ...launchResults];
-  }, [activeMarinas, launches, query, showLaunches]);
+  }, [launches, query, showLaunches, visibleMarinas]);
 
   const selected = selectedId ? activeMarinas.find((marina) => marina.id === selectedId) ?? null : null;
   const selectedLaunch = selectedLaunchId ? launches.find((launch) => launch.id === selectedLaunchId) ?? null : null;
@@ -247,6 +251,15 @@ export default function TripMap({ marinas }: TripMapProps) {
     const available = new Set(activeMarinas.map((marina) => marina.id));
     setRouteNodes((nodes) => cleanRouteNodes(nodes.filter((node) => node.kind === 'waypoint' || available.has(node.marinaId))));
   }, [activeMarinas]);
+
+  useEffect(() => {
+    if (!showFreedomOnly || selectedId == null) return;
+    const selectedMarina = activeMarinas.find((marina) => marina.id === selectedId);
+    if (selectedMarina && !selectedMarina.freedomClub) {
+      setSelectedId(null);
+      setMobileMarkerModal(false);
+    }
+  }, [activeMarinas, selectedId, showFreedomOnly]);
 
   useEffect(() => {
     if (resolvedRouteNodes.filter((node) => node.kind === 'stop').length < 2) {
@@ -379,7 +392,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       const bounds = L.latLngBounds([]);
       const initialBounds = L.latLngBounds([]);
 
-      activeMarinas.forEach((marina) => {
+      visibleMarinas.forEach((marina) => {
         bounds.extend([marina.lat, marina.lon]);
         if (isInitialBcFocus(marina)) {
           initialBounds.extend([marina.lat, marina.lon]);
@@ -460,7 +473,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       disposed = true;
       cleanup?.();
     };
-  }, [activeMarinas, launches, marinaListIndex, showLaunches, weeklyOutlooks]);
+  }, [launches, marinaListIndex, showLaunches, visibleMarinas, weeklyOutlooks]);
 
   useEffect(() => {
     isRouteEditingRef.current = isRouteEditing;
@@ -489,7 +502,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     let active = true;
     import('leaflet').then((L) => {
       if (!active) return;
-      activeMarinas.forEach((marina) => {
+      visibleMarinas.forEach((marina) => {
         const marker = markerRefs.current[marina.id];
         if (marker) {
           marker.setIcon(marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, selectedId, tripStops.includes(marina.id), dayIndex, vessel, weeklyOutlooks));
@@ -500,7 +513,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       active = false;
     };
-  }, [activeMarinas, marinaListIndex, selectedId, tripStops, dayIndex, vessel, weeklyOutlooks]);
+  }, [marinaListIndex, selectedId, tripStops, dayIndex, vessel, visibleMarinas, weeklyOutlooks]);
 
   useEffect(() => {
     routeClickHandlerRef.current = (latlng) => {
@@ -679,7 +692,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   function timebarScore(index: number) {
     return selected
       ? marinaScore(selected, index, vessel, weeklyOutlooks)
-      : averageScore(activeMarinas, index, vessel, weeklyOutlooks);
+      : averageScore(visibleMarinas.length ? visibleMarinas : activeMarinas, index, vessel, weeklyOutlooks);
   }
 
   function timebarWind(index: number) {
@@ -917,24 +930,48 @@ export default function TripMap({ marinas }: TripMapProps) {
                 </button>
               </div>
 
-              <label className="plannerFilterRow">
-                <span className="plannerFilterCheck">
-                  <input
-                    type="checkbox"
-                    checked={showLaunches}
-                    onChange={(event) => {
-                      setShowLaunches(event.target.checked);
-                      setSelectedLaunchId(null);
-                      setMobileMarkerModal(false);
-                    }}
-                  />
-                  <i aria-hidden="true" />
-                </span>
-                <span>
-                  <strong>Show launches</strong>
-                  <em>Optional ramp layer</em>
-                </span>
-              </label>
+              <div className="plannerFilterTools" aria-label="Map filters">
+                <button
+                  className={`plannerIconFilter ${showLaunches ? 'active' : ''}`}
+                  type="button"
+                  aria-label="Show launches"
+                  aria-pressed={showLaunches}
+                  title="Show launches"
+                  data-tooltip="Show launches"
+                  onClick={() => {
+                    setShowLaunches((value) => !value);
+                    setSelectedLaunchId(null);
+                    setMobileMarkerModal(false);
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 4v15" />
+                    <circle cx="12" cy="5" r="2" />
+                    <path d="M5 13a7 7 0 0 0 14 0" />
+                    <path d="M8 16h8" />
+                  </svg>
+                </button>
+                <button
+                  className={`plannerIconFilter ${showFreedomOnly ? 'active' : ''}`}
+                  type="button"
+                  aria-label="Filter only Freedom Boat Club locations"
+                  aria-pressed={showFreedomOnly}
+                  title="Freedom Boat Club only"
+                  data-tooltip="Freedom Boat Club only"
+                  onClick={() => {
+                    setShowFreedomOnly((value) => !value);
+                    setSelectedLaunchId(null);
+                    setMobileMarkerModal(false);
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M7 20V4" />
+                    <path d="M7 5h10l-2 4 2 4H7" />
+                    <path d="M10 8h4" />
+                    <path d="M10 11h3" />
+                  </svg>
+                </button>
+              </div>
 
               <label className="plannerVesselRow">
                 <span>Boat profile</span>
@@ -950,7 +987,11 @@ export default function TripMap({ marinas }: TripMapProps) {
               </label>
 
               <div className="plannerResultsHead">
-                {query ? `Results - ${filtered.length}` : showLaunches ? 'Destinations and launches' : 'Destinations'}
+                {query
+                  ? `Results - ${filtered.length}`
+                  : showLaunches
+                    ? `${showFreedomOnly ? 'Freedom Boat Club locations' : 'Destinations'} and launches`
+                    : showFreedomOnly ? 'Freedom Boat Club locations' : 'Destinations'}
               </div>
 
               <div className="plannerRows">
@@ -994,7 +1035,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                       <span className="plannerBody">
                         <span className="plannerName">
                           {marina.name}
-                          {marina.freedomClub ? <em>Freedom Club Boat</em> : null}
+                          {marina.freedomClub ? <em>Freedom Boat Club</em> : null}
                         </span>
                         <span className="plannerAddr">{marina.address}</span>
                       </span>
