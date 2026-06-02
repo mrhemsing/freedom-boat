@@ -2204,7 +2204,7 @@ hr.soft {
 .plannerTimebar {
   display: flex;
   justify-content: flex-end;
-  gap: 7px;
+  gap: 9px;
   overflow-x: auto;
   padding: 0 0 10px;
   pointer-events: auto;
@@ -3949,7 +3949,7 @@ hr.soft {
     width: 100%;
     max-width: none;
     justify-content: flex-end;
-    gap: 5px;
+    gap: 9px;
     padding-bottom: 0;
   }
 
