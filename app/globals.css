@@ -2848,7 +2848,7 @@ hr.soft {
 }
 
 .plannerRowInPlan {
-  background: rgba(12, 58, 76, 0.045);
+  background: rgba(109, 40, 217, 0.075);
 }
 
 .plannerIdx {
@@ -2889,7 +2889,7 @@ hr.soft {
 }
 
 .plannerIdxInPlan {
-  background: var(--planner-navy);
+  background: #6D28D9;
   color: #fff;
 }
 
@@ -3335,8 +3335,8 @@ hr.soft {
 }
 
 .plannerPlanToggle.active {
-  border-color: var(--planner-navy);
-  background: var(--planner-navy);
+  border-color: #6D28D9;
+  background: #6D28D9;
   color: #fff;
 }
 
