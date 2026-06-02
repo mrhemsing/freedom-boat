@@ -73,8 +73,8 @@ a:hover {
 
 .container > .globalHeader {
   position: relative;
-  left: calc(50% + 7px - var(--scrollbar-half-width, 0px));
-  width: calc(100vw - var(--scrollbar-width, 0px) - 24px);
+  left: calc(50% + 1px - var(--scrollbar-half-width, 0px));
+  width: calc(100vw - var(--scrollbar-width, 0px) - 36px);
   margin-left: 0;
   margin-right: 0;
   margin-bottom: 8px;
@@ -1251,6 +1251,7 @@ hr.soft {
 
   .container > .globalHeader {
     left: 50%;
+    width: calc(100vw - var(--scrollbar-width, 0px) - 24px);
   }
 
   .globalBrand {

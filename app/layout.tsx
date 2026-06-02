@@ -27,7 +27,10 @@ export default function RootLayout({
     document.documentElement.style.setProperty('--scrollbar-half-width', (scrollbarWidth / 2) + 'px');
   };
   setScrollbarWidth();
+  requestAnimationFrame(setScrollbarWidth);
+  window.addEventListener('load', setScrollbarWidth, { once: true });
   window.addEventListener('resize', setScrollbarWidth, { passive: true });
+  new ResizeObserver(setScrollbarWidth).observe(document.documentElement);
 })();
 `
           }}
