@@ -877,7 +877,19 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   function focusLinkedMarina(marina: Marina) {
-    revealMarinaInList(marina.id);
+    if (isMobilePlanner()) {
+      pendingListScrollMarinaIdRef.current = marina.id;
+      setQuery('');
+      setTripMode(false);
+      setShowLaunches(false);
+      setSelectedId(null);
+      setSelectedLaunchId(null);
+      setMobileMarkerModal(false);
+      setSheetState('collapsed');
+      setIsFullscreen(false);
+    } else {
+      revealMarinaInList(marina.id);
+    }
     centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM);
     window.setTimeout(() => centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM), 700);
     window.setTimeout(() => centerMapOnMarina(marina, LINKED_MARINA_FOCUS_ZOOM), 1400);
