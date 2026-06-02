@@ -55,7 +55,60 @@ export type ForecastHour = {
   precipProbPct?: number;
 };
 
+type CachedWeather = {
+  data: z.infer<typeof OpenMeteoResponse>;
+  fetchedAt: number;
+};
+
+const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000;
+const WEATHER_STALE_TTL_MS = 6 * 60 * 60 * 1000;
+const weatherCache = new Map<string, CachedWeather>();
+const weatherInflight = new Map<string, Promise<z.infer<typeof OpenMeteoResponse>>>();
+
 export async function fetchOpenMeteo({
+  lat,
+  lon,
+  hours
+}: {
+  lat: number;
+  lon: number;
+  hours: number;
+}) {
+  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  const now = Date.now();
+  const cached = weatherCache.get(cacheKey);
+  if (cached && now - cached.fetchedAt < WEATHER_CACHE_TTL_MS) {
+    return cached.data;
+  }
+
+  const inflight = weatherInflight.get(cacheKey);
+  if (inflight) {
+    return inflight;
+  }
+
+  const request = fetchOpenMeteoFresh({ lat, lon, hours: 168 })
+    .catch(async (error) => {
+      if (cached && Date.now() - cached.fetchedAt < WEATHER_STALE_TTL_MS) {
+        return cached.data;
+      }
+
+      const fallback = await fetchWttrFallback({ lat, lon, hours: 168 });
+      if (fallback) {
+        weatherCache.set(cacheKey, { data: fallback, fetchedAt: Date.now() });
+        return fallback;
+      }
+
+      throw error;
+    })
+    .finally(() => {
+      weatherInflight.delete(cacheKey);
+    });
+
+  weatherInflight.set(cacheKey, request);
+  return request;
+}
+
+async function fetchOpenMeteoFresh({
   lat,
   lon,
   hours
@@ -103,7 +156,10 @@ export async function fetchOpenMeteo({
   }
 
   const json = await res.json();
-  return OpenMeteoResponse.parse(json);
+  const parsed = OpenMeteoResponse.parse(json);
+  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  weatherCache.set(cacheKey, { data: parsed, fetchedAt: Date.now() });
+  return parsed;
 }
 
 export function normalizeNow(locationId: string, data: unknown): ConditionsNow {
@@ -160,4 +216,160 @@ export function normalizeForecast(
   }
 
   return out;
+}
+
+const WttrResponse = z.object({
+  current_condition: z
+    .array(
+      z.object({
+        temp_C: z.string().optional(),
+        precipMM: z.string().optional(),
+        windspeedKmph: z.string().optional(),
+        WindGustKmph: z.string().optional(),
+        winddirDegree: z.string().optional()
+      })
+    )
+    .optional(),
+  weather: z
+    .array(
+      z.object({
+        date: z.string(),
+        astronomy: z
+          .array(
+            z.object({
+              sunrise: z.string().optional(),
+              sunset: z.string().optional()
+            })
+          )
+          .optional(),
+        hourly: z
+          .array(
+            z.object({
+              time: z.string(),
+              tempC: z.string().optional(),
+              precipMM: z.string().optional(),
+              chanceofrain: z.string().optional(),
+              chanceofsnow: z.string().optional(),
+              windspeedKmph: z.string().optional(),
+              WindGustKmph: z.string().optional(),
+              winddirDegree: z.string().optional()
+            })
+          )
+          .optional()
+      })
+    )
+    .optional()
+});
+
+async function fetchWttrFallback({
+  lat,
+  lon,
+  hours
+}: {
+  lat: number;
+  lon: number;
+  hours: number;
+}): Promise<z.infer<typeof OpenMeteoResponse> | null> {
+  try {
+    const url = `https://wttr.in/${lat.toFixed(4)},${lon.toFixed(4)}?format=j1`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return null;
+
+    const parsed = WttrResponse.parse(await res.json());
+    const weather = parsed.weather ?? [];
+    const current = parsed.current_condition?.[0];
+    const hourlyRows = weather.flatMap((day) =>
+      (day.hourly ?? []).map((hour) => ({
+        day: day.date,
+        hour
+      }))
+    );
+    const now = new Date();
+    const forecastRows = hourlyRows
+      .map(({ day, hour }) => ({
+        t: wttrHourToIso(day, hour.time),
+        hour
+      }))
+      .filter((row) => {
+        const t = Date.parse(row.t);
+        return Number.isFinite(t) && t >= now.getTime() - 90 * 60 * 1000;
+      })
+      .slice(0, Math.min(Math.max(hours, 1), 168));
+
+    if (!current && !forecastRows.length) return null;
+
+    const first = forecastRows[0]?.hour;
+    const currentTime = forecastRows[0]?.t ?? localIsoFromDate(now);
+    const daily = {
+      time: weather.map((day) => day.date),
+      sunrise: weather.map((day) => wttrClockToIso(day.date, day.astronomy?.[0]?.sunrise) ?? `${day.date}T05:30`),
+      sunset: weather.map((day) => wttrClockToIso(day.date, day.astronomy?.[0]?.sunset) ?? `${day.date}T21:00`)
+    };
+
+    return {
+      latitude: lat,
+      longitude: lon,
+      timezone: 'America/Vancouver',
+      current: {
+        time: currentTime,
+        temperature_2m: numberFrom(current?.temp_C ?? first?.tempC),
+        precipitation: numberFrom(current?.precipMM ?? first?.precipMM),
+        wind_speed_10m: numberFrom(current?.windspeedKmph ?? first?.windspeedKmph),
+        wind_gusts_10m: numberFrom(current?.WindGustKmph ?? first?.WindGustKmph),
+        wind_direction_10m: numberFrom(current?.winddirDegree ?? first?.winddirDegree)
+      },
+      hourly: {
+        time: forecastRows.map((row) => row.t),
+        temperature_2m: forecastRows.map((row) => numberFrom(row.hour.tempC) ?? 0),
+        precipitation_probability: forecastRows.map((row) =>
+          Math.max(numberFrom(row.hour.chanceofrain) ?? 0, numberFrom(row.hour.chanceofsnow) ?? 0)
+        ),
+        precipitation: forecastRows.map((row) => numberFrom(row.hour.precipMM) ?? 0),
+        wind_speed_10m: forecastRows.map((row) => numberFrom(row.hour.windspeedKmph) ?? 0),
+        wind_gusts_10m: forecastRows.map((row) => numberFrom(row.hour.WindGustKmph) ?? numberFrom(row.hour.windspeedKmph) ?? 0),
+        wind_direction_10m: forecastRows.map((row) => numberFrom(row.hour.winddirDegree) ?? 0)
+      },
+      daily
+    };
+  } catch {
+    return null;
+  }
+}
+
+function numberFrom(value: string | undefined) {
+  if (value == null) return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function wttrHourToIso(day: string, time: string) {
+  const hour = Math.floor((Number(time) || 0) / 100);
+  return `${day}T${String(hour).padStart(2, '0')}:00`;
+}
+
+function wttrClockToIso(day: string, clock: string | undefined) {
+  if (!clock) return undefined;
+  const match = clock.trim().match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+  if (!match) return undefined;
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const meridiem = match[3].toUpperCase();
+  if (meridiem === 'PM' && hour !== 12) hour += 12;
+  if (meridiem === 'AM' && hour === 12) hour = 0;
+  return `${day}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function localIsoFromDate(date: Date) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Vancouver',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
 }
