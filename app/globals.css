@@ -52,7 +52,7 @@ a:hover {
 .container {
   max-width: 980px;
   margin: 0 auto;
-  padding: 12px 18px 44px 18px;
+  padding: 10px 18px 44px 18px;
 }
 
 .globalHeader {
@@ -74,10 +74,10 @@ a:hover {
 .container > .globalHeader {
   position: relative;
   left: calc(50% + 7px);
-  width: calc(100vw - 36px);
+  width: calc(100vw - 24px);
   margin-left: 0;
   margin-right: 0;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
   transform: translateX(-50%);
 }
 
@@ -1324,7 +1324,7 @@ hr.soft {
   .tidesCard{ order: 50; }
 
   .container{
-    padding-top: 10px;
+    padding-top: 8px;
     padding-bottom: calc(42px + env(safe-area-inset-bottom));
   }
 
