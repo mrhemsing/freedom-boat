@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { msToKnots } from './units';
 
-const OpenMeteoResponse = z.object({
+export const OpenMeteoResponse = z.object({
   latitude: z.number(),
   longitude: z.number(),
   generationtime_ms: z.number().optional(),
@@ -56,28 +56,32 @@ export type ForecastHour = {
 };
 
 type CachedWeather = {
-  data: z.infer<typeof OpenMeteoResponse>;
+  data: OpenMeteoData;
   fetchedAt: number;
 };
+
+export type OpenMeteoData = z.infer<typeof OpenMeteoResponse>;
 
 const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000;
 const WEATHER_STALE_TTL_MS = 6 * 60 * 60 * 1000;
 const weatherCache = new Map<string, CachedWeather>();
-const weatherInflight = new Map<string, Promise<z.infer<typeof OpenMeteoResponse>>>();
+const weatherInflight = new Map<string, Promise<OpenMeteoData>>();
 
 export async function fetchOpenMeteo({
   lat,
   lon,
-  hours
+  hours,
+  force = false
 }: {
   lat: number;
   lon: number;
   hours: number;
+  force?: boolean;
 }) {
   const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
   const now = Date.now();
   const cached = weatherCache.get(cacheKey);
-  if (cached && now - cached.fetchedAt < WEATHER_CACHE_TTL_MS) {
+  if (!force && cached && now - cached.fetchedAt < WEATHER_CACHE_TTL_MS) {
     return cached.data;
   }
 
@@ -272,7 +276,7 @@ async function fetchWttrFallback({
 }): Promise<z.infer<typeof OpenMeteoResponse> | null> {
   try {
     const url = `https://wttr.in/${lat.toFixed(4)},${lon.toFixed(4)}?format=j1`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { next: { revalidate: 15 * 60 } });
     if (!res.ok) return null;
 
     const parsed = WttrResponse.parse(await res.json());

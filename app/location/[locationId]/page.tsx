@@ -5,6 +5,7 @@ import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../../lib/outlook';
 import { marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
+import { getLocationWeatherSnapshot } from '../../../lib/weather-snapshots';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
@@ -34,17 +35,21 @@ export default async function LocationPage({
   const loc = LOCATIONS[id];
   if (!loc) return notFound();
 
-  const [nowRes, forecastRes, tidesRes, marineRes] = await Promise.all([
-    fetch(`${baseUrl()}/api/${params.locationId}/now`, { cache: 'no-store' }),
-    fetch(`${baseUrl()}/api/${params.locationId}/forecast?hours=120`, {
-      cache: 'no-store'
-    }),
+  const [weatherSnapshot, tidesRes, marineRes] = await Promise.all([
+    getLocationWeatherSnapshot(id).catch(() => null),
     fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' }),
     fetch(`${baseUrl()}/api/${params.locationId}/marine-warnings`, { cache: 'no-store' })
   ]);
 
-  const now = nowRes.ok ? await nowRes.json() : null;
-  const forecast = forecastRes.ok ? await forecastRes.json() : null;
+  const now = weatherSnapshot?.now ?? null;
+  const forecast = weatherSnapshot
+    ? {
+        forecast: weatherSnapshot.forecast.slice(0, 120),
+        sunByDay: weatherSnapshot.sunByDay,
+        fetchedAt: weatherSnapshot.fetchedAt,
+        provider: weatherSnapshot.provider
+      }
+    : null;
   const tides = tidesRes.ok ? await tidesRes.json() : null;
   const marine = marineRes.ok ? await marineRes.json() : null;
 

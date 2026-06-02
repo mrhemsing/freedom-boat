@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { LOCATIONS, type LocationId } from '../../../../lib/locations';
-import { fetchOpenMeteo, normalizeForecast } from '../../../../lib/openmeteo';
+import { getLocationWeatherSnapshot } from '../../../../lib/weather-snapshots';
 
 export async function GET(
   req: Request,
@@ -15,12 +15,17 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const hours = Math.min(Math.max(Number(searchParams.get('hours') ?? '24'), 1), 168);
 
-  const data = await fetchOpenMeteo({ lat: loc.lat, lon: loc.lon, hours: hours + 1 });
-  const out = normalizeForecast(data, { limitHours: hours });
-  const sunByDay = (data.daily?.time || []).map((day, i) => ({
-    day,
-    sunrise: data.daily?.sunrise?.[i],
-    sunset: data.daily?.sunset?.[i]
-  }));
-  return NextResponse.json({ locationId: id, hours, forecast: out, sunByDay });
+  const snapshot = await getLocationWeatherSnapshot(id);
+  return NextResponse.json({
+    locationId: id,
+    hours,
+    fetchedAt: snapshot.fetchedAt,
+    provider: snapshot.provider,
+    forecast: snapshot.forecast.slice(0, hours),
+    sunByDay: snapshot.sunByDay
+  }, {
+    headers: {
+      'cache-control': 'public, s-maxage=300, stale-while-revalidate=3600'
+    }
+  });
 }

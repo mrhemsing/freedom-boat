@@ -1,7 +1,7 @@
-import { fetchOpenMeteo, normalizeForecast, normalizeNow } from './openmeteo';
 import { findNearestStation, fetchTideHiLo, normalizeTideEvents, type TideEvent } from './iwls';
 import { buildWeeklyOutlook } from './outlook';
 import { type BoatLaunch, type Marina, MARINA_ACCESS_INFO } from './marinas';
+import { getLocationWeatherSnapshot, nearestWeatherLocation } from './weather-snapshots';
 
 export type SeoSnapshot = {
   summary: string;
@@ -57,30 +57,44 @@ export async function getLaunchSeoSnapshot(launch: BoatLaunch): Promise<SeoSnaps
 }
 
 async function getWeatherSnapshot(name: string, area: string, lat: number, lon: number): Promise<Omit<SeoSnapshot, 'nextTide' | 'stationName' | 'summary'>> {
+  if (isStaticBuild()) {
+    return fallbackWeather(area);
+  }
+
   try {
-    const raw = await fetchOpenMeteo({ lat, lon, hours: 72 });
-    const now = normalizeNow(`${name}-${area}`, raw);
-    const forecast = normalizeForecast(raw, { limitHours: 72 });
-    const sunByDay = (raw.daily?.time ?? []).map((day, index) => ({
-      day,
-      sunrise: raw.daily?.sunrise?.[index],
-      sunset: raw.daily?.sunset?.[index]
-    }));
+    const nearest = nearestWeatherLocation(lat, lon);
+    if (!nearest) return fallbackWeather(area);
+
+    const snapshot = await getLocationWeatherSnapshot(nearest.location.id);
+    const now = {
+      ...snapshot.now,
+      locationId: `${name}-${area}`
+    };
+    const forecast = snapshot.forecast.slice(0, 72);
+    const sunByDay = snapshot.sunByDay;
     const outlook = buildWeeklyOutlook(forecast, sunByDay, 1)[0] ?? null;
     const windKts = Math.round(now.wind.speedKts);
     const gustKts = now.wind.gustKts != null ? Math.round(now.wind.gustKts) : null;
     const score = outlook?.score ?? scoreFromWind(windKts, gustKts);
     const direction = directionLabel(now.wind.directionDeg);
-    const forecastLabel = `${windAdjective(windKts)} ${windKts} kt ${direction}${gustKts ? `, gusting ${gustKts} kt` : ''}`;
-    return { score, windKts, gustKts, forecastLabel };
+    const locationNote = nearest.distanceKm > 35 ? `near ${nearest.location.name}` : direction;
+    return { score, windKts, gustKts, forecastLabel: `${windAdjective(windKts)} ${windKts} kt ${locationNote}${gustKts ? `, gusting ${gustKts} kt` : ''}` };
   } catch {
-    return {
-      score: null,
-      windKts: null,
-      gustKts: null,
-      forecastLabel: `localized conditions for ${area}`
-    };
+    return fallbackWeather(area);
   }
+}
+
+function fallbackWeather(area: string): Omit<SeoSnapshot, 'nextTide' | 'stationName' | 'summary'> {
+  return {
+    score: null,
+    windKts: null,
+    gustKts: null,
+    forecastLabel: `localized conditions for ${area}`
+  };
+}
+
+function isStaticBuild() {
+  return process.env.NEXT_PHASE === 'phase-production-build' || process.env.npm_lifecycle_event === 'build';
 }
 
 async function getTideSnapshot(lat: number, lon: number) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { LOCATIONS, type LocationId } from '../../../../lib/locations';
-import { fetchOpenMeteo, normalizeNow } from '../../../../lib/openmeteo';
+import { getLocationWeatherSnapshot } from '../../../../lib/weather-snapshots';
 
 export async function GET(
   _req: Request,
@@ -12,6 +12,14 @@ export async function GET(
     return NextResponse.json({ error: 'unknown location' }, { status: 404 });
   }
 
-  const data = await fetchOpenMeteo({ lat: loc.lat, lon: loc.lon, hours: 48 });
-  return NextResponse.json(normalizeNow(id, data));
+  const snapshot = await getLocationWeatherSnapshot(id);
+  return NextResponse.json({
+    ...snapshot.now,
+    fetchedAt: snapshot.fetchedAt,
+    provider: snapshot.provider
+  }, {
+    headers: {
+      'cache-control': 'public, s-maxage=300, stale-while-revalidate=3600'
+    }
+  });
 }
