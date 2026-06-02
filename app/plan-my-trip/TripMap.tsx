@@ -1572,10 +1572,9 @@ function ConditionsPopover({
     <div className="plannerConditionsOverlay" role="dialog" aria-modal="true" aria-label={title}>
       <div className="plannerConditionsBackdrop" onClick={onClose} />
       <div className="plannerConditionsModal">
-        <div className="plannerConditionsTop">
-          <strong>{title}</strong>
-          <button type="button" onClick={onClose}>Close</button>
-        </div>
+        <button className="plannerConditionsClose" type="button" onClick={onClose} aria-label="Close conditions">
+          Close
+        </button>
         <iframe className="plannerConditionsFrame" src={href} title={title} />
       </div>
     </div>,
