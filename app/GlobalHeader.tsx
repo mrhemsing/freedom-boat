@@ -1,3 +1,5 @@
+import GlobalSearch from './GlobalSearch';
+
 type GlobalHeaderProps = {
   active: 'home' | 'map' | 'browse' | 'conditions' | 'area';
   contextLabel?: string;
@@ -20,9 +22,7 @@ export default function GlobalHeader({ active, contextLabel, showDaySlot = false
         <a className={active === 'browse' || active === 'area' ? 'active' : ''} href="/browse" aria-current={active === 'browse' || active === 'area' ? 'page' : undefined}>Browse</a>
       </nav>
 
-      <form className="globalSearch" action="/browse" role="search">
-        <input name="q" type="search" placeholder="Search marinas, launches, areas" aria-label="Search Fairtide" />
-      </form>
+      <GlobalSearch />
 
       <div className="globalContext">
         {showDaySlot ? <div id="planner-day-tabs-slot" className="tripPlannerDaySlot" aria-label="Trip date controls" /> : null}
