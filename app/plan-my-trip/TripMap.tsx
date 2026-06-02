@@ -929,6 +929,22 @@ export default function TripMap({ marinas }: TripMapProps) {
     return `${averageWind} kt`;
   }
 
+  function timebarOutlook(index: number) {
+    if (selected?.locationId) {
+      const selectedOutlook = weeklyOutlooks[selected.locationId]?.[index];
+      if (selectedOutlook) return selectedOutlook;
+    }
+
+    const marinasForDate = visibleMarinas.length ? visibleMarinas : activeMarinas;
+    for (const marina of marinasForDate) {
+      if (!marina.locationId) continue;
+      const outlook = weeklyOutlooks[marina.locationId]?.[index];
+      if (outlook) return outlook;
+    }
+
+    return null;
+  }
+
   const timebar = (
       <div
         ref={timebarRef}
@@ -938,7 +954,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         {DAYS.map((label, index) => {
           const score = timebarScore(index);
           const wind = timebarWind(index);
-          const date = dayChipDate(index);
+          const date = dayChipDate(index, timebarOutlook(index));
           return (
             <button
               key={label}
@@ -948,8 +964,8 @@ export default function TripMap({ marinas }: TripMapProps) {
               aria-pressed={dayIndex === index}
               style={{ '--day-score': scoreColor(score) } as CSSProperties}
             >
-              <span className="plannerDayLabel">{index === 0 ? 'Today' : date.weekday}</span>
-              <b className="plannerDayDate">{index === 0 ? `Today ${date.monthDay}` : date.monthDay}</b>
+              <span className="plannerDayLabel">{date.isToday ? 'Today' : date.weekday}</span>
+              <b className="plannerDayDate">{date.isToday ? `Today ${date.monthDay}` : date.monthDay}</b>
               <em className="plannerDayScore">
                 <strong>{score}</strong>
                 <span>{wind}</span>
@@ -2054,10 +2070,15 @@ function routeLineStyle(hasWaypoints: boolean) {
   };
 }
 
-function dayChipDate(offset: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
+function dayChipDate(offset: number, outlook?: DailyOutlook | null) {
+  const d = outlook?.day ? new Date(`${outlook.day}T12:00:00`) : new Date();
+  if (!outlook?.day) d.setDate(d.getDate() + offset);
+  const today = new Date();
+  const isToday = d.getFullYear() === today.getFullYear()
+    && d.getMonth() === today.getMonth()
+    && d.getDate() === today.getDate();
   return {
+    isToday,
     weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
     monthDay: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   };
