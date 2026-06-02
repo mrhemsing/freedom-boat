@@ -286,7 +286,7 @@ a:hover {
 .marinaJumpSummaryText {
   min-width: 0;
   display: grid;
-  gap: 1px;
+  gap: 4px;
   line-height: 1.05;
   text-align: left;
 }
