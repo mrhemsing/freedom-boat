@@ -11,6 +11,7 @@ import { snapMarinaList } from '../../lib/marina-snap';
 import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
 import { degToCardinal } from '../../lib/format';
 import { marinaPath, seoSlugForLaunch } from '../../lib/seo-slugs';
+import { CURRENT_PASSES, type CurrentEvent, type CurrentPassForecast } from '../../lib/current-passes';
 
 type TripMapProps = {
   marinas: Marina[];
@@ -21,6 +22,7 @@ type PlannerResult =
   | { kind: 'marina'; marina: Marina }
   | { kind: 'launch'; launch: BoatLaunch };
 type PlannerOutlooks = Record<string, DailyOutlook[]>;
+type CurrentForecasts = Record<string, CurrentPassForecast>;
 type RouteStopNode = { kind: 'stop'; marinaId: number };
 type RouteWaypointNode = { kind: 'waypoint'; id: string; lat: number; lon: number };
 type RouteNode = RouteStopNode | RouteWaypointNode;
@@ -126,6 +128,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
   const [liveTides, setLiveTides] = useState<Record<number, LiveTide>>({});
   const [weeklyOutlooks, setWeeklyOutlooks] = useState<PlannerOutlooks>({});
+  const [currentForecasts, setCurrentForecasts] = useState<CurrentForecasts>({});
   const restoredPlanRef = useRef(false);
   const vessel = VESSELS[vesselKey];
   const tripStops = useMemo(() => routeNodes
@@ -240,6 +243,34 @@ export default function TripMap({ marinas }: TripMapProps) {
     const available = new Set(activeMarinas.map((marina) => marina.id));
     setRouteNodes((nodes) => cleanRouteNodes(nodes.filter((node) => node.kind === 'waypoint' || available.has(node.marinaId))));
   }, [activeMarinas]);
+
+  useEffect(() => {
+    if (resolvedRouteNodes.filter((node) => node.kind === 'stop').length < 2) {
+      setCurrentForecasts({});
+      return;
+    }
+
+    let cancelled = false;
+    const from = new Date(departAt || defaultDepartInput());
+    const to = new Date(from.getTime() + 5 * 86400000);
+    const url = `/api/currents?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`;
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`currents ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const rows = Array.isArray(data?.forecasts) ? data.forecasts as CurrentPassForecast[] : [];
+        setCurrentForecasts(Object.fromEntries(rows.map((row) => [row.passId, row])));
+      })
+      .catch(() => {
+        if (!cancelled) setCurrentForecasts({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [departAt, resolvedRouteNodes]);
 
   useEffect(() => {
     if (restoredPlanRef.current || !activeMarinas.length) return;
@@ -603,7 +634,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   async function shareFloatPlan() {
-    const text = buildFloatPlanText(resolvedRouteNodes, vessel, departAt, speedKt, dayIndex, weeklyOutlooks, liveTides);
+    const text = buildFloatPlanText(resolvedRouteNodes, vessel, departAt, speedKt, dayIndex, weeklyOutlooks, liveTides, currentForecasts);
     const url = typeof window === 'undefined' ? '' : window.location.href;
     setShareText('');
     setShareMessage('');
@@ -797,9 +828,10 @@ export default function TripMap({ marinas }: TripMapProps) {
               departAt={departAt}
               speedKt={speedKt}
               dayIndex={dayIndex}
-              weeklyOutlooks={weeklyOutlooks}
-              liveTides={liveTides}
-              isRouteEditing={isRouteEditing}
+                weeklyOutlooks={weeklyOutlooks}
+                liveTides={liveTides}
+                currentForecasts={currentForecasts}
+                isRouteEditing={isRouteEditing}
               shareText={shareText}
               shareMessage={shareMessage}
               onBack={() => setTripMode(false)}
@@ -1175,6 +1207,7 @@ function TripPlanView({
   dayIndex,
   weeklyOutlooks,
   liveTides,
+  currentForecasts,
   isRouteEditing,
   shareText,
   shareMessage,
@@ -1195,6 +1228,7 @@ function TripPlanView({
   dayIndex: number;
   weeklyOutlooks: PlannerOutlooks;
   liveTides: Record<number, LiveTide>;
+  currentForecasts: CurrentForecasts;
   isRouteEditing: boolean;
   shareText: string;
   shareMessage: string;
@@ -1207,7 +1241,7 @@ function TripPlanView({
   onRemoveWaypoint: (id: string) => void;
   onShare: () => void;
 }) {
-  const legs = buildTripLegs(routeNodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides);
+  const legs = buildTripLegs(routeNodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides, currentForecasts);
   const summary = tripSummary(legs);
   const stopCount = routeNodes.filter((node) => node.kind === 'stop').length;
   const waypointCount = routeNodes.length - stopCount;
@@ -1287,6 +1321,11 @@ function TripPlanView({
                     </span>
                     {warning ? <em className={`plannerWarning ${warning.level}`}>{warning.text}</em> : null}
                     {leg.daylight.warning ? <em className={`plannerWarning ${leg.daylight.level}`}>{leg.daylight.warning}</em> : null}
+                    {leg.currentAdvisories.map((advisory) => (
+                      <em className={`plannerWarning ${advisory.level}`} key={`${leg.marina.id}-${advisory.passId}`}>
+                        {advisory.text}
+                      </em>
+                    ))}
                     <button type="button" onClick={() => onRemoveStop(leg.marina.id)}>Remove</button>
                   </div>
                 </div>
@@ -1437,6 +1476,97 @@ function distanceFromHome(place: { lat: number; lon: number }) {
 
 function legNm(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
   return haversine(a.lat, a.lon, b.lat, b.lon) / 1852;
+}
+
+function currentAdvisoriesForSegment(
+  start: { lat: number; lon: number },
+  end: { lat: number; lon: number },
+  depart: Date,
+  speedKt: number,
+  cumulativeBeforeSegment: number,
+  currentForecasts: CurrentForecasts
+): CurrentAdvisory[] {
+  const advisories: CurrentAdvisory[] = [];
+  for (const pass of CURRENT_PASSES) {
+    const crossing = segmentGateCrossing(start, end, pass.gate);
+    if (!crossing) continue;
+    const distanceToGate = cumulativeBeforeSegment + legNm(start, crossing);
+    const gateEta = new Date(depart.getTime() + (distanceToGate / speedKt) * 3600000);
+    const events = currentForecasts[pass.id]?.events ?? [];
+    const advisory = currentAdvisoryForPass(pass.id, pass.name, pass.maxCurrentKt, gateEta, events);
+    if (advisory) advisories.push(advisory);
+  }
+  return advisories;
+}
+
+function segmentGateCrossing(
+  start: { lat: number; lon: number },
+  end: { lat: number; lon: number },
+  gate: [[number, number], [number, number]]
+) {
+  const p = { x: start.lon, y: start.lat };
+  const r = { x: end.lon - start.lon, y: end.lat - start.lat };
+  const q = { x: gate[0][0], y: gate[0][1] };
+  const s = { x: gate[1][0] - gate[0][0], y: gate[1][1] - gate[0][1] };
+  const denom = cross2d(r, s);
+  if (Math.abs(denom) < 1e-12) return null;
+  const qp = { x: q.x - p.x, y: q.y - p.y };
+  const t = cross2d(qp, s) / denom;
+  const u = cross2d(qp, r) / denom;
+  if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+  return {
+    lat: p.y + t * r.y,
+    lon: p.x + t * r.x
+  };
+}
+
+function cross2d(a: { x: number; y: number }, b: { x: number; y: number }) {
+  return a.x * b.y - a.y * b.x;
+}
+
+function currentAdvisoryForPass(
+  passId: string,
+  passName: string,
+  maxCurrentKt: number,
+  gateEta: Date,
+  events: CurrentEvent[]
+): CurrentAdvisory | null {
+  if (!events.length) return null;
+  const nearestSlack = nearestCurrentEvent(events, gateEta, 'slack');
+  const nearestMax = nearestCurrentEvent(events, gateEta);
+  if (!nearestSlack && !nearestMax) return null;
+
+  const slackMinutes = nearestSlack ? Math.round((gateEta.getTime() - new Date(nearestSlack.t).getTime()) / 60000) : null;
+  const maxMinutes = nearestMax ? Math.abs(Math.round((gateEta.getTime() - new Date(nearestMax.t).getTime()) / 60000)) : Infinity;
+  const peakSpeed = nearestMax?.speedKt ?? 0;
+  const nearSlack = slackMinutes != null && Math.abs(slackMinutes) <= 45;
+  const nearMax = maxMinutes <= 75 && peakSpeed >= Math.max(2.5, maxCurrentKt * 0.45);
+  if (nearSlack && !nearMax) return null;
+
+  const level = nearMax ? 'poor' : 'fair';
+  const slackText = nearestSlack
+    ? `nearest slack ${formatShortTime(new Date(nearestSlack.t))}`
+    : 'nearest slack unavailable';
+  const maxText = nearestMax
+    ? `${nearestMax.kind === 'max_ebb' ? 'max ebb' : 'max flood'} ${nearestMax.speedKt.toFixed(1)} kt at ${formatShortTime(new Date(nearestMax.t))}`
+    : 'peak current unavailable';
+
+  return {
+    passId,
+    passName,
+    level,
+    text: `Advisory: ${passName} around ${formatShortTime(gateEta)} - ${maxText}; ${slackText}. Plan pass transits near slack.`
+  };
+}
+
+function nearestCurrentEvent(events: CurrentEvent[], when: Date, kind?: CurrentEvent['kind']) {
+  const filtered = kind ? events.filter((event) => event.kind === kind) : events.filter((event) => event.kind !== 'slack');
+  let best: { event: CurrentEvent; delta: number } | null = null;
+  for (const event of filtered) {
+    const delta = Math.abs(new Date(event.t).getTime() - when.getTime());
+    if (!best || delta < best.delta) best = { event, delta };
+  }
+  return best?.event ?? null;
 }
 
 function dayIndexForArrival(depart: Date, arrive: Date, fallbackDayIndex: number) {
@@ -1720,6 +1850,7 @@ type StopRouteLeg = {
   score: number;
   tide: TideState | null;
   daylight: DaylightArrival;
+  currentAdvisories: CurrentAdvisory[];
 };
 
 type DaylightArrival = {
@@ -1727,6 +1858,13 @@ type DaylightArrival = {
   minutesFromSunset: number;
   level: 'fair' | 'poor' | null;
   warning: string | null;
+};
+
+type CurrentAdvisory = {
+  passId: string;
+  passName: string;
+  level: 'fair' | 'poor';
+  text: string;
 };
 
 type WaypointRouteLeg = {
@@ -1744,7 +1882,8 @@ function buildTripLegs(
   dayIndex: number,
   vessel: VesselProfile,
   weeklyOutlooks: PlannerOutlooks = {},
-  liveTides: Record<number, LiveTide> = {}
+  liveTides: Record<number, LiveTide> = {},
+  currentForecasts: CurrentForecasts = {}
 ): TripLeg[] {
   const speed = Math.max(4, speedKt || DEFAULT_SPEED_KT);
   const depart = new Date(departAt || defaultDepartInput());
@@ -1775,6 +1914,9 @@ function buildTripLegs(
       ? null
       : tideState(node.marina, cursor, liveTides[node.marina.id]);
     const daylight = daylightArrival(node.marina, cursor);
+    const currentAdvisories = previous
+      ? currentAdvisoriesForSegment(previous, node, depart, speed, cumulativeDistance - segmentDistance, currentForecasts)
+      : [];
     return {
       kind: 'stop',
       stopIndex,
@@ -1785,7 +1927,8 @@ function buildTripLegs(
       conditions,
       score: marinaScore(node.marina, arrivalDayIndex, vessel, weeklyOutlooks),
       tide,
-      daylight
+      daylight,
+      currentAdvisories
     };
   });
 }
@@ -1808,9 +1951,10 @@ function buildFloatPlanText(
   speedKt: number,
   dayIndex: number,
   weeklyOutlooks: PlannerOutlooks = {},
-  liveTides: Record<number, LiveTide> = {}
+  liveTides: Record<number, LiveTide> = {},
+  currentForecasts: CurrentForecasts = {}
 ) {
-  const legs = buildTripLegs(nodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides);
+  const legs = buildTripLegs(nodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides, currentForecasts);
   const summary = tripSummary(legs);
   const depart = new Date(departAt || defaultDepartInput());
   const lines = [
@@ -1822,6 +1966,9 @@ function buildFloatPlanText(
   ];
   legs.filter((leg): leg is StopRouteLeg => leg.kind === 'stop').forEach((leg) => {
     lines.push(`${leg.stopIndex}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)} - ${leg.cumulativeDistance.toFixed(1)} nm total - wind ${windLabel(leg.conditions)} - seas ${leg.conditions.wave.toFixed(1)}m - sunset ${formatShortTime(leg.daylight.sunset)}${leg.daylight.warning ? ` - ${leg.daylight.warning}` : ''}${leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}`);
+    leg.currentAdvisories.forEach((advisory) => {
+      lines.push(`   Current advisory: ${advisory.text}`);
+    });
   });
   lines.push('');
   lines.push(`Max wind/seas: ${summary.maxWind} kt / ${summary.maxWave.toFixed(1)}m`);
