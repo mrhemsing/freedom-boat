@@ -1836,6 +1836,7 @@ hr.soft {
 .tripPlannerHeader .tripPlannerBrand .fbLogo {
   width: 48px;
   height: 48px;
+  margin-right: 8px;
 }
 
 .tripPlannerHeader .tripPlannerBrand .brandTitle {
