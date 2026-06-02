@@ -13,6 +13,7 @@ import { degToCardinal } from '../../lib/format';
 import { marinaPath, seoSlugForLaunch } from '../../lib/seo-slugs';
 import { CURRENT_PASSES, type CurrentEvent, type CurrentPassForecast } from '../../lib/current-passes';
 import { COAST, type CoastPolygon } from '../../lib/coastline';
+import { draftChannelRoute } from '../../lib/channel-network';
 
 type TripMapProps = {
   marinas: Marina[];
@@ -127,6 +128,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [speedKt, setSpeedKt] = useState(DEFAULT_SPEED_KT);
   const [shareText, setShareText] = useState('');
   const [shareMessage, setShareMessage] = useState('');
+  const [draftRouteMessage, setDraftRouteMessage] = useState('');
   const [dayIndex, setDayIndex] = useState(0);
   const [activeMarinas, setActiveMarinas] = useState(() => snapMarinaList(marinas));
   const [launches, setLaunches] = useState(PUBLIC_LAUNCHES);
@@ -534,6 +536,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       ]);
       setShareText('');
       setShareMessage('');
+      setDraftRouteMessage('');
     };
   }, [activeMarinas, isRouteEditing, routeNodes]);
 
@@ -619,12 +622,14 @@ export default function TripMap({ marinas }: TripMapProps) {
             : candidate));
           setShareText('');
           setShareMessage('');
+          setDraftRouteMessage('');
         });
         nextMarker.on('click', () => {
           if (!isRouteEditingRef.current) return;
           setRouteNodes((nodes) => nodes.filter((candidate) => candidate.kind !== 'waypoint' || candidate.id !== node.id));
           setShareText('');
           setShareMessage('');
+          setDraftRouteMessage('');
         });
         waypointMarkerRefs.current[node.id] = nextMarker;
       });
@@ -668,6 +673,61 @@ export default function TripMap({ marinas }: TripMapProps) {
     setTripMode(true);
     setShareText('');
     setShareMessage('');
+    setDraftRouteMessage('');
+  }
+
+  function draftWaterRoute() {
+    const stopNodes = routeNodes.filter((node): node is RouteStopNode => node.kind === 'stop');
+    if (stopNodes.length < 2) return;
+
+    const marinasById = new Map(activeMarinas.map((marina) => [marina.id, marina]));
+    const nextNodes: RouteNode[] = [];
+    let draftWaypointCount = 0;
+    let draftedLegCount = 0;
+    let skippedLegCount = 0;
+
+    stopNodes.forEach((stop, index) => {
+      nextNodes.push(stop);
+      const nextStop = stopNodes[index + 1];
+      if (!nextStop) return;
+
+      const start = marinasById.get(stop.marinaId);
+      const end = marinasById.get(nextStop.marinaId);
+      if (!start || !end) return;
+
+      if (!legCrossesLand(start, end, COAST)) return;
+
+      const draftPoints = draftChannelRoute(start, end);
+      if (!draftPoints.length) {
+        skippedLegCount += 1;
+        return;
+      }
+
+      draftedLegCount += 1;
+      draftPoints.forEach((point) => {
+        nextNodes.push({
+          kind: 'waypoint',
+          id: waypointId(),
+          lat: point.lat,
+          lon: point.lon
+        });
+        draftWaypointCount += 1;
+      });
+    });
+
+    setRouteNodes(cleanRouteNodes(nextNodes));
+    setTripMode(true);
+    setIsRouteEditing(false);
+    setSelectedId(null);
+    setSelectedLaunchId(null);
+    setMobileMarkerModal(false);
+    setShareText('');
+    setShareMessage('');
+    setDraftRouteMessage(draftWaypointCount
+      ? `Draft water route added ${draftWaypointCount} waypoint${draftWaypointCount === 1 ? '' : 's'} across ${draftedLegCount} land-crossing leg${draftedLegCount === 1 ? '' : 's'}. Verify on charts and refine with Edit route.`
+      : skippedLegCount
+        ? 'No draft channel path found for the land-crossing leg. Use Edit route to add manual waypoints.'
+        : 'No land-crossing legs needed draft waypoints.');
   }
 
   async function shareFloatPlan() {
@@ -872,6 +932,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                 isRouteEditing={isRouteEditing}
               shareText={shareText}
               shareMessage={shareMessage}
+              draftRouteMessage={draftRouteMessage}
               onBack={() => setTripMode(false)}
               onBrowse={() => {
                 setTripMode(false);
@@ -879,12 +940,14 @@ export default function TripMap({ marinas }: TripMapProps) {
               }}
               onDepartChange={setDepartAt}
               onSpeedChange={setSpeedKt}
+              onDraftWaterRoute={draftWaterRoute}
               onToggleRouteEditing={() => setIsRouteEditing((value) => !value)}
               onRemoveStop={toggleTripStop}
               onRemoveWaypoint={(id) => {
                 setRouteNodes((nodes) => nodes.filter((node) => node.kind !== 'waypoint' || node.id !== id));
                 setShareText('');
                 setShareMessage('');
+                setDraftRouteMessage('');
               }}
               onShare={shareFloatPlan}
             />
@@ -1278,10 +1341,12 @@ function TripPlanView({
   isRouteEditing,
   shareText,
   shareMessage,
+  draftRouteMessage,
   onBack,
   onBrowse,
   onDepartChange,
   onSpeedChange,
+  onDraftWaterRoute,
   onToggleRouteEditing,
   onRemoveStop,
   onRemoveWaypoint,
@@ -1300,10 +1365,12 @@ function TripPlanView({
   isRouteEditing: boolean;
   shareText: string;
   shareMessage: string;
+  draftRouteMessage: string;
   onBack: () => void;
   onBrowse: () => void;
   onDepartChange: (value: string) => void;
   onSpeedChange: (value: number) => void;
+  onDraftWaterRoute: () => void;
   onToggleRouteEditing: () => void;
   onRemoveStop: (id: number) => void;
   onRemoveWaypoint: (id: string) => void;
@@ -1346,21 +1413,32 @@ function TripPlanView({
 
       {stopCount ? (
         <>
-          <button
-            className={`plannerPrimary plannerRouteEditButton ${isRouteEditing ? 'active' : ''}`}
-            type="button"
-            disabled={stopCount < 2}
-            onClick={onToggleRouteEditing}
-          >
-            {isRouteEditing ? 'Done editing route' : 'Edit route'}
-          </button>
+          <div className="plannerRouteActions">
+            <button
+              className="plannerPrimary plannerDraftRouteButton"
+              type="button"
+              disabled={stopCount < 2}
+              onClick={onDraftWaterRoute}
+            >
+              Draft water route
+            </button>
+            <button
+              className={`plannerPrimary plannerRouteEditButton ${isRouteEditing ? 'active' : ''}`}
+              type="button"
+              disabled={stopCount < 2}
+              onClick={onToggleRouteEditing}
+            >
+              {isRouteEditing ? 'Done editing' : 'Edit route'}
+            </button>
+          </div>
           <p className="plannerTinyText">
             {stopCount < 2
               ? 'Add a second stop to draw and bend the route.'
               : isRouteEditing
                 ? 'Click the map line to add a waypoint. Drag handles to bend the route; click a handle to delete it.'
-                : 'Route distance and ETAs follow the drawn line.'}
+                : 'Draft water route adds editable channel waypoints where direct legs cross land. Verify on charts.'}
           </p>
+          {draftRouteMessage ? <div className="plannerRouteNotice">{draftRouteMessage}</div> : null}
           <div className="plannerVerdictBar" style={{ background: scoreColor(summary.score) }}>
             {verdict(summary.score)} for {vessel.label.toLowerCase()}
           </div>
