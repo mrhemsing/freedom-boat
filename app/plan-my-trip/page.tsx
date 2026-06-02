@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { FBC_PNW_MARINAS, PLANNER_MARINAS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
 import { marinaPath } from '../../lib/seo-slugs';
+import GlobalHeader from '../GlobalHeader';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
@@ -16,44 +17,29 @@ export default function PlanMyTripPage() {
 
   return (
     <main className="tripPlannerPage">
-      <header className="topbar tripPlannerHeader">
-        <div className="headerBrand">
-          <a className="brand tripPlannerBrand" href="/location/port-moody" aria-label="FAIRTIDE home">
-            <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={72} height={72} />
-            <span className="brandTitle">
-              <span className="brandFreedom">FAIRTIDE</span>
-              <span className="brandBoat">BOAT PLANNER</span>
-            </span>
-          </a>
-        </div>
-
-        <div className="headerInfo">
-          <div className="tripPlannerSubhead">Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</div>
-          <div className="tripPlannerNav" aria-label="Primary navigation">
-            <a className="tripPlannerNavLink" href="/browse">Browse directory</a>
+      <GlobalHeader active="map" showDaySlot />
+      <div className="tripPlannerMenuRow">
+        <div className="tripPlannerSubhead">Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</div>
+        <details className="tripPlannerMenu">
+          <summary aria-label="Open marina menu">
+            <span />
+            <span />
+            <span />
+          </summary>
+          <div className="tripPlannerMenuPanel" aria-label="Freedom Club marinas">
+            <div className="tripPlannerMenuTitle">Freedom Club Marinas</div>
+            {freedomMenuRows.map((row) => row.kind === 'divider' ? (
+              <div key={row.label} className="tripPlannerMenuDivider">{row.label}</div>
+            ) : (
+              <a key={row.marina.id} href={marinaPath(row.marina)}>
+                <strong>{row.marina.name.replace('Freedom Boat Club ', '')}</strong>
+                <span>{row.marina.area}</span>
+              </a>
+            ))}
+            <a className="tripPlannerMenuAll" href="/browse?type=marinas">Browse all marinas</a>
           </div>
-          <div id="planner-day-tabs-slot" className="tripPlannerDaySlot" aria-label="Trip date controls" />
-          <details className="tripPlannerMenu">
-            <summary aria-label="Open marina menu">
-              <span />
-              <span />
-              <span />
-            </summary>
-            <div className="tripPlannerMenuPanel" aria-label="Freedom Club marinas">
-              <div className="tripPlannerMenuTitle">Freedom Club Marinas</div>
-              {freedomMenuRows.map((row) => row.kind === 'divider' ? (
-                <div key={row.label} className="tripPlannerMenuDivider">{row.label}</div>
-              ) : (
-                <a key={row.marina.id} href={marinaPath(row.marina)}>
-                  <strong>{row.marina.name.replace('Freedom Boat Club ', '')}</strong>
-                  <span>{row.marina.area}</span>
-                </a>
-              ))}
-              <a className="tripPlannerMenuAll" href="/browse?type=marinas">Browse all marinas</a>
-            </div>
-          </details>
-        </div>
-      </header>
+        </details>
+      </div>
 
       <section className="tripPlannerPanel" aria-label="Plan my trip map">
         <TripMap marinas={PLANNER_MARINAS} />

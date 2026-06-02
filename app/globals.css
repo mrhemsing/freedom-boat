@@ -55,6 +55,288 @@ a:hover {
   padding: 26px 18px 44px 18px;
 }
 
+.globalHeader {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto auto minmax(180px, 1fr) minmax(0, auto) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(4, 18, 31, 0.72);
+  box-shadow: 0 12px 28px rgba(2, 12, 27, 0.20);
+  backdrop-filter: blur(12px);
+  color: #fff;
+}
+
+.globalBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.globalBrand:hover {
+  text-decoration: none;
+}
+
+.globalBrand.active .brandFreedom,
+.globalBrand.active .brandBoat {
+  text-shadow: 0 0 16px rgba(96, 165, 250, 0.58);
+}
+
+.globalBrand .fbLogo {
+  width: 44px;
+  height: 44px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.globalBrand .brandTitle {
+  gap: 0;
+  line-height: 1;
+}
+
+.globalBrand .brandFreedom,
+.globalBrand .brandBoat {
+  font-size: 18px;
+}
+
+.globalPrimaryNav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.globalPrimaryNav a {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 11px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.globalPrimaryNav a.active {
+  background: rgba(255, 255, 255, 0.94);
+  color: #0c3a4c;
+}
+
+.globalSearch {
+  min-width: 0;
+}
+
+.globalSearch input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.globalSearch input::placeholder {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.globalSearch input:focus {
+  border-color: rgba(96, 165, 250, 0.72);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16);
+}
+
+.globalContext {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.globalPrefs {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(31, 138, 155, 0.32);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.globalPrefs:hover {
+  text-decoration: none;
+  background: rgba(31, 138, 155, 0.46);
+}
+
+.homeHubPage {
+  max-width: 1180px;
+}
+
+.homeHero {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.homeHeroCopy,
+.homeConditionPanel,
+.homeEntry {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(4, 18, 31, 0.66);
+  box-shadow: 0 14px 32px rgba(2, 12, 27, 0.22);
+  backdrop-filter: blur(12px);
+}
+
+.homeHeroCopy {
+  padding: 30px;
+}
+
+.homeEyebrow {
+  color: rgba(96, 165, 250, 0.96);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.homeHero h1 {
+  max-width: 760px;
+  margin: 10px 0 10px;
+  color: #fff;
+  font-size: clamp(32px, 6vw, 58px);
+  line-height: 0.95;
+}
+
+.homeHero p {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.homeHeroActions {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.homeConditionPanel {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.homeScore {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.homeScore span,
+.homeMetrics dt,
+.homeEntry span {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.homeScore strong {
+  color: #fff;
+  font-size: 76px;
+  line-height: 0.9;
+}
+
+.homeScore em {
+  color: rgba(255, 255, 255, 0.90);
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.homeMetrics {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.homeMetrics div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.homeMetrics dd {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.homeEntryGrid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.homeEntry {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 170px;
+  padding: 20px;
+  text-decoration: none;
+}
+
+.homeEntry:hover {
+  text-decoration: none;
+  background: rgba(4, 18, 31, 0.78);
+}
+
+.homeEntry strong {
+  color: #fff;
+  font-size: 21px;
+  line-height: 1.1;
+}
+
+.homeEntry p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.70);
+  line-height: 1.42;
+}
+
 .siteFooter {
   margin-top: 18px;
   display: flex;
@@ -246,6 +528,26 @@ a:hover {
   align-items: center;
   width: fit-content;
   max-width: 100%;
+}
+
+.locationHeroTitle {
+  display: grid;
+  gap: 4px;
+}
+
+.locationHeroTitle span {
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.locationHeroTitle h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 0.96;
 }
 
 .marinaJumpMenu {
@@ -932,6 +1234,52 @@ hr.soft {
 .chartSvg { width: 100%; max-width: 100%; }
 
 @media (max-width: 720px) {
+  .globalHeader {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+
+  .globalBrand {
+    grid-column: 1;
+  }
+
+  .globalPrimaryNav {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .globalPrimaryNav a {
+    flex: 1 1 0;
+  }
+
+  .globalSearch {
+    grid-column: 1 / -1;
+  }
+
+  .globalContext {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .globalPrefs {
+    grid-column: 2;
+    font-size: 11px;
+  }
+
+  .homeHero,
+  .homeEntryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .homeHeroCopy {
+    padding: 22px;
+  }
+
+  .homeScore strong {
+    font-size: 64px;
+  }
+
   .kpiGrid {
     grid-template-columns: 1fr;
   }
@@ -1792,10 +2140,17 @@ hr.soft {
   height: 100dvh;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 8px;
   overflow: hidden;
   padding: 10px 12px 12px;
+}
+
+.tripPlannerMenuRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 0;
 }
 
 .tripPlannerHeader {
@@ -1873,6 +2228,10 @@ hr.soft {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+}
+
+.globalHeader .tripPlannerDaySlot {
+  width: min(580px, 100%);
 }
 
 .tripPlannerNav {

@@ -10,6 +10,7 @@ import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './u
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
 import MarinaJump from './MarinaJump';
+import GlobalHeader from '../../GlobalHeader';
 
 export async function generateMetadata({
   params
@@ -86,16 +87,12 @@ export default async function LocationPage({
 
   return (
     <main className="container">
+      <GlobalHeader active="conditions" contextLabel={loc.name} />
       <header className="topbar">
         <div className="headerBrand">
-          <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={72} height={72} style={{ display: 'block' }} />
-              <div className="brandTitle">
-                <span className="brandFreedom">FAIRTIDE</span>
-                <span className="brandBoat">BOAT PLANNER</span>
-              </div>
-            </div>
+          <div className="locationHeroTitle">
+            <span>Conditions</span>
+            <h1>{loc.name}</h1>
           </div>
         </div>
         <a className="planMapButton" href={mapHref} aria-label={`Open ${loc.name} on trip map`}>

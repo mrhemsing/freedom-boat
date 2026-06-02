@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { breadcrumbJsonLd } from '../../../lib/seo-schema';
 import { AREA_HUBS, canonicalUrl, getAreaHubBySlug, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
+import GlobalHeader from '../../GlobalHeader';
 
 export const revalidate = 86400;
 
@@ -30,13 +31,12 @@ export default function AreaHubPage({ params }: { params: { slug: string } }) {
 
   return (
     <main className="container seoPage">
+      <GlobalHeader active="area" contextLabel={hub.name} />
       <header className="seoHero">
-        <a className="seoBrand" href="/plan-my-trip" aria-label="FAIRTIDE map">
-          <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={64} height={64} />
-          <span>FAIRTIDE</span>
-        </a>
         <nav className="seoBreadcrumb" aria-label="Breadcrumb">
-          <a href="/plan-my-trip">Map</a>
+          <a href="/">Home</a>
+          <span>/</span>
+          <a href="/browse">Browse</a>
           <span>/</span>
           <span>{hub.name}</span>
         </nav>
@@ -74,7 +74,7 @@ export default function AreaHubPage({ params }: { params: { slug: string } }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbJsonLd([
-            ['Home', '/plan-my-trip'],
+            ['Home', '/'],
             [hub.name, `/area/${hub.slug}`]
           ]))
         }}

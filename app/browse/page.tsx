@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { AREA_HUBS, canonicalUrl, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../lib/seo-slugs';
+import GlobalHeader from '../GlobalHeader';
 
 type BrowseType = 'all' | 'areas' | 'marinas' | 'launches';
 
@@ -30,13 +31,10 @@ export default function BrowsePage({
 
   return (
     <main className="container seoPage browsePage">
+      <GlobalHeader active="browse" contextLabel="Directory" />
       <header className="seoHero">
-        <a className="seoBrand" href="/plan-my-trip" aria-label="FAIRTIDE map">
-          <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={64} height={64} />
-          <span>FAIRTIDE</span>
-        </a>
         <nav className="seoBreadcrumb" aria-label="Breadcrumb">
-          <a href="/plan-my-trip">Map</a>
+          <a href="/">Home</a>
           <span>/</span>
           <span>Browse</span>
         </nav>

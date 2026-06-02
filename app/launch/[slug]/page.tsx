@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getLaunchSeoSnapshot, scorePhrase } from '../../../lib/seo-live';
 import { launchJsonLd } from '../../../lib/seo-schema';
 import { areaHubForPlace, canonicalUrl, getLaunchBySlug, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
+import GlobalHeader from '../../GlobalHeader';
 
 export const revalidate = 3600;
 
@@ -41,15 +42,14 @@ export default async function LaunchSeoPage({
 
   return (
     <main className="container seoPage">
+      {!isPlannerEmbed ? <GlobalHeader active="conditions" contextLabel={launch.area} /> : null}
       <header className="seoHero">
         {!isPlannerEmbed ? (
           <>
-            <a className="seoBrand" href="/plan-my-trip" aria-label="FAIRTIDE map">
-              <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={64} height={64} />
-              <span>FAIRTIDE</span>
-            </a>
             <nav className="seoBreadcrumb" aria-label="Breadcrumb">
-              <a href="/plan-my-trip">Map</a>
+              <a href="/">Home</a>
+              <span>/</span>
+              <a href="/browse">Browse</a>
               <span>/</span>
               <a href={`/area/${area.slug}`}>{area.name}</a>
             </nav>
