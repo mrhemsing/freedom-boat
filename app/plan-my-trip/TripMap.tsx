@@ -85,6 +85,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const timebarRef = useRef<HTMLDivElement | null>(null);
   const leafletMapRef = useRef<any>(null);
+  const initialMapBoundsRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
   const [query, setQuery] = useState('');
@@ -372,11 +373,13 @@ export default function TripMap({ marinas }: TripMapProps) {
       }
 
       const loadBounds = initialBounds.isValid() ? initialBounds : bounds;
-      map.fitBounds(loadBounds.pad(0.16), { animate: false, maxZoom: 11 });
+      initialMapBoundsRef.current = loadBounds;
+      fitPlannerMap(map, loadBounds, false);
 
       setTimeout(() => {
         if (!disposed && leafletMapRef.current === map) {
           map.invalidateSize();
+          fitPlannerMap(map, loadBounds, false);
         }
       }, 0);
 
@@ -384,6 +387,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         markerRefs.current = {};
         launchMarkerRefs.current = {};
         leafletMapRef.current = null;
+        initialMapBoundsRef.current = null;
         map.remove();
       };
     }
@@ -398,7 +402,10 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      leafletMapRef.current?.invalidateSize?.();
+      const map = leafletMapRef.current;
+      if (!map) return;
+      map.invalidateSize?.();
+      fitPlannerMap(map, initialMapBoundsRef.current, isFullscreen);
     }, 260);
     return () => window.clearTimeout(timer);
   }, [isFullscreen]);
@@ -1133,6 +1140,17 @@ function isInitialBcFocus(location: Pick<Marina | BoatLaunch, 'lat' | 'lon'>) {
 
 function isMobilePlanner() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 560px)').matches;
+}
+
+function fitPlannerMap(map: any, bounds: any, isExpanded: boolean) {
+  if (!map || !bounds?.isValid?.()) return;
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
+  map.fitBounds(bounds.pad(0.16), {
+    animate: false,
+    maxZoom: 11,
+    paddingTopLeft: [0, 0],
+    paddingBottomRight: isDesktop && !isExpanded ? [24, 0] : [0, 0]
+  });
 }
 
 function marinaScore(marina: Marina, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
