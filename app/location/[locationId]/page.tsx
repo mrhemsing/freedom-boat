@@ -336,7 +336,7 @@ export default async function LocationPage({
                         referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                       />
-                    ) : (
+                    ) : webcam.url ? (
                       <a
                         href={webcam.url}
                         target="_blank"
@@ -355,6 +355,22 @@ export default async function LocationPage({
                       >
                         Open {webcam.label ?? `${loc.name} live webcam`}
                       </a>
+                    ) : (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'grid',
+                          placeItems: 'center',
+                          padding: 18,
+                          textAlign: 'center',
+                          color: 'rgba(11,18,32,0.72)',
+                          background: 'linear-gradient(135deg, rgba(11,18,32,0.06), rgba(255,255,255,0.92))',
+                          fontWeight: 800
+                        }}
+                      >
+                        No live webcam currently available
+                      </div>
                     )}
                   </div>
                 )
@@ -829,7 +845,8 @@ function baseUrl() {
 type LocationWebcam =
   | { videoId: string; embedUrl?: never; url?: never; label?: never }
   | { embedUrl: string; videoId?: never; url?: never; label?: never }
-  | { url: string; label: string; videoId?: never; embedUrl?: never };
+  | { url: string; label: string; videoId?: never; embedUrl?: never }
+  | { videoId?: never; embedUrl?: never; url?: never; label?: never };
 
 function getLocationWebcam(id: LocationId): LocationWebcam {
   if (id === 'north-saanich') return { videoId: 'zeKV78ULlpY' };
@@ -842,7 +859,7 @@ function getLocationWebcam(id: LocationId): LocationWebcam {
   if (id === 'elliott-bay-marina') return { url: 'https://www.elliottbaymarina.co/live/', label: 'Elliott Bay Marina live webcam' };
   if (id === 'olympia') return { url: 'https://swantown.portolympia.com/webcam/', label: 'Swantown Marina live webcam' };
   if (id === 'port-of-camas') return { url: 'https://portcw.com/marina/marina-webcam/', label: 'Port of Camas-Washougal live webcam' };
-  return { url: '/plan-my-trip', label: `${LOCATIONS[id]?.name ?? 'this marina'} on the trip map` };
+  return {};
 }
 
 function extractHour(isoLike?: string) {
