@@ -1848,14 +1848,6 @@ hr.soft {
   font-size: 20px;
 }
 
-.tripPlannerKicker {
-  margin-top: 0;
-  color: rgba(255, 255, 255, 0.94);
-  font-size: 13px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
 .tripPlannerSubhead {
   display: none;
 }
@@ -1868,6 +1860,7 @@ hr.soft {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
 }
 
@@ -1891,7 +1884,7 @@ hr.soft {
   box-shadow: 0 10px 24px rgba(2, 12, 27, 0.22);
 }
 
-.tripPlannerBrowse {
+.tripPlannerNavLink {
   min-height: 34px;
   display: inline-flex;
   align-items: center;
@@ -1905,9 +1898,15 @@ hr.soft {
   text-decoration: none;
 }
 
-.tripPlannerBrowse:hover {
+.tripPlannerNavLink:hover,
+.tripPlannerNavLink.active {
   background: rgba(255, 255, 255, 0.16);
   text-decoration: none;
+}
+
+.tripPlannerNavLink.active {
+  border-color: rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
 }
 
 .tripPlannerPanel {
@@ -2112,7 +2111,7 @@ hr.soft {
 .plannerTimebar {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 7px;
   overflow-x: auto;
   padding: 0 0 10px;
   pointer-events: auto;
@@ -2124,43 +2123,114 @@ hr.soft {
 }
 
 .plannerDay {
+  position: relative;
   flex: 0 0 auto;
-  min-width: 74px;
-  border: 2px solid transparent;
+  min-width: 94px;
+  min-height: 64px;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  border: 1px solid rgba(12, 58, 76, 0.10);
   border-radius: 12px;
-  padding: 7px 11px;
+  padding: 7px 9px 8px;
   background: #fff;
   box-shadow: var(--planner-shadow);
   color: var(--planner-navy);
   cursor: pointer;
   font: inherit;
-  text-align: center;
+  text-align: left;
 }
 
 .plannerDay.active {
-  border-color: var(--planner-teal);
+  border-color: var(--planner-navy);
+  background: #f5fbfc;
+  box-shadow: 0 0 0 3px rgba(12, 58, 76, 0.18), var(--planner-shadow);
 }
 
-.plannerDay span,
-.plannerDay em {
+.plannerDay.active::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--planner-teal);
+}
+
+.plannerDayLabel,
+.plannerDayDate,
+.plannerDayScore {
   display: block;
+}
+
+.plannerDayLabel {
   font-size: 11px;
-  font-weight: 700;
-  color: var(--planner-muted);
-  font-style: normal;
+  line-height: 1.05;
+  font-weight: 900;
+  color: #4d6771;
 }
 
-.plannerDay b {
-  display: block;
-  font-size: 15px;
+.plannerDay.active .plannerDayLabel {
+  color: #0c3a4c;
+}
+
+.plannerDayDate {
+  margin-top: 2px;
+  font-size: 13px;
   line-height: 1.1;
+  font-weight: 900;
+  color: #0c3a4c;
+}
+
+.plannerDayScore {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 5px;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.plannerDayScore strong {
+  color: var(--day-score, var(--planner-teal));
+  font-size: 17px;
+  line-height: 1;
   font-weight: 900;
 }
 
-.plannerDay em {
-  margin-top: 2px;
+.plannerDayScore span {
+  color: #607780;
   font-size: 10px;
-  white-space: nowrap;
+  line-height: 1;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.plannerCluster {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #0c3a4c;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(12, 58, 76, 0.38);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.plannerCluster::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  background: rgba(12, 58, 76, 0.16);
+  z-index: -1;
 }
 
 .plannerPin {
@@ -3299,19 +3369,23 @@ hr.soft {
   }
 
   .tripPlannerDaySlot .plannerDay {
-    min-width: 64px;
+    min-width: 96px;
     border-radius: 10px;
-    padding: 5px 9px;
+    padding: 6px 8px 7px;
     box-shadow: 0 8px 18px rgba(2, 12, 27, 0.18);
   }
 
-  .tripPlannerDaySlot .plannerDay span,
-  .tripPlannerDaySlot .plannerDay em {
+  .tripPlannerDaySlot .plannerDayLabel,
+  .tripPlannerDaySlot .plannerDayScore span {
     font-size: 10px;
   }
 
-  .tripPlannerDaySlot .plannerDay b {
-    font-size: 13px;
+  .tripPlannerDaySlot .plannerDayDate {
+    font-size: 12px;
+  }
+
+  .tripPlannerDaySlot .plannerDayScore strong {
+    font-size: 16px;
   }
 
   .plannerWrapExpanded .plannerTimebar {
@@ -3463,7 +3537,6 @@ hr.soft {
     font-size: 26px;
   }
 
-  .tripPlannerKicker,
   .tripPlannerSubhead,
   .tripPlannerJumpLabel {
     display: none;
@@ -3620,7 +3693,7 @@ hr.soft {
     font-size: 13px;
   }
 
-  .tripPlannerBrowse {
+  .tripPlannerNav {
     display: none;
   }
 

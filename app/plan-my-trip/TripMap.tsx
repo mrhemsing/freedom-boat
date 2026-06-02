@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import {
   MARINA_ACCESS_INFO,
@@ -106,6 +106,9 @@ export default function TripMap({ marinas }: TripMapProps) {
   const initialMapBoundsRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
+  const clusterMarkerRefs = useRef<any[]>([]);
+  const clusterRefreshRef = useRef<(() => void) | null>(null);
+  const alwaysVisibleClusterIdsRef = useRef<Set<number>>(new Set());
   const routeLineRef = useRef<any>(null);
   const routeLegLineRefs = useRef<Record<number, any>>({});
   const waypointMarkerRefs = useRef<Record<string, any>>({});
@@ -170,6 +173,14 @@ export default function TripMap({ marinas }: TripMapProps) {
   const selected = selectedId ? activeMarinas.find((marina) => marina.id === selectedId) ?? null : null;
   const selectedLaunch = selectedLaunchId ? launches.find((launch) => launch.id === selectedLaunchId) ?? null : null;
   const showSheetDetail = Boolean((selected || selectedLaunch) && !mobileMarkerModal);
+
+  useEffect(() => {
+    alwaysVisibleClusterIdsRef.current = new Set([
+      ...(selectedId == null ? [] : [selectedId]),
+      ...tripStops
+    ]);
+    clusterRefreshRef.current?.();
+  }, [selectedId, tripStops]);
 
   useEffect(() => {
     setActiveMarinas(snapMarinaList(marinas));
@@ -435,6 +446,20 @@ export default function TripMap({ marinas }: TripMapProps) {
         markerRefs.current[marina.id] = marker;
       });
 
+      const refreshClusters = () => {
+        updatePlannerClusters(
+          L,
+          map,
+          visibleMarinas,
+          markerRefs.current,
+          clusterMarkerRefs.current,
+          alwaysVisibleClusterIdsRef.current
+        );
+      };
+      clusterRefreshRef.current = refreshClusters;
+      map.on('zoomend moveend', refreshClusters);
+      refreshClusters();
+
       if (showLaunches) {
         launches.forEach((launch) => {
           bounds.extend([launch.lat, launch.lon]);
@@ -476,6 +501,9 @@ export default function TripMap({ marinas }: TripMapProps) {
       cleanup = () => {
         markerRefs.current = {};
         launchMarkerRefs.current = {};
+        clusterMarkerRefs.current.forEach((marker) => marker.remove());
+        clusterMarkerRefs.current = [];
+        clusterRefreshRef.current = null;
         waypointMarkerRefs.current = {};
         routeLegLineRefs.current = {};
         routeLineRef.current = null;
@@ -527,6 +555,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           marker.setZIndexOffset(selectedId === marina.id || tripStops.includes(marina.id) || marina.freedomClub ? 700 : 0);
         }
       });
+      clusterRefreshRef.current?.();
     });
     return () => {
       active = false;
@@ -784,16 +813,22 @@ export default function TripMap({ marinas }: TripMapProps) {
         {DAYS.map((label, index) => {
           const score = timebarScore(index);
           const wind = timebarWind(index);
+          const date = dayChipDate(index);
           return (
             <button
               key={label}
               type="button"
               className={`plannerDay ${dayIndex === index ? 'active' : ''}`}
               onClick={() => setDayIndex(index)}
+              aria-pressed={dayIndex === index}
+              style={{ '--day-score': scoreColor(score) } as CSSProperties}
             >
-              <span>{label}</span>
-              <b>{dayNumber(index)}</b>
-              <em style={{ color: scoreColor(score) }}>{wind ? `${score} / ${wind}` : score}</em>
+              <span className="plannerDayLabel">{index === 0 ? 'Today' : date.weekday}</span>
+              <b className="plannerDayDate">{index === 0 ? `Today ${date.monthDay}` : date.monthDay}</b>
+              <em className="plannerDayScore">
+                <strong>{score}</strong>
+                <span>{wind ? wind : 'score'}</span>
+              </em>
             </button>
           );
         })}
@@ -828,27 +863,28 @@ export default function TripMap({ marinas }: TripMapProps) {
               </svg>
               <span>Plan a trip</span>
             </button>
-            <button
-              className={`plannerChip plannerRouteChip ${isRouteEditing ? 'active' : ''}`}
-              type="button"
-              aria-pressed={isRouteEditing}
-              disabled={tripStops.length < 2}
-              onClick={() => {
-                setIsRouteEditing((value) => !value);
-                setTripMode(true);
-                setSheetState('full');
-                setSelectedId(null);
-                setSelectedLaunchId(null);
-                setMobileMarkerModal(false);
-              }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-                <circle cx="5" cy="19" r="2" />
-                <circle cx="19" cy="5" r="2" />
-                <path d="M7 18c5-1 3-11 10-12" />
-              </svg>
-              <span>Edit route</span>
-            </button>
+            {tripStops.length >= 2 ? (
+              <button
+                className={`plannerChip plannerRouteChip ${isRouteEditing ? 'active' : ''}`}
+                type="button"
+                aria-pressed={isRouteEditing}
+                onClick={() => {
+                  setIsRouteEditing((value) => !value);
+                  setTripMode(true);
+                  setSheetState('full');
+                  setSelectedId(null);
+                  setSelectedLaunchId(null);
+                  setMobileMarkerModal(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle cx="5" cy="19" r="2" />
+                  <circle cx="19" cy="5" r="2" />
+                  <path d="M7 18c5-1 3-11 10-12" />
+                </svg>
+                <span>Edit route</span>
+              </button>
+            ) : null}
             <button
               className={`plannerChip plannerFullscreenChip ${isFullscreen ? 'active' : ''}`}
               type="button"
@@ -1543,6 +1579,97 @@ function launchIcon(L: any, launch: BoatLaunch) {
   });
 }
 
+function updatePlannerClusters(
+  L: any,
+  map: any,
+  marinas: Marina[],
+  markers: Record<number, any>,
+  clusterMarkers: any[],
+  alwaysVisibleIds: Set<number>
+) {
+  clusterMarkers.forEach((marker) => marker.remove());
+  clusterMarkers.length = 0;
+
+  const clusterDistancePx = map.getZoom() >= 14 ? 22 : 46;
+  const clusters: Array<{
+    lat: number;
+    lon: number;
+    count: number;
+    ids: number[];
+    point: { x: number; y: number };
+  }> = [];
+
+  marinas.forEach((marina) => {
+    const marker = markers[marina.id];
+    if (!marker) return;
+
+    if (alwaysVisibleIds.has(marina.id)) {
+      if (!marker._map) marker.addTo(map);
+      return;
+    }
+
+    const point = map.latLngToLayerPoint([marina.lat, marina.lon]);
+    const cluster = clusters.find((candidate) => {
+      const dx = candidate.point.x - point.x;
+      const dy = candidate.point.y - point.y;
+      return Math.sqrt(dx * dx + dy * dy) <= clusterDistancePx;
+    });
+
+    if (cluster) {
+      cluster.lat = (cluster.lat * cluster.count + marina.lat) / (cluster.count + 1);
+      cluster.lon = (cluster.lon * cluster.count + marina.lon) / (cluster.count + 1);
+      cluster.point = {
+        x: (cluster.point.x * cluster.count + point.x) / (cluster.count + 1),
+        y: (cluster.point.y * cluster.count + point.y) / (cluster.count + 1)
+      };
+      cluster.count += 1;
+      cluster.ids.push(marina.id);
+    } else {
+      clusters.push({
+        lat: marina.lat,
+        lon: marina.lon,
+        count: 1,
+        ids: [marina.id],
+        point
+      });
+    }
+  });
+
+  const clusteredIds = new Set<number>();
+  clusters.forEach((cluster) => {
+    if (cluster.count < 2) return;
+    cluster.ids.forEach((id) => clusteredIds.add(id));
+    const clusterMarker = L.marker([cluster.lat, cluster.lon], {
+      icon: clusterIcon(L, cluster.count),
+      zIndexOffset: 900,
+      bubblingMouseEvents: false
+    }).addTo(map);
+    clusterMarker.on('click', () => {
+      map.setView([cluster.lat, cluster.lon], Math.min(map.getZoom() + 2, 18), { animate: true });
+    });
+    clusterMarkers.push(clusterMarker);
+  });
+
+  marinas.forEach((marina) => {
+    const marker = markers[marina.id];
+    if (!marker) return;
+    if (clusteredIds.has(marina.id)) {
+      if (marker._map) marker.remove();
+    } else if (!marker._map) {
+      marker.addTo(map);
+    }
+  });
+}
+
+function clusterIcon(L: any, count: number) {
+  return L.divIcon({
+    className: '',
+    html: `<button type="button" class="plannerCluster" aria-label="${count} overlapping destinations">${count}</button>`,
+    iconSize: [42, 42],
+    iconAnchor: [21, 21]
+  });
+}
+
 function routeLegStyle(crossesLand: boolean) {
   return {
     color: crossesLand ? '#dc2626' : '#0e7490',
@@ -1554,10 +1681,13 @@ function routeLegStyle(crossesLand: boolean) {
   };
 }
 
-function dayNumber(offset: number) {
+function dayChipDate(offset: number) {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.getDate();
+  return {
+    weekday: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    monthDay: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  };
 }
 
 function nextSheetState(state: SheetState): SheetState {

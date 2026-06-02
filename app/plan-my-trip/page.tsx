@@ -28,8 +28,11 @@ export default function PlanMyTripPage() {
         </div>
 
         <div className="headerInfo">
-          <div className="tripPlannerKicker">Plan my trip</div>
           <div className="tripPlannerSubhead">Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</div>
+          <div className="tripPlannerNav" aria-label="Primary navigation">
+            <a className="tripPlannerNavLink active" href="/plan-my-trip">Plan my trip</a>
+            <a className="tripPlannerNavLink" href="/browse">Browse directory</a>
+          </div>
           <div id="planner-day-tabs-slot" className="tripPlannerDaySlot" aria-label="Trip date controls" />
           <details className="tripPlannerMenu">
             <summary aria-label="Open marina menu">
@@ -50,9 +53,6 @@ export default function PlanMyTripPage() {
               <a className="tripPlannerMenuAll" href="/browse?type=marinas">Browse all marinas</a>
             </div>
           </details>
-          <div className="tripPlannerNav">
-            <a className="tripPlannerBrowse" href="/browse">Browse directory</a>
-          </div>
         </div>
       </header>
 
