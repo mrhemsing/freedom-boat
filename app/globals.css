@@ -2560,10 +2560,13 @@ hr.soft {
 }
 
 .plannerFilterTools {
+  position: relative;
+  z-index: 1500;
   display: flex;
   align-items: center;
   gap: 8px;
   margin: -2px 0 8px;
+  overflow: visible;
 }
 
 .plannerIconFilter {
@@ -2611,7 +2614,7 @@ hr.soft {
   position: absolute;
   left: 50%;
   bottom: calc(100% + 8px);
-  z-index: 20;
+  z-index: 1600;
   max-width: 190px;
   padding: 6px 8px;
   border-radius: 8px;
@@ -3421,7 +3424,7 @@ hr.soft {
     border-radius: 0;
     border-left: 1px solid rgba(12, 58, 76, 0.12);
     box-shadow: -8px 0 24px rgba(12, 58, 76, 0.12);
-    overflow: hidden;
+    overflow: visible;
     transform: none;
     transition: none;
   }
