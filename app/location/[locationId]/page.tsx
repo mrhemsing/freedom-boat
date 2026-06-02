@@ -320,6 +320,22 @@ export default async function LocationPage({
                         referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                       />
+                    ) : webcam.embedUrl ? (
+                      <iframe
+                        title={`${loc.name} live webcam`}
+                        src={webcam.embedUrl}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          width: '100%',
+                          height: '100%',
+                          border: 0
+                        }}
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                      />
                     ) : (
                       <a
                         href={webcam.url}
@@ -337,7 +353,7 @@ export default async function LocationPage({
                           fontWeight: 800
                         }}
                       >
-                        Open {webcam.url === '/plan-my-trip' ? `${loc.name} on the trip map` : `${loc.name} live webcam`}
+                        Open {webcam.label ?? `${loc.name} live webcam`}
                       </a>
                     )}
                   </div>
@@ -810,12 +826,23 @@ function baseUrl() {
   return 'http://localhost:3000';
 }
 
-function getLocationWebcam(id: LocationId) {
+type LocationWebcam =
+  | { videoId: string; embedUrl?: never; url?: never; label?: never }
+  | { embedUrl: string; videoId?: never; url?: never; label?: never }
+  | { url: string; label: string; videoId?: never; embedUrl?: never };
+
+function getLocationWebcam(id: LocationId): LocationWebcam {
   if (id === 'north-saanich') return { videoId: 'zeKV78ULlpY' };
   if (id === 'west-vancouver') return { videoId: 'MOKktH6RcpU' };
   if (id === 'port-moody') return { videoId: 'T0oUufecXeE' };
-  if (id === 'oak-bay') return { url: 'https://oakbaymarina.com/weather/' };
-  return { url: '/plan-my-trip' };
+  if (id === 'bellingham') return { videoId: '6j0aasCRk_k' };
+  if (id === 'everett') return { videoId: 'BsfcSCJZRFM' };
+  if (id === 'lake-coeur-dalene') return { videoId: 'kwi4O3aDZ3Q' };
+  if (id === 'oak-bay') return { url: 'https://oakbaymarina.com/weather/', label: 'Oak Bay live webcam' };
+  if (id === 'elliott-bay-marina') return { url: 'https://www.elliottbaymarina.co/live/', label: 'Elliott Bay Marina live webcam' };
+  if (id === 'olympia') return { url: 'https://swantown.portolympia.com/webcam/', label: 'Swantown Marina live webcam' };
+  if (id === 'port-of-camas') return { url: 'https://portcw.com/marina/marina-webcam/', label: 'Port of Camas-Washougal live webcam' };
+  return { url: '/plan-my-trip', label: `${LOCATIONS[id]?.name ?? 'this marina'} on the trip map` };
 }
 
 function extractHour(isoLike?: string) {
