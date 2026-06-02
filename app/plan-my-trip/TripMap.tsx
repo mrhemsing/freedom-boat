@@ -1816,7 +1816,7 @@ function TripPlanView({
                     if (Number.isFinite(fromIndex)) onReorderStop(fromIndex, leg.stopIndex - 1);
                   }}
                 >
-                  <span className="plannerLegNode">{leg.stopIndex}</span>
+                  <span className="plannerLegNode stop">{leg.stopIndex}</span>
                   <div>
                     <strong>{leg.marina.name}</strong>
                     <span>
