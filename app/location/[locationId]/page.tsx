@@ -84,7 +84,7 @@ export default async function LocationPage({
       <header className="topbar">
         <div className="headerBrand">
           <div className="brand" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <img className="fbLogo" src="/fb-logo.svg?v=7" alt="FAIRTIDE" width={72} height={72} style={{ display: 'block' }} />
               <div className="brandTitle">
                 <span className="brandFreedom">FAIRTIDE</span>
