@@ -1641,6 +1641,10 @@ hr.soft {
     margin-bottom: 15px;
   }
 
+  .locationHeroTitle {
+    margin-top: 12px;
+  }
+
   .liveLookGrid {
     grid-template-columns: 1fr !important;
     gap: 8px;
