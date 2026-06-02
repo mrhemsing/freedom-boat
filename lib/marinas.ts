@@ -89,7 +89,8 @@ export const MARINA_ACCESS_INFO: Record<string, MarinaAccessInfo> = {
   courtenay_marina: { access: 'Public', transient: 'Limited', fuel: '?', launch: '?', moorage: 'moorage as available', verified: false },
   comox_bay: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'harbour authority transient moorage', verified: false },
   french_creek: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'harbour authority transient moorage', verified: false },
-  schooner_cove: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'transient moorage as available', verified: false }
+  schooner_cove: { access: 'Public', transient: 'Y', fuel: '?', launch: 'N', moorage: 'transient moorage as available', verified: false },
+  ladysmith_marina: { access: 'Public', transient: 'Y', fuel: '?', launch: '?', moorage: 'annual, monthly, and daily guest moorage', verified: true }
 };
 
 export const EXCLUDED_MARINAS = {
@@ -571,6 +572,17 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     lon: -124.1357,
     area: 'Nanoose Bay',
     exp: 0.5
+  },
+  {
+    id: 67,
+    osmId: 'ladysmith_marina',
+    name: 'Ladysmith Marina',
+    address: '901 Gladden Road, Ladysmith, BC',
+    lat: 49.00658,
+    lon: -123.82664,
+    area: 'Ladysmith',
+    exp: 0.5,
+    sourceUrl: 'https://ladysmithmarina.com/marina/'
   }
 ];
 
