@@ -106,6 +106,8 @@ export default function TripMap({ marinas }: TripMapProps) {
   const listScrollTopRef = useRef(0);
   const restoreListScrollRef = useRef(false);
   const showSheetDetailRef = useRef(false);
+  const pendingListScrollMarinaIdRef = useRef<number | null>(null);
+  const tripStopSetRef = useRef<Set<number>>(new Set());
   const leafletMapRef = useRef<any>(null);
   const initialMapBoundsRef = useRef<any>(null);
   const markerRefs = useRef<Record<number, any>>({});
@@ -187,6 +189,10 @@ export default function TripMap({ marinas }: TripMapProps) {
   }, [showSheetDetail]);
 
   useEffect(() => {
+    tripStopSetRef.current = tripStopSet;
+  }, [tripStopSet]);
+
+  useEffect(() => {
     alwaysVisibleClusterIdsRef.current = new Set([
       ...(selectedId == null ? [] : [selectedId]),
       ...tripStops
@@ -252,6 +258,17 @@ export default function TripMap({ marinas }: TripMapProps) {
     if (!sheet) return;
 
     const frame = window.requestAnimationFrame(() => {
+      const pendingMarinaId = pendingListScrollMarinaIdRef.current;
+      if (pendingMarinaId != null && !showSheetDetail && !tripMode) {
+        const row = sheet.querySelector<HTMLElement>(`[data-planner-marina-row="${pendingMarinaId}"]`);
+        if (row) {
+          const rowTop = row.getBoundingClientRect().top - sheet.getBoundingClientRect().top + sheet.scrollTop;
+          sheet.scrollTo({ top: Math.max(0, rowTop - 16), behavior: 'smooth' });
+          pendingListScrollMarinaIdRef.current = null;
+          return;
+        }
+      }
+
       if (showSheetDetail) {
         sheet.scrollTo({ top: 0, behavior: 'auto' });
         return;
@@ -264,7 +281,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [selectedId, selectedLaunchId, showSheetDetail]);
+  }, [routeNodes, selectedId, selectedLaunchId, showSheetDetail, tripMode]);
 
   useEffect(() => {
     if (!mobileMarkerModal) return;
@@ -462,6 +479,15 @@ export default function TripMap({ marinas }: TripMapProps) {
         const marina = activeMarinas.find((candidate) => candidate.id === id);
         if (!marina) return;
         if (action === 'toggle') {
+          const isAdding = !tripStopSetRef.current.has(id);
+          if (isAdding) {
+            pendingListScrollMarinaIdRef.current = id;
+            setTripMode(false);
+            setSelectedId(null);
+            setSelectedLaunchId(null);
+            setMobileMarkerModal(false);
+            setSheetState('full');
+          }
           toggleTripStop(id);
           map.closePopup();
         } else if (action === 'detail') {
@@ -1253,6 +1279,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                   return (
                     <div
                       key={`marina-${marina.id}`}
+                      data-planner-marina-row={marina.id}
                       className={`plannerRow ${marina.freedomClub ? 'plannerRowFreedom' : ''} ${inPlan ? 'plannerRowInPlan' : ''}`}
                     >
                       <button
