@@ -12,6 +12,7 @@ import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
 import { degToCardinal } from '../../lib/format';
 import { marinaPath, seoSlugForLaunch } from '../../lib/seo-slugs';
 import { CURRENT_PASSES, type CurrentEvent, type CurrentPassForecast } from '../../lib/current-passes';
+import { COAST, type CoastPolygon } from '../../lib/coastline';
 
 type TripMapProps = {
   marinas: Marina[];
@@ -23,6 +24,7 @@ type PlannerResult =
   | { kind: 'launch'; launch: BoatLaunch };
 type PlannerOutlooks = Record<string, DailyOutlook[]>;
 type CurrentForecasts = Record<string, CurrentPassForecast>;
+type LandCollisionBySegment = Record<number, boolean>;
 type RouteStopNode = { kind: 'stop'; marinaId: number };
 type RouteWaypointNode = { kind: 'waypoint'; id: string; lat: number; lon: number };
 type RouteNode = RouteStopNode | RouteWaypointNode;
@@ -103,6 +105,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
   const routeLineRef = useRef<any>(null);
+  const routeLegLineRefs = useRef<Record<number, any>>({});
   const waypointMarkerRefs = useRef<Record<string, any>>({});
   const routeClickHandlerRef = useRef<((latlng: { lat: number; lng: number }) => void) | null>(null);
   const isRouteEditingRef = useRef(false);
@@ -135,6 +138,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     .filter((node): node is RouteStopNode => node.kind === 'stop')
     .map((node) => node.marinaId), [routeNodes]);
   const resolvedRouteNodes = useMemo(() => resolveRouteNodes(routeNodes, activeMarinas), [routeNodes, activeMarinas]);
+  const landCollisions = useMemo(() => detectLandCollisions(resolvedRouteNodes), [resolvedRouteNodes]);
   const marinaListIndex = useMemo(() => {
     return new Map(activeMarinas.map((marina, index) => [marina.id, index + 1]));
   }, [activeMarinas]);
@@ -442,6 +446,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         markerRefs.current = {};
         launchMarkerRefs.current = {};
         waypointMarkerRefs.current = {};
+        routeLegLineRefs.current = {};
         routeLineRef.current = null;
         leafletMapRef.current = null;
         initialMapBoundsRef.current = null;
@@ -529,18 +534,37 @@ export default function TripMap({ marinas }: TripMapProps) {
 
       if (countRouteStops(routeNodes) >= 2 && coordinates.length >= 2) {
         if (routeLineRef.current) {
-          routeLineRef.current.setLatLngs(coordinates);
-        } else {
-          routeLineRef.current = L.polyline(coordinates, {
-            color: '#0e7490',
-            weight: 4,
-            opacity: 0.9,
-            dashArray: '10 8',
-            lineCap: 'round',
-            lineJoin: 'round'
-          }).addTo(map);
+          routeLineRef.current.remove();
+          routeLineRef.current = null;
         }
-      } else if (routeLineRef.current) {
+
+        const liveSegments = new Set<number>();
+        for (let index = 1; index < coordinates.length; index += 1) {
+          liveSegments.add(index);
+          const line = routeLegLineRefs.current[index];
+          const crossesLand = landCollisions[index] === true;
+          const options = routeLegStyle(crossesLand);
+          const latLngs = [coordinates[index - 1], coordinates[index]];
+          if (line) {
+            line.setLatLngs(latLngs);
+            line.setStyle(options);
+          } else {
+            routeLegLineRefs.current[index] = L.polyline(latLngs, options).addTo(map);
+          }
+        }
+        Object.entries(routeLegLineRefs.current).forEach(([key, line]) => {
+          const segmentIndex = Number(key);
+          if (!liveSegments.has(segmentIndex)) {
+            line.remove();
+            delete routeLegLineRefs.current[segmentIndex];
+          }
+        });
+      } else {
+        Object.values(routeLegLineRefs.current).forEach((line) => line.remove());
+        routeLegLineRefs.current = {};
+      }
+
+      if (routeLineRef.current) {
         routeLineRef.current.remove();
         routeLineRef.current = null;
       }
@@ -596,7 +620,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       active = false;
     };
-  }, [isRouteEditing, resolvedRouteNodes, routeNodes]);
+  }, [isRouteEditing, landCollisions, resolvedRouteNodes, routeNodes]);
 
   function openMarina(marina: Marina) {
     setSelectedId(marina.id);
@@ -634,7 +658,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   async function shareFloatPlan() {
-    const text = buildFloatPlanText(resolvedRouteNodes, vessel, departAt, speedKt, dayIndex, weeklyOutlooks, liveTides, currentForecasts);
+    const text = buildFloatPlanText(resolvedRouteNodes, vessel, departAt, speedKt, dayIndex, weeklyOutlooks, liveTides, currentForecasts, landCollisions);
     const url = typeof window === 'undefined' ? '' : window.location.href;
     setShareText('');
     setShareMessage('');
@@ -831,6 +855,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                 weeklyOutlooks={weeklyOutlooks}
                 liveTides={liveTides}
                 currentForecasts={currentForecasts}
+                landCollisions={landCollisions}
                 isRouteEditing={isRouteEditing}
               shareText={shareText}
               shareMessage={shareMessage}
@@ -1208,6 +1233,7 @@ function TripPlanView({
   weeklyOutlooks,
   liveTides,
   currentForecasts,
+  landCollisions,
   isRouteEditing,
   shareText,
   shareMessage,
@@ -1229,6 +1255,7 @@ function TripPlanView({
   weeklyOutlooks: PlannerOutlooks;
   liveTides: Record<number, LiveTide>;
   currentForecasts: CurrentForecasts;
+  landCollisions: LandCollisionBySegment;
   isRouteEditing: boolean;
   shareText: string;
   shareMessage: string;
@@ -1241,10 +1268,11 @@ function TripPlanView({
   onRemoveWaypoint: (id: string) => void;
   onShare: () => void;
 }) {
-  const legs = buildTripLegs(routeNodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides, currentForecasts);
+  const legs = buildTripLegs(routeNodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides, currentForecasts, landCollisions);
   const summary = tripSummary(legs);
   const stopCount = routeNodes.filter((node) => node.kind === 'stop').length;
   const waypointCount = routeNodes.length - stopCount;
+  const landWarningCount = legs.filter((leg) => leg.crossesLand).length;
 
   return (
     <div className="plannerDetail plannerTripView">
@@ -1295,6 +1323,11 @@ function TripPlanView({
           <div className="plannerVerdictBar" style={{ background: scoreColor(summary.score) }}>
             {verdict(summary.score)} for {vessel.label.toLowerCase()}
           </div>
+          {landWarningCount ? (
+            <div className="plannerWarning poor">
+              {landWarningCount} route leg{landWarningCount === 1 ? '' : 's'} cross land. Add waypoints to route around land; this does not check rocks, shoals, depth, or bridges.
+            </div>
+          ) : null}
           <div className="plannerTripLegs">
             {legs.map((leg, index) => {
               if (leg.kind === 'waypoint') {
@@ -1304,6 +1337,7 @@ function TripPlanView({
                     <div>
                       <strong>Waypoint</strong>
                       <span>{leg.cumulativeDistance.toFixed(1)} nm from start</span>
+                      {leg.crossesLand ? <em className="plannerWarning poor">Previous leg crosses land — add a waypoint to route around it.</em> : null}
                       <button type="button" onClick={() => onRemoveWaypoint(leg.id)}>Delete waypoint</button>
                     </div>
                   </div>
@@ -1321,6 +1355,7 @@ function TripPlanView({
                     </span>
                     {warning ? <em className={`plannerWarning ${warning.level}`}>{warning.text}</em> : null}
                     {leg.daylight.warning ? <em className={`plannerWarning ${leg.daylight.level}`}>{leg.daylight.warning}</em> : null}
+                    {leg.crossesLand ? <em className="plannerWarning poor">Previous leg crosses land — add a waypoint to route around it. Land only; not rocks, shoals, depth, or bridges.</em> : null}
                     {leg.currentAdvisories.map((advisory) => (
                       <em className={`plannerWarning ${advisory.level}`} key={`${leg.marina.id}-${advisory.passId}`}>
                         {advisory.text}
@@ -1366,6 +1401,17 @@ function launchIcon(L: any, launch: BoatLaunch) {
     iconSize: [30, 30],
     iconAnchor: [15, 15]
   });
+}
+
+function routeLegStyle(crossesLand: boolean) {
+  return {
+    color: crossesLand ? '#dc2626' : '#0e7490',
+    weight: crossesLand ? 5 : 4,
+    opacity: crossesLand ? 0.95 : 0.9,
+    dashArray: crossesLand ? '6 6' : '10 8',
+    lineCap: 'round' as const,
+    lineJoin: 'round' as const
+  };
 }
 
 function dayNumber(offset: number) {
@@ -1476,6 +1522,91 @@ function distanceFromHome(place: { lat: number; lon: number }) {
 
 function legNm(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
   return haversine(a.lat, a.lon, b.lat, b.lon) / 1852;
+}
+
+type BBox = [number, number, number, number];
+
+const ENDPOINT_LAND_TOLERANCE_NM = 50 / 1852;
+
+function detectLandCollisions(nodes: ResolvedRouteNode[]): LandCollisionBySegment {
+  if (nodes.length < 2) return {};
+  const collisions: LandCollisionBySegment = {};
+  for (let index = 1; index < nodes.length; index += 1) {
+    if (legCrossesLand(nodes[index - 1], nodes[index], COAST)) {
+      collisions[index] = true;
+    }
+  }
+  return collisions;
+}
+
+function legCrossesLand(a: { lat: number; lon: number }, b: { lat: number; lon: number }, land: readonly CoastPolygon[]) {
+  const legBox = bboxForPoints([[a.lon, a.lat], [b.lon, b.lat]]);
+  for (const polygon of land) {
+    const polygonBox = bboxForPolygon(polygon);
+    if (!bboxOverlap(legBox, polygonBox)) continue;
+    if (segmentCrossesPolygon(a, b, polygon)) return true;
+  }
+  return false;
+}
+
+function segmentCrossesPolygon(a: { lat: number; lon: number }, b: { lat: number; lon: number }, polygon: CoastPolygon) {
+  for (const ring of polygon) {
+    if (ring.length < 2) continue;
+    for (let index = 1; index < ring.length; index += 1) {
+      const intersection = segmentGateCrossing(a, b, [
+        [ring[index - 1][0], ring[index - 1][1]],
+        [ring[index][0], ring[index][1]]
+      ]);
+      if (!intersection) continue;
+      const fromStart = legNm(a, intersection);
+      const fromEnd = legNm(intersection, b);
+      if (fromStart > ENDPOINT_LAND_TOLERANCE_NM && fromEnd > ENDPOINT_LAND_TOLERANCE_NM) return true;
+    }
+  }
+
+  const midpoint = { lat: (a.lat + b.lat) / 2, lon: (a.lon + b.lon) / 2 };
+  const segmentLength = legNm(a, b);
+  return segmentLength > ENDPOINT_LAND_TOLERANCE_NM * 2 && pointInPolygon(midpoint, polygon);
+}
+
+function pointInPolygon(point: { lat: number; lon: number }, polygon: CoastPolygon) {
+  let inside = false;
+  for (const ring of polygon) {
+    let ringInside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+      const xi = ring[i][0];
+      const yi = ring[i][1];
+      const xj = ring[j][0];
+      const yj = ring[j][1];
+      const intersects = ((yi > point.lat) !== (yj > point.lat))
+        && point.lon < ((xj - xi) * (point.lat - yi)) / ((yj - yi) || 1e-12) + xi;
+      if (intersects) ringInside = !ringInside;
+    }
+    if (ringInside) inside = !inside;
+  }
+  return inside;
+}
+
+function bboxForPolygon(polygon: CoastPolygon): BBox {
+  return bboxForPoints(polygon.flat());
+}
+
+function bboxForPoints(points: readonly (readonly [number, number])[]): BBox {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const [x, y] of points) {
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  }
+  return [minX, minY, maxX, maxY];
+}
+
+function bboxOverlap(a: BBox, b: BBox) {
+  return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
 }
 
 function currentAdvisoriesForSegment(
@@ -1851,6 +1982,7 @@ type StopRouteLeg = {
   tide: TideState | null;
   daylight: DaylightArrival;
   currentAdvisories: CurrentAdvisory[];
+  crossesLand: boolean;
 };
 
 type DaylightArrival = {
@@ -1873,6 +2005,7 @@ type WaypointRouteLeg = {
   segmentDistance: number;
   cumulativeDistance: number;
   arrive: Date;
+  crossesLand: boolean;
 };
 
 function buildTripLegs(
@@ -1883,7 +2016,8 @@ function buildTripLegs(
   vessel: VesselProfile,
   weeklyOutlooks: PlannerOutlooks = {},
   liveTides: Record<number, LiveTide> = {},
-  currentForecasts: CurrentForecasts = {}
+  currentForecasts: CurrentForecasts = {},
+  landCollisions: LandCollisionBySegment = {}
 ): TripLeg[] {
   const speed = Math.max(4, speedKt || DEFAULT_SPEED_KT);
   const depart = new Date(departAt || defaultDepartInput());
@@ -1896,6 +2030,7 @@ function buildTripLegs(
     const segmentDistance = previous ? legNm(previous, node) : 0;
     cumulativeDistance += segmentDistance;
     cursor = new Date(cursor.getTime() + (segmentDistance / speed) * 3600000);
+    const crossesLand = landCollisions[index] === true;
 
     if (node.kind === 'waypoint') {
       return {
@@ -1903,7 +2038,8 @@ function buildTripLegs(
         id: node.id,
         segmentDistance,
         cumulativeDistance,
-        arrive: new Date(cursor)
+        arrive: new Date(cursor),
+        crossesLand
       };
     }
 
@@ -1928,7 +2064,8 @@ function buildTripLegs(
       score: marinaScore(node.marina, arrivalDayIndex, vessel, weeklyOutlooks),
       tide,
       daylight,
-      currentAdvisories
+      currentAdvisories,
+      crossesLand
     };
   });
 }
@@ -1952,9 +2089,10 @@ function buildFloatPlanText(
   dayIndex: number,
   weeklyOutlooks: PlannerOutlooks = {},
   liveTides: Record<number, LiveTide> = {},
-  currentForecasts: CurrentForecasts = {}
+  currentForecasts: CurrentForecasts = {},
+  landCollisions: LandCollisionBySegment = {}
 ) {
-  const legs = buildTripLegs(nodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides, currentForecasts);
+  const legs = buildTripLegs(nodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides, currentForecasts, landCollisions);
   const summary = tripSummary(legs);
   const depart = new Date(departAt || defaultDepartInput());
   const lines = [
@@ -1966,6 +2104,9 @@ function buildFloatPlanText(
   ];
   legs.filter((leg): leg is StopRouteLeg => leg.kind === 'stop').forEach((leg) => {
     lines.push(`${leg.stopIndex}. ${leg.marina.name} - arrive ${formatShortTime(leg.arrive)} - ${leg.cumulativeDistance.toFixed(1)} nm total - wind ${windLabel(leg.conditions)} - seas ${leg.conditions.wave.toFixed(1)}m - sunset ${formatShortTime(leg.daylight.sunset)}${leg.daylight.warning ? ` - ${leg.daylight.warning}` : ''}${leg.tide ? ` - tide ${leg.tide.height.toFixed(1)}m` : ''}`);
+    if (leg.crossesLand) {
+      lines.push('   Land warning: previous leg crosses land. Add a waypoint around it. Land only; this does not check rocks, shoals, depth, or bridges.');
+    }
     leg.currentAdvisories.forEach((advisory) => {
       lines.push(`   Current advisory: ${advisory.text}`);
     });
