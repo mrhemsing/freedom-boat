@@ -2109,6 +2109,22 @@ hr.soft {
   transform: rotate(45deg);
 }
 
+.plannerLegend .directLineShape {
+  width: 18px;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px dotted #0e7490;
+  background: transparent;
+}
+
+.plannerLegend .manualLineShape {
+  width: 18px;
+  height: 0;
+  border-radius: 0;
+  border-top: 3px solid #0e7490;
+  background: transparent;
+}
+
 .plannerTimebar {
   display: flex;
   justify-content: flex-end;
@@ -2131,22 +2147,22 @@ hr.soft {
   display: grid;
   grid-template-rows: auto auto auto;
   align-content: center;
-  border: 1px solid rgba(12, 58, 76, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: 12px;
   padding: 7px 9px 8px;
-  background: #fff;
-  box-shadow: var(--planner-shadow);
-  color: var(--planner-navy);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 6px 16px rgba(2, 12, 27, 0.12);
+  color: #0c3a4c;
   cursor: pointer;
   font: inherit;
   text-align: left;
 }
 
 .plannerDay.active {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: var(--planner-navy);
-  color: #fff;
-  box-shadow: 0 0 0 3px rgba(12, 58, 76, 0.24), var(--planner-shadow);
+  border-color: rgba(20, 184, 166, 0.82);
+  background: #fff;
+  color: #0c3a4c;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.34), 0 12px 26px rgba(2, 12, 27, 0.22);
 }
 
 .plannerDay.active::before {
@@ -2157,7 +2173,7 @@ hr.soft {
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--planner-teal);
+  background: var(--day-score, var(--planner-teal));
 }
 
 .plannerDayLabel,
@@ -2174,15 +2190,15 @@ hr.soft {
 }
 
 .plannerDay.active .plannerDayLabel {
-  color: rgba(255, 255, 255, 0.74);
+  color: #0f5e67;
 }
 
 .plannerDay.active .plannerDayDate {
-  color: #fff;
+  color: #0c3a4c;
 }
 
 .plannerDay.active .plannerDayScore span {
-  color: rgba(255, 255, 255, 0.78);
+  color: #375d67;
 }
 
 .plannerDayDate {
@@ -3502,7 +3518,7 @@ hr.soft {
 
 .plannerRouteActions {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-top: 12px;
 }
@@ -3512,10 +3528,6 @@ hr.soft {
   min-height: 44px;
   padding-right: 12px;
   padding-left: 12px;
-}
-
-.plannerDraftRouteButton {
-  background: #1456a0;
 }
 
 .plannerRouteEditButton.active {
@@ -3735,6 +3747,7 @@ hr.soft {
     min-width: 96px;
     border-radius: 10px;
     padding: 6px 8px 7px;
+    color: #0c3a4c;
     box-shadow: 0 8px 18px rgba(2, 12, 27, 0.18);
   }
 
@@ -3745,6 +3758,11 @@ hr.soft {
 
   .tripPlannerDaySlot .plannerDayDate {
     font-size: 12px;
+  }
+
+  .tripPlannerDaySlot .plannerDay.active,
+  .tripPlannerDaySlot .plannerDay.active .plannerDayDate {
+    color: #0c3a4c;
   }
 
   .tripPlannerDaySlot .plannerDayScore strong {
