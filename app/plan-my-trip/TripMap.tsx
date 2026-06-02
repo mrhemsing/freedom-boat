@@ -109,6 +109,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const restoreListScrollRef = useRef(false);
   const showSheetDetailRef = useRef(false);
   const pendingListScrollMarinaIdRef = useRef<number | null>(null);
+  const pendingListScrollFrameRef = useRef<number | null>(null);
   const tripStopSetRef = useRef<Set<number>>(new Set());
   const leafletMapRef = useRef<any>(null);
   const initialMapBoundsRef = useRef<any>(null);
@@ -262,13 +263,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     const frame = window.requestAnimationFrame(() => {
       const pendingMarinaId = pendingListScrollMarinaIdRef.current;
       if (pendingMarinaId != null && !showSheetDetail && !tripMode) {
-        const row = sheet.querySelector<HTMLElement>(`[data-planner-marina-row="${pendingMarinaId}"]`);
-        if (row) {
-          const rowTop = row.getBoundingClientRect().top - sheet.getBoundingClientRect().top + sheet.scrollTop;
-          sheet.scrollTo({ top: Math.max(0, rowTop - 16), behavior: 'smooth' });
-          pendingListScrollMarinaIdRef.current = null;
-          return;
-        }
+        if (scrollPendingMarinaIntoView('smooth')) return;
       }
 
       if (showSheetDetail) {
@@ -543,6 +538,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             setMobileMarkerModal(true);
             setSheetState('collapsed');
           } else {
+            revealMarinaInList(marina.id);
             marker.openPopup();
           }
         });
@@ -798,6 +794,19 @@ export default function TripMap({ marinas }: TripMapProps) {
     markerRefs.current[marina.id]?.openPopup?.();
   }
 
+  function revealMarinaInList(marinaId: number) {
+    pendingListScrollMarinaIdRef.current = marinaId;
+    setQuery('');
+    setTripMode(false);
+    setShowLaunches(false);
+    setSelectedId(null);
+    setSelectedLaunchId(null);
+    setMobileMarkerModal(false);
+    setSheetState('full');
+    setIsFullscreen(false);
+    schedulePendingMarinaScroll();
+  }
+
   function openLaunch(launch: BoatLaunch) {
     rememberListScroll();
     setSelectedLaunchId(launch.id);
@@ -817,6 +826,33 @@ export default function TripMap({ marinas }: TripMapProps) {
   function rememberListScroll() {
     if (showSheetDetailRef.current) return;
     listScrollTopRef.current = sheetInnerRef.current?.scrollTop ?? 0;
+  }
+
+  function schedulePendingMarinaScroll() {
+    if (pendingListScrollFrameRef.current != null) {
+      window.cancelAnimationFrame(pendingListScrollFrameRef.current);
+    }
+
+    pendingListScrollFrameRef.current = window.requestAnimationFrame(() => {
+      pendingListScrollFrameRef.current = window.requestAnimationFrame(() => {
+        pendingListScrollFrameRef.current = null;
+        scrollPendingMarinaIntoView('smooth');
+      });
+    });
+  }
+
+  function scrollPendingMarinaIntoView(behavior: ScrollBehavior) {
+    const sheet = sheetInnerRef.current;
+    const pendingMarinaId = pendingListScrollMarinaIdRef.current;
+    if (!sheet || pendingMarinaId == null || showSheetDetailRef.current) return false;
+
+    const row = sheet.querySelector<HTMLElement>(`[data-planner-marina-row="${pendingMarinaId}"]`);
+    if (!row) return false;
+
+    const rowTop = row.getBoundingClientRect().top - sheet.getBoundingClientRect().top + sheet.scrollTop;
+    sheet.scrollTo({ top: Math.max(0, rowTop - 16), behavior });
+    pendingListScrollMarinaIdRef.current = null;
+    return true;
   }
 
   function preserveMapViewportAfterUpdate() {
