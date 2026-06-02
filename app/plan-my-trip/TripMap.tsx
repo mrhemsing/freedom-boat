@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   MARINA_ACCESS_INFO,
   PUBLIC_LAUNCHES,
@@ -117,6 +118,8 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [mobileMarkerModal, setMobileMarkerModal] = useState(false);
   const [isTimebarPinned, setIsTimebarPinned] = useState(false);
   const [timebarHeight, setTimebarHeight] = useState(0);
+  const [dayTabsSlot, setDayTabsSlot] = useState<HTMLElement | null>(null);
+  const [useHeaderDayTabs, setUseHeaderDayTabs] = useState(false);
   const [tripMode, setTripMode] = useState(false);
   const [showLaunches, setShowLaunches] = useState(false);
   const [showFreedomOnly, setShowFreedomOnly] = useState(false);
@@ -175,6 +178,19 @@ export default function TripMap({ marinas }: TripMapProps) {
   useEffect(() => {
     const media = window.matchMedia('(max-width: 560px)');
     if (media.matches) setSheetState('collapsed');
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 900px)');
+    setDayTabsSlot(document.getElementById('planner-day-tabs-slot'));
+    setUseHeaderDayTabs(media.matches);
+
+    function handleChange(event: MediaQueryListEvent) {
+      setUseHeaderDayTabs(event.matches);
+    }
+
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
   }, []);
 
   useEffect(() => {
@@ -367,7 +383,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         dragging: true,
         doubleClickZoom: true,
         touchZoom: true
-      }).setView([49.05, -123.25], 9);
+      }).setView([49.25, -123.12], 11);
       leafletMapRef.current = map;
       map.on('click', (event: { latlng: { lat: number; lng: number } }) => {
         routeClickHandlerRef.current?.(event.latlng);
@@ -759,8 +775,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return selected ? windLabel(conditionsFor(selected, index, weeklyOutlooks)) : null;
   }
 
-  return (
-    <div className={`plannerWrap ${isFullscreen ? 'plannerWrapExpanded' : ''}`}>
+  const timebar = (
       <div
         ref={timebarRef}
         className={`plannerTimebar ${isTimebarPinned ? 'plannerTimebarPinned' : ''}`}
@@ -783,6 +798,12 @@ export default function TripMap({ marinas }: TripMapProps) {
           );
         })}
       </div>
+  );
+  const headerTimebar = useHeaderDayTabs && dayTabsSlot ? createPortal(timebar, dayTabsSlot) : null;
+
+  return (
+    <div className={`plannerWrap ${isFullscreen ? 'plannerWrapExpanded' : ''}`}>
+      {headerTimebar ?? timebar}
       {isTimebarPinned ? <div className="plannerTimebarSpacer" style={{ height: timebarHeight }} /> : null}
 
       <div className={`plannerApp ${isFullscreen ? 'plannerAppExpanded' : ''}`}>
@@ -1546,7 +1567,7 @@ function nextSheetState(state: SheetState): SheetState {
 }
 
 function isInitialBcFocus(location: Pick<Marina | BoatLaunch, 'lat' | 'lon'>) {
-  return location.lat >= 48.2 && location.lat <= 50.3 && location.lon >= -124.8 && location.lon <= -122.45;
+  return location.lat >= 49.0 && location.lat <= 49.55 && location.lon >= -123.5 && location.lon <= -122.65;
 }
 
 function isMobilePlanner() {

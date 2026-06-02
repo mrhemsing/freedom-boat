@@ -1788,21 +1788,21 @@ hr.soft {
   min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   overflow: hidden;
-  padding: 12px;
+  padding: 10px 12px 12px;
 }
 
 .tripPlannerHeader {
   width: 100%;
   max-width: none;
   margin: 0;
-  min-height: 70px;
+  min-height: 54px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 8px 14px;
+  gap: 12px;
+  padding: 5px 10px;
 }
 
 .tripPlannerHeader .headerBrand,
@@ -1812,7 +1812,8 @@ hr.soft {
 }
 
 .tripPlannerHeader .headerInfo {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -1832,11 +1833,27 @@ hr.soft {
   display: block;
 }
 
+.tripPlannerHeader .tripPlannerBrand .fbLogo {
+  width: 48px;
+  height: 48px;
+}
+
+.tripPlannerHeader .tripPlannerBrand .brandTitle {
+  gap: 0;
+  line-height: 1;
+}
+
+.tripPlannerHeader .tripPlannerBrand .brandFreedom,
+.tripPlannerHeader .tripPlannerBrand .brandBoat {
+  font-size: 20px;
+}
+
 .tripPlannerKicker {
   margin-top: 0;
   color: rgba(255, 255, 255, 0.94);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .tripPlannerSubhead {
@@ -1845,6 +1862,13 @@ hr.soft {
 
 .tripPlannerMenu {
   display: none;
+}
+
+.tripPlannerDaySlot {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .tripPlannerNav {
@@ -1868,12 +1892,12 @@ hr.soft {
 }
 
 .tripPlannerBrowse {
-  min-height: 38px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  padding: 8px 12px;
+  padding: 7px 11px;
   background: rgba(255, 255, 255, 0.10);
   color: #fff;
   font-size: 13px;
@@ -3243,6 +3267,8 @@ hr.soft {
   }
 
   .plannerWrap {
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
     padding-top: 0;
   }
 
@@ -3261,8 +3287,31 @@ hr.soft {
     top: auto;
     left: auto;
     right: auto;
+    width: 100%;
     max-width: none;
+    justify-content: flex-end;
+    gap: 5px;
     padding-bottom: 0;
+  }
+
+  .tripPlannerDaySlot .plannerTimebar {
+    overflow-x: auto;
+  }
+
+  .tripPlannerDaySlot .plannerDay {
+    min-width: 64px;
+    border-radius: 10px;
+    padding: 5px 9px;
+    box-shadow: 0 8px 18px rgba(2, 12, 27, 0.18);
+  }
+
+  .tripPlannerDaySlot .plannerDay span,
+  .tripPlannerDaySlot .plannerDay em {
+    font-size: 10px;
+  }
+
+  .tripPlannerDaySlot .plannerDay b {
+    font-size: 13px;
   }
 
   .plannerWrapExpanded .plannerTimebar {
@@ -3385,17 +3434,21 @@ hr.soft {
     display: contents;
   }
 
+  .tripPlannerDaySlot {
+    display: none;
+  }
+
   .tripPlannerBrand {
     gap: 6px;
     min-width: 0;
   }
 
-  .tripPlannerBrand .fbLogo {
+  .tripPlannerHeader .tripPlannerBrand .fbLogo {
     width: 54px;
     height: 54px;
   }
 
-  .tripPlannerBrand .brandTitle {
+  .tripPlannerHeader .tripPlannerBrand .brandTitle {
     min-width: 0;
     display: inline-flex;
     flex-direction: column;
@@ -3404,7 +3457,7 @@ hr.soft {
     line-height: 1;
   }
 
-  .tripPlannerBrand .brandFreedom {
+  .tripPlannerHeader .tripPlannerBrand .brandFreedom {
     display: block;
     color: #fff;
     font-size: 26px;
@@ -3416,7 +3469,7 @@ hr.soft {
     display: none;
   }
 
-  .tripPlannerBrand .brandBoat {
+  .tripPlannerHeader .tripPlannerBrand .brandBoat {
     display: block;
     color: #60a5fa;
     font-size: 26px;
