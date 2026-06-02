@@ -5,6 +5,7 @@ export const OpenMeteoResponse = z.object({
   latitude: z.number(),
   longitude: z.number(),
   generationtime_ms: z.number().optional(),
+  source: z.enum(['met-no-fallback', 'wttr-fallback']).optional(),
   timezone: z.string().optional(),
   current: z
     .object({
@@ -96,7 +97,9 @@ export async function fetchOpenMeteo({
         return cached.data;
       }
 
-      const fallback = await fetchWttrFallback({ lat, lon, hours: 168 });
+      const fallback =
+        await fetchMetNoFallback({ lat, lon, hours: 168 }) ??
+        await fetchWttrFallback({ lat, lon, hours: 168 });
       if (fallback) {
         weatherCache.set(cacheKey, { data: fallback, fetchedAt: Date.now() });
         return fallback;
@@ -265,6 +268,112 @@ const WttrResponse = z.object({
     .optional()
 });
 
+const MetNoResponse = z.object({
+  properties: z.object({
+    timeseries: z.array(
+      z.object({
+        time: z.string(),
+        data: z.object({
+          instant: z.object({
+            details: z.object({
+              air_temperature: z.number().optional(),
+              wind_speed: z.number().optional(),
+              wind_from_direction: z.number().optional(),
+              wind_speed_of_gust: z.number().optional()
+            })
+          }),
+          next_1_hours: z
+            .object({
+              details: z
+                .object({
+                  precipitation_amount: z.number().optional()
+                })
+                .optional(),
+              probability_of_precipitation: z
+                .object({
+                  value: z.number().optional()
+                })
+                .optional()
+            })
+            .optional()
+        })
+      })
+    )
+  })
+});
+
+async function fetchMetNoFallback({
+  lat,
+  lon,
+  hours
+}: {
+  lat: number;
+  lon: number;
+  hours: number;
+}): Promise<z.infer<typeof OpenMeteoResponse> | null> {
+  try {
+    const url = new URL('https://api.met.no/weatherapi/locationforecast/2.0/compact');
+    url.searchParams.set('lat', lat.toFixed(4));
+    url.searchParams.set('lon', lon.toFixed(4));
+
+    const res = await fetch(url.toString(), {
+      next: { revalidate: 15 * 60 },
+      headers: {
+        'User-Agent': 'FAIRTIDE Boat Planner/1.0 https://soma1.b-average.com'
+      }
+    });
+    if (!res.ok) return null;
+
+    const parsed = MetNoResponse.parse(await res.json());
+    const now = Date.now();
+    const rows = parsed.properties.timeseries
+      .map((row) => ({
+        t: localIsoFromDate(new Date(row.time)),
+        ms: Date.parse(row.time),
+        row
+      }))
+      .filter((row) => Number.isFinite(row.ms) && row.ms >= now - 90 * 60 * 1000)
+      .slice(0, Math.min(Math.max(hours, 1), 168));
+
+    if (!rows.length) return null;
+
+    const currentRow = rows[0].row;
+    const currentDetails = currentRow.data.instant.details;
+    const dailyDays = [...new Set(rows.map((row) => row.t.slice(0, 10)))];
+
+    return {
+      latitude: lat,
+      longitude: lon,
+      timezone: 'America/Vancouver',
+      source: 'met-no-fallback',
+      current: {
+        time: rows[0].t,
+        temperature_2m: currentDetails.air_temperature,
+        precipitation: currentRow.data.next_1_hours?.details?.precipitation_amount ?? 0,
+        wind_speed_10m: currentDetails.wind_speed,
+        wind_gusts_10m: currentDetails.wind_speed_of_gust ?? currentDetails.wind_speed,
+        wind_direction_10m: currentDetails.wind_from_direction
+      },
+      hourly: {
+        time: rows.map((row) => row.t),
+        temperature_2m: rows.map((row) => row.row.data.instant.details.air_temperature ?? 0),
+        precipitation_probability: rows.map((row) => row.row.data.next_1_hours?.probability_of_precipitation?.value ?? 0),
+        precipitation: rows.map((row) => row.row.data.next_1_hours?.details?.precipitation_amount ?? 0),
+        wind_speed_10m: rows.map((row) => row.row.data.instant.details.wind_speed ?? 0),
+        wind_gusts_10m: rows.map((row) => row.row.data.instant.details.wind_speed_of_gust ?? row.row.data.instant.details.wind_speed ?? 0),
+        wind_direction_10m: rows.map((row) => row.row.data.instant.details.wind_from_direction ?? 0)
+      },
+      daily: {
+        time: dailyDays,
+        sunrise: dailyDays.map((day) => `${day}T05:30`),
+        sunset: dailyDays.map((day) => `${day}T21:00`)
+      }
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function fetchWttrFallback({
   lat,
   lon,
@@ -314,6 +423,7 @@ async function fetchWttrFallback({
       latitude: lat,
       longitude: lon,
       timezone: 'America/Vancouver',
+      source: 'wttr-fallback',
       current: {
         time: currentTime,
         temperature_2m: numberFrom(current?.temp_C ?? first?.tempC),
