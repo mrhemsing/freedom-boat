@@ -1781,8 +1781,19 @@ hr.soft {
   color: #0c3a4c;
 }
 
+.tripPlannerPage {
+  width: 100%;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 24px;
+}
+
 .tripPlannerHeader {
-  margin-bottom: 24px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 .tripPlannerBrand {
@@ -1857,6 +1868,7 @@ hr.soft {
 }
 
 .tripPlannerPanel {
+  min-height: 0;
   border: 0;
   padding: 0;
   background: transparent;
@@ -1865,6 +1877,7 @@ hr.soft {
 }
 
 .plannerWrap {
+  --planner-sidebar-w: 400px;
   --planner-teal: #1f8a9b;
   --planner-teal-dark: #136575;
   --planner-teal-tint: #d8eef2;
@@ -1874,13 +1887,21 @@ hr.soft {
   --planner-line: #e7eef0;
   --planner-shadow: 0 10px 30px rgba(12, 58, 76, 0.18);
   position: relative;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   color: var(--planner-navy);
 }
 
 .plannerApp {
   position: relative;
-  min-height: min(760px, calc(100dvh - 210px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--planner-sidebar-w);
+  min-height: 0;
+  height: 100%;
   overflow: hidden;
   border: 1px solid rgba(12, 58, 76, 0.10);
   border-radius: 14px;
@@ -1890,14 +1911,17 @@ hr.soft {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
 }
 
-.plannerAppFullscreen {
-  position: fixed;
-  inset: 0;
-  z-index: 5000;
-  min-height: 100dvh;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
+.plannerAppExpanded {
+  grid-template-columns: minmax(0, 1fr) 56px;
+}
+
+.plannerMapPane {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 14px 0 0 14px;
+  background: #b6dcf0;
 }
 
 .plannerMap {
@@ -1924,10 +1948,10 @@ hr.soft {
   position: absolute;
   z-index: 600;
   top: 14px;
-  left: 12px;
+  left: 58px;
   right: 12px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   gap: 8px;
   pointer-events: none;
@@ -2031,15 +2055,6 @@ hr.soft {
   padding: 0 0 10px;
   pointer-events: auto;
   scrollbar-width: none;
-}
-
-.plannerWrapFullscreen .plannerTimebar {
-  position: fixed;
-  z-index: 5600;
-  top: 62px;
-  left: 12px;
-  right: 12px;
-  padding: 2px;
 }
 
 .plannerTimebar::-webkit-scrollbar {
@@ -3043,7 +3058,7 @@ hr.soft {
   }
 
   .plannerApp {
-    overflow: visible;
+    overflow: hidden;
   }
 
   .plannerMap {
@@ -3052,47 +3067,62 @@ hr.soft {
   }
 
   .plannerTimebar {
-    position: absolute;
-    z-index: 1300;
-    top: 14px;
-    left: 14px;
+    position: relative;
+    z-index: 1;
+    top: auto;
+    left: auto;
     right: auto;
-    max-width: calc(100% - 470px);
+    max-width: none;
     padding-bottom: 0;
   }
 
-  .plannerWrapFullscreen .plannerTimebar {
-    left: 12px;
-    right: 12px;
+  .plannerWrapExpanded .plannerTimebar {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
     max-width: none;
   }
 
   .plannerSheet {
-    position: fixed;
-    top: 0;
+    position: relative;
+    top: auto;
     left: auto;
-    width: min(430px, calc(100vw - 36px));
-    right: 0;
-    bottom: 0;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    min-width: 0;
+    height: 100%;
     z-index: 1200;
     max-height: none;
     border-radius: 0;
-    box-shadow: -10px 0 32px rgba(12, 58, 76, 0.18);
+    border-left: 1px solid rgba(12, 58, 76, 0.12);
+    box-shadow: -8px 0 24px rgba(12, 58, 76, 0.12);
+    transform: none;
+    transition: none;
   }
 
   .plannerSheet-full,
   .plannerSheet-half {
-    transform: translateX(0);
+    transform: none;
   }
 
   .plannerSheet-collapsed {
-    transform: translateX(calc(100% - 68px));
+    transform: none;
   }
 
   .plannerSheet-detail {
-    width: min(430px, 38vw);
+    width: auto;
     transform: none;
     transition: none;
+  }
+
+  .plannerAppExpanded .plannerSheet {
+    overflow: visible;
+  }
+
+  .plannerAppExpanded .plannerSheetInner {
+    display: none;
   }
 
   .plannerSheet .plannerGrab {
@@ -3117,12 +3147,18 @@ hr.soft {
 
   .plannerSheetInner,
   .plannerSheet-detail .plannerSheetInner {
-    height: 100dvh;
+    height: 100%;
     padding: 24px 24px 32px;
   }
 
+  .plannerAppExpanded .plannerSheet .plannerGrab {
+    left: 9px;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(12, 58, 76, 0.14);
+  }
+
   .plannerSheet-detail .plannerGrab {
-    display: none;
+    display: flex;
   }
 }
 
@@ -3348,14 +3384,22 @@ hr.soft {
   }
 
   .plannerApp {
+    display: block;
     min-height: calc(100dvh - 142px);
     border-radius: 12px;
+  }
+
+  .plannerMapPane {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
   }
 
   .plannerTopbar {
     top: 10px;
     left: 10px;
     right: 10px;
+    justify-content: flex-end;
   }
 
   .plannerChip {
@@ -3396,16 +3440,16 @@ hr.soft {
     flex: 0 0 auto;
   }
 
-  .plannerWrapFullscreen .plannerTimebar {
-    position: fixed;
-    top: 58px;
-    left: 10px;
-    right: 10px;
+  .plannerWrapExpanded .plannerTimebar {
+    position: sticky;
+    top: 0;
+    left: auto;
+    right: auto;
     margin-left: 0;
     margin-right: 0;
-    padding: 2px;
-    background: transparent;
-    backdrop-filter: none;
+    padding: 8px 14px;
+    background: rgba(42, 57, 91, 0.96);
+    backdrop-filter: blur(8px);
   }
 
   .plannerLegend {

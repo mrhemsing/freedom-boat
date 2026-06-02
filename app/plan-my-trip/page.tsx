@@ -15,7 +15,7 @@ export default function PlanMyTripPage() {
   const freedomMenuRows = buildFreedomMenuRows(freedomMarinas);
 
   return (
-    <main className="container tripPlannerPage">
+    <main className="tripPlannerPage">
       <header className="topbar tripPlannerHeader">
         <div className="headerBrand">
           <a className="brand tripPlannerBrand" href="/location/port-moody" aria-label="FAIRTIDE home">

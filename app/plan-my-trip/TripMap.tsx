@@ -300,7 +300,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       }).setView([49.05, -123.25], 9);
       leafletMapRef.current = map;
 
-      L.control.zoom({ position: isMobilePlanner() ? 'bottomright' : 'topright' }).addTo(map);
+      L.control.zoom({ position: isMobilePlanner() ? 'bottomright' : 'topleft' }).addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
         maxZoom: 20,
         subdomains: 'abcd',
@@ -339,6 +339,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           } else {
             setMobileMarkerModal(false);
             setSheetState('full');
+            setIsFullscreen(false);
           }
         });
         markerRefs.current[marina.id] = marker;
@@ -360,11 +361,12 @@ export default function TripMap({ marinas }: TripMapProps) {
             if (isMobilePlanner()) {
               setMobileMarkerModal(true);
               setSheetState('collapsed');
-            } else {
-              setMobileMarkerModal(false);
-              setSheetState('full');
-            }
-          });
+          } else {
+            setMobileMarkerModal(false);
+            setSheetState('full');
+            setIsFullscreen(false);
+          }
+        });
           launchMarkerRefs.current[launch.id] = marker;
         });
       }
@@ -432,6 +434,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     setSelectedLaunchId(null);
     setMobileMarkerModal(false);
     setSheetState('full');
+    setIsFullscreen(false);
     markerRefs.current[marina.id]?.openPopup?.();
   }
 
@@ -440,6 +443,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     setSelectedId(null);
     setMobileMarkerModal(false);
     setSheetState('full');
+    setIsFullscreen(false);
   }
 
   function closeSelectedDetail() {
@@ -485,7 +489,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   return (
-    <div className={`plannerWrap ${isFullscreen ? 'plannerWrapFullscreen' : ''}`}>
+    <div className={`plannerWrap ${isFullscreen ? 'plannerWrapExpanded' : ''}`}>
       <div
         ref={timebarRef}
         className={`plannerTimebar ${isTimebarPinned ? 'plannerTimebarPinned' : ''}`}
@@ -509,81 +513,89 @@ export default function TripMap({ marinas }: TripMapProps) {
       </div>
       {isTimebarPinned ? <div className="plannerTimebarSpacer" style={{ height: timebarHeight }} /> : null}
 
-      <div className={`plannerApp ${isFullscreen ? 'plannerAppFullscreen' : ''}`}>
-        <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
+      <div className={`plannerApp ${isFullscreen ? 'plannerAppExpanded' : ''}`}>
+        <div className="plannerMapPane">
+          <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
 
-        <div className="plannerTopbar">
-        <button
-          className={`plannerChip ${tripMode ? 'active' : ''}`}
-          type="button"
-          onClick={() => {
-            setTripMode((value) => !value);
-            setSelectedId(null);
-            setSelectedLaunchId(null);
-            setMobileMarkerModal(false);
-            setSheetState('full');
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-            <polygon points="3 11 22 2 13 21 11 13 3 11" />
-          </svg>
-          <span>Plan a trip</span>
-        </button>
-        <button
-          className={`plannerChip plannerFullscreenChip ${isFullscreen ? 'active' : ''}`}
-          type="button"
-          aria-pressed={isFullscreen}
-          onClick={() => setIsFullscreen((value) => !value)}
-        >
-          {isFullscreen ? (
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-              <polyline points="8 3 8 8 3 8" />
-              <polyline points="16 3 16 8 21 8" />
-              <polyline points="8 21 8 16 3 16" />
-              <polyline points="16 21 16 16 21 16" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-              <polyline points="8 3 3 3 3 8" />
-              <polyline points="16 3 21 3 21 8" />
-              <polyline points="8 21 3 21 3 16" />
-              <polyline points="16 21 21 21 21 16" />
-            </svg>
-          )}
-          <span>{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
-        </button>
-      </div>
-
-      <div className="plannerLegend" aria-label="Map legend">
-        <span><i className="scoreGood" />Good</span>
-        <span><i className="scoreFair" />Fair</span>
-        <span><i className="scorePoor" />Poor</span>
-        {showLaunches ? <span><i className="launchShape" />Launch</span> : null}
-      </div>
-
-      {mobileMarkerModal && (selected || selectedLaunch) ? (
-        <div className="plannerMobileModal" role="dialog" aria-modal="true" aria-label="Marker details">
-          <div className="plannerMobileModalCard">
-            <button className="plannerMobileModalClose" type="button" onClick={closeSelectedDetail}>
-              Close
+          <div className="plannerTopbar">
+            <button
+              className={`plannerChip ${tripMode ? 'active' : ''}`}
+              type="button"
+              onClick={() => {
+                setTripMode((value) => !value);
+                setSelectedId(null);
+                setSelectedLaunchId(null);
+                setMobileMarkerModal(false);
+                setIsFullscreen(false);
+                setSheetState('full');
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+              </svg>
+              <span>Plan a trip</span>
             </button>
-            {selected ? (
-              <MarinaDetail
-                marina={selected}
-                dayIndex={dayIndex}
-                vessel={vessel}
-                weeklyOutlooks={weeklyOutlooks}
-                liveTide={liveTides[selected.id]}
-                inTrip={tripStops.includes(selected.id)}
-                onToggleTrip={() => toggleTripStop(selected.id)}
-                onBack={closeSelectedDetail}
-              />
-            ) : selectedLaunch ? (
-              <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={closeSelectedDetail} />
-            ) : null}
+            <button
+              className={`plannerChip plannerFullscreenChip ${isFullscreen ? 'active' : ''}`}
+              type="button"
+              aria-pressed={isFullscreen}
+              onClick={() => {
+                setSelectedId(null);
+                setSelectedLaunchId(null);
+                setMobileMarkerModal(false);
+                setIsFullscreen((value) => !value);
+              }}
+            >
+              {isFullscreen ? (
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <polyline points="8 3 8 8 3 8" />
+                  <polyline points="16 3 16 8 21 8" />
+                  <polyline points="8 21 8 16 3 16" />
+                  <polyline points="16 21 16 16 21 16" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <polyline points="8 3 3 3 3 8" />
+                  <polyline points="16 3 21 3 21 8" />
+                  <polyline points="8 21 3 21 3 16" />
+                  <polyline points="16 21 21 21 21 16" />
+                </svg>
+              )}
+              <span>{isFullscreen ? 'Show sidebar' : 'Expand map'}</span>
+            </button>
           </div>
+
+          <div className="plannerLegend" aria-label="Map legend">
+            <span><i className="scoreGood" />Good</span>
+            <span><i className="scoreFair" />Fair</span>
+            <span><i className="scorePoor" />Poor</span>
+            {showLaunches ? <span><i className="launchShape" />Launch</span> : null}
+          </div>
+
+          {mobileMarkerModal && (selected || selectedLaunch) ? (
+            <div className="plannerMobileModal" role="dialog" aria-modal="true" aria-label="Marker details">
+              <div className="plannerMobileModalCard">
+                <button className="plannerMobileModalClose" type="button" onClick={closeSelectedDetail}>
+                  Close
+                </button>
+                {selected ? (
+                  <MarinaDetail
+                    marina={selected}
+                    dayIndex={dayIndex}
+                    vessel={vessel}
+                    weeklyOutlooks={weeklyOutlooks}
+                    liveTide={liveTides[selected.id]}
+                    inTrip={tripStops.includes(selected.id)}
+                    onToggleTrip={() => toggleTripStop(selected.id)}
+                    onBack={closeSelectedDetail}
+                  />
+                ) : selectedLaunch ? (
+                  <LaunchDetail launch={selectedLaunch} dayIndex={dayIndex} onBack={closeSelectedDetail} />
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
 
       <section
         className={`plannerSheet plannerSheet-${sheetState} ${showSheetDetail ? 'plannerSheet-detail' : ''}`}
