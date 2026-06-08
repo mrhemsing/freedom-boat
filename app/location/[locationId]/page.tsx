@@ -235,7 +235,7 @@ export default async function LocationPage({
                         className={`dayScorePill dayScorePill-${score.tone}`}
                         title={`Boating score: ${score.min}-${score.max} ${score.label}`}
                       >
-                        {d.score}/100<span className="dayScorePillLabel"> {score.label}</span>
+                        <span>{d.score}/100</span><span className="dayScorePillLabel">{score.label}</span>
                       </div>
                       <div className="dayMeta">
                         <div><span className="dayMetaIcon" style={{ fontSize: 11 }}>🌀</span>Max wind {round(d.maxWind, 0)} kt {degToCardinal(d.maxWindDirDeg) ?? ''}</div>
