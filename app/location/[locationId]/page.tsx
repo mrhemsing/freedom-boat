@@ -107,7 +107,7 @@ export default async function LocationPage({
         <div className="headerInfo">
           <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.78)', fontSize: 15 }}>
             <b style={{ color: 'rgba(255,255,255,0.92)' }}>{loc.name}</b>
-            {now?.asOf ? <span style={{ opacity: 0.75 }}>{` • as of ${formatAsOf(now.asOf)}`}</span> : null}
+            {now?.asOf ? <span style={{ opacity: 0.75 }}>{` as of ${formatAsOf(now.asOf)}`}</span> : null}
           </div>
           {loc.address ? <div className="locationAddress" style={{ marginTop: 6, color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{loc.address}</div> : null}
           <div className="locationControlRow">
