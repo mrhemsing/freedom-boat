@@ -174,12 +174,18 @@ export function BoatingAlertsModule({
   items,
   dayLabel,
   daylight,
-  nowIso
+  nowIso,
+  warningAuthority = 'Environment Canada',
+  warningStatus = 'available',
+  calmSummary
 }: {
   items: BoatingAlert[];
   dayLabel: string;
   daylight?: { start: string; end: string };
   nowIso?: string | null;
+  warningAuthority?: string;
+  warningStatus?: 'available' | 'unavailable';
+  calmSummary?: string;
 }) {
   const hasWarning = items.some((item) => item.tier === 'warning');
   const activeCount = items.length;
@@ -187,9 +193,12 @@ export function BoatingAlertsModule({
   if (!activeCount) {
     return (
       <div className="boatingAlertsModule boatingAlertsModuleCalm">
-        <div className="marineWarningStrip marineWarningStripCalm">
-          <span className="marineWarningCheck" aria-hidden="true">✓</span>
-          <span>No active warnings. Conditions look favorable.</span>
+        <div className={`marineWarningStrip marineWarningStripCalm ${warningStatus === 'unavailable' ? 'marineWarningStripUnavailable' : ''}`.trim()}>
+          <span className="marineWarningCheck" aria-hidden="true">{warningStatus === 'unavailable' ? '!' : '✓'}</span>
+          <span>
+            {warningStatus === 'unavailable' ? `Marine warnings unavailable (${warningAuthority})` : 'No active warnings or watches.'}
+            {warningStatus !== 'unavailable' && calmSummary ? <small>{calmSummary}</small> : null}
+          </span>
         </div>
       </div>
     );
@@ -206,9 +215,13 @@ export function BoatingAlertsModule({
       </div>
 
       {!hasWarning ? (
-        <div className="marineWarningStrip">
-          <span className="marineWarningCheck" aria-hidden="true">✓</span>
-          <span>No active marine warnings (Environment Canada)</span>
+        <div className={`marineWarningStrip ${warningStatus === 'unavailable' ? 'marineWarningStripUnavailable' : ''}`.trim()}>
+          <span className="marineWarningCheck" aria-hidden="true">{warningStatus === 'unavailable' ? '!' : '✓'}</span>
+          <span>
+            {warningStatus === 'unavailable'
+              ? `Marine warnings unavailable (${warningAuthority})`
+              : `No active marine warnings (${warningAuthority})`}
+          </span>
         </div>
       ) : null}
 

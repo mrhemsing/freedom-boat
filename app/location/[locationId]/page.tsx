@@ -85,6 +85,11 @@ export default async function LocationPage({
   const slackTide = getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
   const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
+  const weeklyOutlook = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5);
+  const todayOutlook = getTodayOutlook(weeklyOutlook, boatingAlertDaylight);
+  const calmSummary = todayOutlook ? calmSummaryForScore(todayOutlook.score) : undefined;
+  const marineAuthority = typeof marine?.authority === 'string' ? marine.authority : warningAuthorityForLocation(loc);
+  const marineWarningStatus = marine?.status === 'unavailable' ? 'unavailable' : 'available';
   const boatingAlerts = buildBoatingAlerts({
     now,
     forecast: forecast?.forecast ?? [],
@@ -92,7 +97,8 @@ export default async function LocationPage({
     tideEvents: tides?.events ?? [],
     visibility,
     daylight: boatingAlertDaylight,
-    nowIso: boatingAlertNowIso
+    nowIso: boatingAlertNowIso,
+    warningAuthority: marineAuthority
   });
   const boatingAlertDayLabel = formatDayLabel(boatingAlertDaylight?.start ?? now?.asOf ?? forecast?.forecast?.[0]?.t);
   const marinaJumpGroups = buildMarinaJumpGroups();
@@ -144,6 +150,9 @@ export default async function LocationPage({
               dayLabel={boatingAlertDayLabel}
               daylight={boatingAlertDaylight}
               nowIso={boatingAlertNowIso}
+              warningAuthority={marineAuthority}
+              warningStatus={marineWarningStatus}
+              calmSummary={calmSummary}
             />
           </Card>
         ) : (
@@ -152,6 +161,9 @@ export default async function LocationPage({
             dayLabel={boatingAlertDayLabel}
             daylight={boatingAlertDaylight}
             nowIso={boatingAlertNowIso}
+            warningAuthority={marineAuthority}
+            warningStatus={marineWarningStatus}
+            calmSummary={calmSummary}
           />
         )}
 
@@ -163,7 +175,7 @@ export default async function LocationPage({
           headerStackOnMobile
         >
           {(() => {
-            const week = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5)
+            const week = weeklyOutlook
               .map((day, index) => (
                 plannerScore != null && index === plannerDayIndex
                   ? { ...day, score: plannerScore }
@@ -502,7 +514,11 @@ export default async function LocationPage({
             </li>
             <li>
               <span>Marine advisories</span>
-              <a href="https://weather.gc.ca/rss/warning/bc_e.xml" target="_blank" rel="noreferrer">Environment Canada warnings RSS</a>
+              {marineAuthority === 'National Weather Service' ? (
+                <a href="https://api.weather.gov/alerts/active" target="_blank" rel="noreferrer">National Weather Service active alerts</a>
+              ) : (
+                <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>
+              )}
             </li>
             <li>
               <span>Tides + water levels</span>
@@ -738,6 +754,27 @@ function getAdvisorySummary(items: Array<{ title?: string; severity?: string }>)
   return { label: top.title || 'Marine advisory', detail: `Severity: ${top.severity || 'info'}` };
 }
 
+function warningAuthorityForLocation(loc: { address?: string }) {
+  const address = String(loc.address || '').toUpperCase();
+  return /\bBC\b|\bCANADA\b/.test(address) ? 'Environment Canada' : 'National Weather Service';
+}
+
+function getTodayOutlook(week: DailyOutlook[], daylight?: DaylightWindow) {
+  const day = extractLocalDay(daylight?.start);
+  if (day) {
+    const match = week.find((item) => item.day === day);
+    if (match) return match;
+  }
+  return week[0] ?? null;
+}
+
+function calmSummaryForScore(score: number) {
+  const band = scoreBand(score);
+  if (band.tone === 'excellent' || band.tone === 'good') return 'Good day to get out.';
+  if (band.tone === 'fair') return 'Fair conditions, check the forecast.';
+  return 'Marginal conditions today.';
+}
+
 function getSlackTideSummary({
   nowIso,
   events
@@ -911,7 +948,8 @@ function buildBoatingAlerts({
   tideEvents,
   visibility,
   daylight,
-  nowIso
+  nowIso,
+  warningAuthority
 }: {
   now: any;
   forecast: ForecastAlertHour[];
@@ -920,6 +958,7 @@ function buildBoatingAlerts({
   visibility: { label: string; detail: string };
   daylight?: DaylightWindow;
   nowIso?: string | null;
+  warningAuthority: string;
 }): BoatingAlert[] {
   const hasMarineWarning = marineItems.length > 0;
   const rows: BoatingAlert[] = [];
@@ -932,7 +971,7 @@ function buildBoatingAlerts({
       icon: 'alert-triangle',
       title: item.title || 'Marine warning',
       detail: item.body || 'Official marine warning is active for this area.',
-      source: 'Environment Canada'
+      source: warningAuthority
     });
   }
 

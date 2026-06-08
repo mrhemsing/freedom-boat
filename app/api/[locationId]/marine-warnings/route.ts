@@ -3,6 +3,15 @@ import { LOCATIONS, type LocationId } from '../../../../lib/locations';
 
 // Environment Canada warnings RSS (English)
 const EC_BC_WARNINGS = 'https://weather.gc.ca/rss/warning/bc_e.xml';
+const NWS_ALERTS = 'https://api.weather.gov/alerts/active';
+
+function warningAuthority(loc: { address?: string }) {
+  const address = String(loc.address || '').toUpperCase();
+  const country = /\bBC\b|\bCANADA\b/.test(address) ? 'CA' : 'US';
+  return country === 'CA'
+    ? { country, authority: 'Environment Canada' }
+    : { country, authority: 'National Weather Service' };
+}
 
 function decodeHtml(s: string) {
   return s
@@ -50,14 +59,78 @@ function severityOf(title: string): 'warning' | 'caution' | 'info' {
   return 'info';
 }
 
+function isMarineAlert(title: string, description = '') {
+  const text = `${title} ${description}`.toLowerCase();
+  return (
+    text.includes('marine') ||
+    text.includes('small craft') ||
+    text.includes('gale') ||
+    text.includes('storm') ||
+    text.includes('hurricane') ||
+    text.includes('squall') ||
+    text.includes('hazardous seas') ||
+    text.includes('coastal waters') ||
+    text.includes('puget sound') ||
+    text.includes('strait')
+  );
+}
+
+async function getNwsWarnings(id: LocationId, loc: { lat: number; lon: number }, authority: string) {
+  const url = `${NWS_ALERTS}?point=${loc.lat.toFixed(4)},${loc.lon.toFixed(4)}`;
+  const res = await fetch(url, {
+    next: { revalidate: 5 * 60 },
+    headers: {
+      accept: 'application/geo+json',
+      'user-agent': 'Fairtide/1.0 contact@fairtide.local'
+    }
+  });
+
+  if (!res.ok) {
+    return NextResponse.json({
+      locationId: id,
+      authority,
+      status: 'unavailable',
+      items: [],
+      error: `NWS alerts HTTP ${res.status}`
+    }, { status: 200 });
+  }
+
+  const json = await res.json();
+  const features = Array.isArray(json?.features) ? json.features : [];
+  const items = features
+    .map((feature: any) => feature?.properties ?? {})
+    .filter((props: any) => isMarineAlert(String(props.event || props.headline || ''), String(props.description || '')))
+    .slice(0, 6)
+    .map((props: any) => ({
+      title: String(props.event || props.headline || 'Marine alert'),
+      body: props.description ? String(props.description).replace(/\s+/g, ' ').trim() : undefined,
+      link: props['@id'],
+      severity: severityOf(String(props.event || props.headline || '')),
+      pubDate: props.sent
+    }));
+
+  return NextResponse.json({ locationId: id, authority, status: 'available', items });
+}
+
 export async function GET(_req: Request, { params }: { params: { locationId: string } }) {
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
   if (!loc) return NextResponse.json({ error: 'unknown location' }, { status: 404 });
 
+  const routing = warningAuthority(loc);
+  if (routing.country === 'US') {
+    return getNwsWarnings(id, loc, routing.authority);
+  }
+
   const res = await fetch(EC_BC_WARNINGS, { next: { revalidate: 5 * 60 } });
   if (!res.ok) {
-    return NextResponse.json({ locationId: id, items: [], error: `EC RSS HTTP ${res.status}` }, { status: 200 });
+    return NextResponse.json({
+      locationId: id,
+      authority: routing.authority,
+      status: 'unavailable',
+      items: [],
+      error: `EC RSS HTTP ${res.status}`
+    }, { status: 200 });
   }
 
   const xml = await res.text();
@@ -91,5 +164,5 @@ export async function GET(_req: Request, { params }: { params: { locationId: str
       pubDate: it.pubDate
     }));
 
-  return NextResponse.json({ locationId: id, items: filtered });
+  return NextResponse.json({ locationId: id, authority: routing.authority, status: 'available', items: filtered });
 }

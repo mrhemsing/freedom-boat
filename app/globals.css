@@ -1074,6 +1074,30 @@ summary::-webkit-details-marker {
   align-items: center;
 }
 
+.marineWarningStrip span:last-child{
+  display: grid;
+  gap: 2px;
+}
+
+.marineWarningStrip small{
+  color: rgba(20, 83, 45, 0.72);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.marineWarningStripUnavailable{
+  border-color: rgba(133, 79, 11, 0.22);
+  border-left-color: #ef9f27;
+  background: rgba(250, 238, 218, 0.84);
+  color: #854f0b;
+}
+
+.marineWarningStripUnavailable .marineWarningCheck{
+  background: rgba(239, 159, 39, 0.20);
+  color: #854f0b;
+}
+
 .marineWarningCheck{
   width: 20px;
   height: 20px;
