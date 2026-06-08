@@ -196,7 +196,8 @@ export function BoatingAlertsModule({
         <div className={`marineWarningStrip marineWarningStripCalm ${warningStatus === 'unavailable' ? 'marineWarningStripUnavailable' : ''}`.trim()}>
           <span className="marineWarningCheck" aria-hidden="true">{warningStatus === 'unavailable' ? '!' : '✓'}</span>
           <span>
-            {warningStatus === 'unavailable' ? `Marine warnings unavailable (${warningAuthority})` : 'No active warnings or watches.'}
+            {warningStatus === 'unavailable' ? 'Marine warnings unavailable' : 'No active warnings or watches.'}
+            <small>{warningAuthority}</small>
             {warningStatus !== 'unavailable' && calmSummary ? <small>{calmSummary}</small> : null}
           </span>
         </div>
@@ -219,8 +220,9 @@ export function BoatingAlertsModule({
           <span className="marineWarningCheck" aria-hidden="true">{warningStatus === 'unavailable' ? '!' : '✓'}</span>
           <span>
             {warningStatus === 'unavailable'
-              ? `Marine warnings unavailable (${warningAuthority})`
-              : `No active marine warnings (${warningAuthority})`}
+              ? 'Marine warnings unavailable'
+              : 'No active marine warnings'}
+            <small>{warningAuthority}</small>
           </span>
         </div>
       ) : null}
