@@ -1006,7 +1006,7 @@ function buildBoatingAlerts({
         tier: 'watch',
         category: 'wind',
         icon: 'wind',
-        title: 'Breezy daylight window',
+        title: windWatchTitle({ window, peakIso: peak.t }),
         detail: windWatchDetail({ window, peakIso: peak.t, maxGust: maxGust.value, nowIso }),
         window
       });
@@ -1271,12 +1271,23 @@ function windWatchDetail({
 }) {
   const gustText = `gusts to ${round(maxGust, 0)} kt`;
   if (window.confidence === 'soft') {
-    return `Breezy around ${alertLocalTime(peakIso)}, ${gustText}.`;
+    return `${capitalizeSentence(gustText)}.`;
   }
   if (isWindowInProgress(window, nowIso)) {
     return `Breezy now through ${alertLocalTime(window.end ?? peakIso)}, peaking up to ${round(maxGust, 0)} kt near ${alertLocalTime(window.peak ?? peakIso)}.`;
   }
   return `Plan for chop: gusts build from ${alertLocalTime(window.start)}, peaking up to ${round(maxGust, 0)} kt near ${alertLocalTime(window.peak ?? peakIso)}. Easing by ${alertLocalTime(window.end ?? window.start)}.`;
+}
+
+function windWatchTitle({
+  window,
+  peakIso
+}: {
+  window: NonNullable<BoatingAlert['window']>;
+  peakIso: string;
+}) {
+  if (window.confidence === 'soft') return `Breezy around ${alertLocalTime(peakIso)}`;
+  return 'Breezy daylight window';
 }
 
 function rainWatchDetail({
@@ -1306,15 +1317,21 @@ function visibilityDetail({
   nowIso?: string | null;
 }) {
   if (nowIso && compareLocalIso(window.end ?? window.start, nowIso) <= 0) {
-    return 'Reduced visibility may linger as rain moves through.';
+    return 'May linger as rain moves through.';
   }
   if (isWindowInProgress(window, nowIso)) {
-    return `Reduced visibility possible now through ${alertLocalTime(window.end ?? window.start)}.`;
+    return `Possible now through ${alertLocalTime(window.end ?? window.start)}.`;
   }
   if (nowIso && compareLocalIso(window.start, nowIso) <= 0) {
-    return `Reduced visibility possible through ${alertLocalTime(window.end ?? window.start)}.`;
+    return `Possible through ${alertLocalTime(window.end ?? window.start)}.`;
   }
-  return `Reduced visibility likely as rain peaks near ${alertLocalTime(window.peak ?? window.start)}.`;
+  const peakText = alertLocalTime(window.peak ?? window.start);
+  const endText = window.end ? `, eases after ${alertLocalTime(window.end)}` : '';
+  return `Likely as rain peaks near ${peakText}${endText}.`;
+}
+
+function capitalizeSentence(value: string) {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
 }
 
 function tideWatchDetail({
