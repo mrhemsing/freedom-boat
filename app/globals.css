@@ -999,7 +999,7 @@ summary::-webkit-details-marker {
 }
 
 .boatingAlertsModuleCalm{
-  padding: 10px 12px;
+  padding: 0;
 }
 
 .boatingAlertsModuleWarning{
@@ -1065,7 +1065,12 @@ summary::-webkit-details-marker {
 }
 
 .marineWarningStripCalm{
-  min-height: 38px;
+  min-height: 54px;
+  padding: 13px 16px;
+  border-color: rgba(22, 101, 52, 0.20);
+  background: rgba(220, 252, 231, 0.86);
+  box-shadow: 0 12px 28px rgba(2, 12, 27, 0.16);
+  font-size: 14px;
   align-items: center;
 }
 

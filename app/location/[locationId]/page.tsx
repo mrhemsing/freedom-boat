@@ -125,13 +125,21 @@ export default async function LocationPage({
       </header>
 
       <div className="grid" style={{ marginTop: 24 }}>
-        <Card className="alertsCard" title={null} icon={null}>
+        {boatingAlerts.length ? (
+          <Card className="alertsCard" title={null} icon={null}>
+            <BoatingAlertsModule
+              items={boatingAlerts}
+              dayLabel={now?.asOf ? formatAsOfWithDay(now.asOf).split(' ')[0] ?? 'Today' : 'Today'}
+              daylight={boatingAlertDaylight}
+            />
+          </Card>
+        ) : (
           <BoatingAlertsModule
             items={boatingAlerts}
             dayLabel={now?.asOf ? formatAsOfWithDay(now.asOf).split(' ')[0] ?? 'Today' : 'Today'}
             daylight={boatingAlertDaylight}
           />
-        </Card>
+        )}
 
         <Card
           className="weeklyCard"
