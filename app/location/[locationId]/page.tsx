@@ -63,7 +63,8 @@ export default async function LocationPage({
   const nextTide = getNextTideSummary({ events: tides?.events ?? [] });
   const tidePhase = getTidePhaseSummary({ events: tides?.events ?? [] });
   const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
-  const rainEta = getRainEtaSummary(forecast?.forecast ?? []);
+  const boatingAlertDaylight = getDaylightWindow({ now, sunByDay: forecast?.sunByDay ?? [], forecast: forecast?.forecast ?? [] });
+  const rainEta = getRainEtaSummary(forecast?.forecast ?? [], boatingAlertDaylight);
   const advisoryText = getAdvisorySummary(marine?.items ?? []);
   const launchWindow = getBestLaunchWindowSummary({
     forecast: forecast?.forecast ?? [],
@@ -74,14 +75,11 @@ export default async function LocationPage({
   const slackTide = getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
   const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
-  const boatingAlertDaylight = getDaylightWindow({ now, sunByDay: forecast?.sunByDay ?? [], forecast: forecast?.forecast ?? [] });
   const boatingAlerts = buildBoatingAlerts({
     now,
     forecast: forecast?.forecast ?? [],
     marineItems: marine?.items ?? [],
     tideEvents: tides?.events ?? [],
-    launchWindow,
-    slackTide,
     visibility,
     daylight: boatingAlertDaylight
   });
@@ -688,8 +686,8 @@ function getWindTrendSummary(forecast: Array<{ windSpeedKts?: number }>) {
   return { label: 'Steady →', detail: 'Little change expected' };
 }
 
-function getRainEtaSummary(forecast: Array<{ t: string; precipProbPct?: number; precipMm?: number }>) {
-  const window = getRainWindow(forecast);
+function getRainEtaSummary(forecast: Array<{ t: string; precipProbPct?: number; precipMm?: number }>, daylight?: DaylightWindow) {
+  const window = getRainWindow(forecast, daylight);
   if (!window) return { label: 'None soon', detail: 'No strong rain signal in next 24h' };
   return {
     label: isoToLocalTime(window.start),
@@ -875,8 +873,6 @@ function buildBoatingAlerts({
   forecast,
   marineItems,
   tideEvents,
-  launchWindow,
-  slackTide,
   visibility,
   daylight
 }: {
@@ -884,8 +880,6 @@ function buildBoatingAlerts({
   forecast: ForecastAlertHour[];
   marineItems: Array<{ title?: string; body?: string; pubDate?: string }>;
   tideEvents: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }>;
-  launchWindow: { label: string; detail: string };
-  slackTide: { label: string; detail: string };
   visibility: { label: string; detail: string };
   daylight?: DaylightWindow;
 }): BoatingAlert[] {
@@ -904,7 +898,7 @@ function buildBoatingAlerts({
     });
   }
 
-  const daylightForecast = daylight ? forecast.filter((hour) => isWithinWindow(hour.t, daylight)) : forecast.slice(0, 24);
+  const daylightForecast = getTodayDaylightForecast(forecast, daylight);
   const maxWind = maxForecastValue(daylightForecast, (hour) => hour.windSpeedKts);
   const maxGust = maxForecastValue(daylightForecast, (hour) => hour.windGustKts ?? hour.windSpeedKts);
   if (!hasMarineWarning && (maxWind.value >= 12 || maxGust.value >= 18)) {
@@ -960,40 +954,13 @@ function buildBoatingAlerts({
     });
   }
 
-  if (launchWindow.label !== '—') {
-    rows.push({
-      id: 'launch-window-info',
-      tier: 'info',
-      category: 'launch_window',
-      icon: 'anchor',
-      title: 'Best launch window',
-      detail: `${launchWindow.label}. ${launchWindow.detail}`,
-      window: windowFromLabel(launchWindow.label, forecast)
-    });
-  }
-
-  if (slackTide.label !== '—') {
-    const nextTide = getNextTideSummary({ nowIso: now?.asOf, events: tideEvents });
-    if (nextTide && daylight && isWithinWindow(nextTide.t, daylight)) {
-      rows.push({
-        id: 'slack-tide-info',
-        tier: 'info',
-        category: 'tide',
-        icon: 'wave-sine',
-        title: 'Slack tide timing',
-        detail: `${slackTide.detail} around ${isoToLocalTime(nextTide.t)}.`,
-        window: { start: addLocalHours(nextTide.t, -1), peak: nextTide.t, end: addLocalHours(nextTide.t, 1) }
-      });
-    }
-  }
-
   return rows
     .sort(compareBoatingAlerts)
     .slice(0, 4);
 }
 
 function compareBoatingAlerts(a: BoatingAlert, b: BoatingAlert) {
-  const tierRank: Record<BoatingAlert['tier'], number> = { warning: 0, watch: 1, info: 2 };
+  const tierRank: Record<BoatingAlert['tier'], number> = { warning: 0, watch: 1 };
   const tierDelta = tierRank[a.tier] - tierRank[b.tier];
   if (tierDelta !== 0) return tierDelta;
   return Date.parse(a.window?.start ?? '') - Date.parse(b.window?.start ?? '') || a.title.localeCompare(b.title);
@@ -1017,9 +984,7 @@ function getDaylightWindow({
 }
 
 function getRainWindow(forecast: ForecastAlertHour[], daylight?: DaylightWindow) {
-  const rows = (forecast || [])
-    .slice(0, 24)
-    .filter((hour) => !daylight || isWithinWindow(hour.t, daylight));
+  const rows = getTodayDaylightForecast(forecast, daylight);
   const qualifying = rows.filter((hour) => Number(hour.precipMm ?? 0) >= 0.2 || Number(hour.precipProbPct ?? 0) >= 60);
   if (!qualifying.length) return null;
 
@@ -1076,18 +1041,16 @@ function getDaylightTideRange(events: Array<{ t: string; heightM?: number }>, da
   };
 }
 
-function windowFromLabel(label: string, forecast: ForecastAlertHour[]) {
-  const match = label.match(/^(.+?)–(.+)$/);
-  if (!match) return undefined;
-  const start = forecast.find((hour) => formatAsOf(hour.t) === match[1].trim());
-  if (!start) return undefined;
-  return {
-    start: start.t,
-    end: addLocalHours(start.t, 3)
-  };
+function getTodayDaylightForecast(forecast: ForecastAlertHour[], daylight?: DaylightWindow) {
+  const rows = (forecast || []);
+  const day = extractLocalDay(daylight?.start) ?? extractLocalDay(rows[0]?.t);
+  return rows
+    .filter((hour) => !day || extractLocalDay(hour.t) === day)
+    .filter((hour) => !daylight || isWithinWindow(hour.t, daylight));
 }
 
 function isWithinWindow(iso: string, window: DaylightWindow) {
+  if (extractLocalDay(iso) !== extractLocalDay(window.start)) return false;
   const minute = extractLocalMinuteOfDay(iso);
   const start = extractLocalMinuteOfDay(window.start);
   const end = extractLocalMinuteOfDay(window.end);

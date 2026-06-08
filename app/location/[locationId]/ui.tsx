@@ -137,8 +137,8 @@ export function ForecastStrip({ forecast }: { forecast: any[] }) {
   );
 }
 
-export type AlertTier = 'warning' | 'watch' | 'info';
-export type AlertCategory = 'marine_warning' | 'wind' | 'rain' | 'visibility' | 'tide' | 'launch_window';
+export type AlertTier = 'warning' | 'watch';
+export type AlertCategory = 'marine_warning' | 'wind' | 'rain' | 'visibility' | 'tide';
 
 export interface BoatingAlert {
   id: string;
@@ -157,8 +157,7 @@ export interface BoatingAlert {
 
 const ALERT_TIER_LABELS: Record<AlertTier, string> = {
   warning: 'Warning',
-  watch: 'Watch',
-  info: 'Info'
+  watch: 'Watch'
 };
 
 function iconForAlert(name: string) {
@@ -167,7 +166,6 @@ function iconForAlert(name: string) {
   if (name === 'cloud-rain') return '☔';
   if (name === 'eye') return '◉';
   if (name === 'wave-sine' || name === 'ripple') return '~';
-  if (name === 'anchor') return '⌁';
   return 'i';
 }
 
@@ -183,6 +181,17 @@ export function BoatingAlertsModule({
   const hasWarning = items.some((item) => item.tier === 'warning');
   const activeCount = items.length;
 
+  if (!activeCount) {
+    return (
+      <div className="boatingAlertsModule boatingAlertsModuleCalm">
+        <div className="marineWarningStrip marineWarningStripCalm">
+          <span className="marineWarningCheck" aria-hidden="true">✓</span>
+          <span>No active warnings. Conditions look favorable.</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`boatingAlertsModule ${hasWarning ? 'boatingAlertsModuleWarning' : ''}`.trim()}>
       <div className="boatingAlertsHeader">
@@ -194,13 +203,9 @@ export function BoatingAlertsModule({
       </div>
 
       {!hasWarning ? (
-        <div className={`marineWarningStrip ${activeCount ? '' : 'marineWarningStripCalm'}`.trim()}>
+        <div className="marineWarningStrip">
           <span className="marineWarningCheck" aria-hidden="true">✓</span>
-          <span>
-            {activeCount
-              ? 'No active marine warnings (Environment Canada)'
-              : 'No active warnings. Conditions look favorable.'}
-          </span>
+          <span>No active marine warnings (Environment Canada)</span>
         </div>
       ) : null}
 

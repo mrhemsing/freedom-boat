@@ -998,6 +998,10 @@ summary::-webkit-details-marker {
   padding: 14px 16px 16px;
 }
 
+.boatingAlertsModuleCalm{
+  padding: 10px 12px;
+}
+
 .boatingAlertsModuleWarning{
   background: linear-gradient(180deg, rgba(252, 235, 235, 0.92), rgba(255, 255, 255, 0.78));
 }
@@ -1061,7 +1065,7 @@ summary::-webkit-details-marker {
 }
 
 .marineWarningStripCalm{
-  min-height: 58px;
+  min-height: 38px;
   align-items: center;
 }
 
@@ -1104,12 +1108,6 @@ summary::-webkit-details-marker {
   border-left-color: #ef9f27;
   background: #faeeda;
   color: #854f0b;
-}
-
-.boatingAlertRow-info{
-  border-left-color: #85b7eb;
-  background: #e6f1fb;
-  color: #0c447c;
 }
 
 .boatingAlertIcon{
@@ -1160,11 +1158,6 @@ summary::-webkit-details-marker {
 .boatingAlertBadge-watch{
   background: rgba(239, 159, 39, 0.18);
   color: #854f0b;
-}
-
-.boatingAlertBadge-info{
-  background: rgba(133, 183, 235, 0.22);
-  color: #0c447c;
 }
 
 .boatingAlertDetail{
