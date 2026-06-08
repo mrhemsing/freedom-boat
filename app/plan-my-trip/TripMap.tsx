@@ -99,7 +99,7 @@ const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
-const ALL_MARKERS_OVERVIEW_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM;
+const ALL_MARKERS_OVERVIEW_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM + 1;
 const ALL_MARKERS_OVERVIEW_MOBILE_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM;
 const ALL_MARKERS_OVERVIEW_LAT_OFFSET = -0.18;
 const ALL_MARKERS_OVERVIEW_DESKTOP_LON_OFFSET = -0.32;
@@ -2265,7 +2265,7 @@ function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, 
     const center = map.getCenter();
     const zoom = isMobileOverview
       ? Math.min(map.getZoom() + 1, ALL_MARKERS_OVERVIEW_MOBILE_ZOOM)
-      : Math.min(map.getZoom(), ALL_MARKERS_OVERVIEW_ZOOM);
+      : Math.min(map.getZoom() + 1, ALL_MARKERS_OVERVIEW_ZOOM);
     map.setView(
       [
         center.lat + ALL_MARKERS_OVERVIEW_LAT_OFFSET,
