@@ -6,7 +6,7 @@ import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../li
 import { buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../../lib/outlook';
 import { marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
 import { getLocationWeatherSnapshot } from '../../../lib/weather-snapshots';
-import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
+import { BoatingAlertsModule, Card, ForecastStrip, KpiRow, TideList, WindArrow, type BoatingAlert } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
 import MarinaJump, { type MarinaJumpGroup } from './MarinaJump';
@@ -56,16 +56,6 @@ export default async function LocationPage({
   const tides = tidesRes.ok ? await tidesRes.json() : null;
   const marine = marineRes.ok ? await marineRes.json() : null;
 
-  const alerts = [
-    ...((marine?.items || []).map((it: any) => ({
-      t: now?.asOf ?? new Date().toISOString(),
-      severity: it.severity || 'info',
-      title: it.title,
-      body: it.body
-    })) as any[]),
-    ...computeDefaultAlerts({ now, forecast: forecast?.forecast ?? [] })
-  ];
-
   const windSpeed = now?.wind?.speedKts;
   const gust = now?.wind?.gustKts;
   const dir = now?.wind?.directionDeg;
@@ -84,6 +74,17 @@ export default async function LocationPage({
   const slackTide = getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
   const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
+  const boatingAlertDaylight = getDaylightWindow({ now, sunByDay: forecast?.sunByDay ?? [], forecast: forecast?.forecast ?? [] });
+  const boatingAlerts = buildBoatingAlerts({
+    now,
+    forecast: forecast?.forecast ?? [],
+    marineItems: marine?.items ?? [],
+    tideEvents: tides?.events ?? [],
+    launchWindow,
+    slackTide,
+    visibility,
+    daylight: boatingAlertDaylight
+  });
   const marinaJumpGroups = buildMarinaJumpGroups();
   const mapHref = plannerMapHrefForLocation(id);
   const isPlannerEmbed = searchParams?.embed === 'planner';
@@ -126,15 +127,13 @@ export default async function LocationPage({
       </header>
 
       <div className="grid" style={{ marginTop: 24 }}>
-        {alerts.length ? (
-          <Card
-            className="alertsCard"
-            title="Alerts"
-            icon={<span style={{ fontWeight: 900, fontSize: 16 }}>⚠</span>}
-          >
-            <AlertFeed items={alerts} topLine={now?.asOf ? formatAsOfWithDay(now.asOf) : '—'} />
-          </Card>
-        ) : null}
+        <Card className="alertsCard" title={null} icon={null}>
+          <BoatingAlertsModule
+            items={boatingAlerts}
+            dayLabel={now?.asOf ? formatAsOfWithDay(now.asOf).split(' ')[0] ?? 'Today' : 'Today'}
+            daylight={boatingAlertDaylight}
+          />
+        </Card>
 
         <Card
           className="weeklyCard"
@@ -605,7 +604,7 @@ function getNextTideSummary({
 
   const kind = n.kind === 'high' ? 'High' : 'Low';
   const etaMs = Math.max(0, n.ms - nowMs);
-  return { kindLabel: kind, etaLabel: formatEta(etaMs) };
+  return { kindLabel: kind, etaLabel: formatEta(etaMs), t: n.t };
 }
 
 function getTidePhaseSummary({
@@ -689,10 +688,13 @@ function getWindTrendSummary(forecast: Array<{ windSpeedKts?: number }>) {
   return { label: 'Steady →', detail: 'Little change expected' };
 }
 
-function getRainEtaSummary(forecast: Array<{ t: string; precipProbPct?: number }>) {
-  const hit = (forecast || []).slice(0, 24).find((h) => (h?.precipProbPct ?? 0) >= 60);
-  if (!hit) return { label: 'None soon', detail: 'No strong rain signal in next 24h' };
-  return { label: isoToLocalTime(hit.t), detail: `Precip chance ~${Math.round(hit.precipProbPct ?? 0)}%` };
+function getRainEtaSummary(forecast: Array<{ t: string; precipProbPct?: number; precipMm?: number }>) {
+  const window = getRainWindow(forecast);
+  if (!window) return { label: 'None soon', detail: 'No strong rain signal in next 24h' };
+  return {
+    label: isoToLocalTime(window.start),
+    detail: `Starts around ${isoToLocalTime(window.start)}; peak ~${round(window.peakMm, 1)} mm/hr near ${isoToLocalTime(window.peak)}`
+  };
 }
 
 function getGoNoGoSummary({
@@ -858,6 +860,259 @@ function getBestLaunchWindowSummary({
   };
 }
 
+type ForecastAlertHour = {
+  t: string;
+  windSpeedKts?: number;
+  windGustKts?: number;
+  precipMm?: number;
+  precipProbPct?: number;
+};
+
+type DaylightWindow = { start: string; end: string };
+
+function buildBoatingAlerts({
+  now,
+  forecast,
+  marineItems,
+  tideEvents,
+  launchWindow,
+  slackTide,
+  visibility,
+  daylight
+}: {
+  now: any;
+  forecast: ForecastAlertHour[];
+  marineItems: Array<{ title?: string; body?: string; pubDate?: string }>;
+  tideEvents: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }>;
+  launchWindow: { label: string; detail: string };
+  slackTide: { label: string; detail: string };
+  visibility: { label: string; detail: string };
+  daylight?: DaylightWindow;
+}): BoatingAlert[] {
+  const hasMarineWarning = marineItems.length > 0;
+  const rows: BoatingAlert[] = [];
+
+  for (const item of marineItems.slice(0, 4)) {
+    rows.push({
+      id: `marine-${slugify(item.title || 'warning')}`,
+      tier: 'warning',
+      category: 'marine_warning',
+      icon: 'alert-triangle',
+      title: item.title || 'Marine warning',
+      detail: item.body || 'Official marine warning is active for this area.',
+      source: 'Environment Canada'
+    });
+  }
+
+  const daylightForecast = daylight ? forecast.filter((hour) => isWithinWindow(hour.t, daylight)) : forecast.slice(0, 24);
+  const maxWind = maxForecastValue(daylightForecast, (hour) => hour.windSpeedKts);
+  const maxGust = maxForecastValue(daylightForecast, (hour) => hour.windGustKts ?? hour.windSpeedKts);
+  if (!hasMarineWarning && (maxWind.value >= 12 || maxGust.value >= 18)) {
+    const peak = maxGust.value >= 18 ? maxGust : maxWind;
+    const windWindow = contiguousWindow(daylightForecast, (hour) => Number(hour.windSpeedKts ?? 0) >= 12 || Number(hour.windGustKts ?? 0) >= 18);
+    rows.push({
+      id: 'wind-watch',
+      tier: 'watch',
+      category: 'wind',
+      icon: 'wind',
+      title: 'Breezy daylight window',
+      detail: `Plan for chop: sustained wind up to ${round(maxWind.value, 0)} kt and gusts up to ${round(maxGust.value, 0)} kt near ${isoToLocalTime(peak.t)}.`,
+      window: windWindow ? { start: windWindow.start, peak: peak.t, end: windWindow.end } : undefined
+    });
+  }
+
+  const rainWindow = getRainWindow(forecast, daylight);
+  if (rainWindow && rainWindow.peakMm >= 4) {
+    rows.push({
+      id: `rain-${extractLocalDay(rainWindow.peak) ?? 'watch'}`,
+      tier: 'watch',
+      category: 'rain',
+      icon: 'cloud-rain',
+      title: 'Moderate rain',
+      detail: `Heaviest around ${isoToLocalTime(rainWindow.peak)}, up to ${round(rainWindow.peakMm, 1)} mm/hr. Reduced visibility and a wet launch. Eases after ~${isoToLocalTime(rainWindow.end)}.`,
+      window: { start: rainWindow.start, peak: rainWindow.peak, end: rainWindow.end }
+    });
+  }
+
+  if (visibility.label !== 'Generally good') {
+    const visibilityHit = daylightForecast.find((hour) => Number(hour.precipProbPct ?? 0) >= 70 || Number(hour.precipMm ?? 0) >= 1.5);
+    rows.push({
+      id: 'visibility-watch',
+      tier: 'watch',
+      category: 'visibility',
+      icon: 'eye',
+      title: 'Reduced visibility',
+      detail: visibility.detail,
+      window: visibilityHit ? { start: visibilityHit.t, peak: visibilityHit.t, end: addLocalHours(visibilityHit.t, 2) } : undefined
+    });
+  }
+
+  const tideRange = daylight ? getDaylightTideRange(tideEvents, daylight) : null;
+  if (tideRange && tideRange.rangeM >= 3.5) {
+    rows.push({
+      id: 'tide-watch',
+      tier: 'watch',
+      category: 'tide',
+      icon: 'wave-sine',
+      title: 'Large tide swing',
+      detail: `${round(tideRange.rangeM, 1)} m range in daylight. Expect stronger current near the turns.`,
+      window: { start: tideRange.start, peak: tideRange.peak, end: tideRange.end }
+    });
+  }
+
+  if (launchWindow.label !== '—') {
+    rows.push({
+      id: 'launch-window-info',
+      tier: 'info',
+      category: 'launch_window',
+      icon: 'anchor',
+      title: 'Best launch window',
+      detail: `${launchWindow.label}. ${launchWindow.detail}`,
+      window: windowFromLabel(launchWindow.label, forecast)
+    });
+  }
+
+  if (slackTide.label !== '—') {
+    const nextTide = getNextTideSummary({ nowIso: now?.asOf, events: tideEvents });
+    if (nextTide && daylight && isWithinWindow(nextTide.t, daylight)) {
+      rows.push({
+        id: 'slack-tide-info',
+        tier: 'info',
+        category: 'tide',
+        icon: 'wave-sine',
+        title: 'Slack tide timing',
+        detail: `${slackTide.detail} around ${isoToLocalTime(nextTide.t)}.`,
+        window: { start: addLocalHours(nextTide.t, -1), peak: nextTide.t, end: addLocalHours(nextTide.t, 1) }
+      });
+    }
+  }
+
+  return rows
+    .sort(compareBoatingAlerts)
+    .slice(0, 4);
+}
+
+function compareBoatingAlerts(a: BoatingAlert, b: BoatingAlert) {
+  const tierRank: Record<BoatingAlert['tier'], number> = { warning: 0, watch: 1, info: 2 };
+  const tierDelta = tierRank[a.tier] - tierRank[b.tier];
+  if (tierDelta !== 0) return tierDelta;
+  return Date.parse(a.window?.start ?? '') - Date.parse(b.window?.start ?? '') || a.title.localeCompare(b.title);
+}
+
+function getDaylightWindow({
+  now,
+  sunByDay,
+  forecast
+}: {
+  now: any;
+  sunByDay: Array<{ day: string; sunrise?: string; sunset?: string }>;
+  forecast: ForecastAlertHour[];
+}): DaylightWindow | undefined {
+  const day = extractLocalDay(now?.asOf) ?? extractLocalDay(forecast[0]?.t);
+  const sun = sunByDay.find((entry) => entry.day === day);
+  const sunrise = now?.sun?.sunrise ?? sun?.sunrise;
+  const sunset = now?.sun?.sunset ?? sun?.sunset;
+  if (!sunrise || !sunset) return undefined;
+  return { start: sunrise, end: sunset };
+}
+
+function getRainWindow(forecast: ForecastAlertHour[], daylight?: DaylightWindow) {
+  const rows = (forecast || [])
+    .slice(0, 24)
+    .filter((hour) => !daylight || isWithinWindow(hour.t, daylight));
+  const qualifying = rows.filter((hour) => Number(hour.precipMm ?? 0) >= 0.2 || Number(hour.precipProbPct ?? 0) >= 60);
+  if (!qualifying.length) return null;
+
+  const peakHour = qualifying.reduce((best, hour) => {
+    const bestMm = Number(best.precipMm ?? 0);
+    const mm = Number(hour.precipMm ?? 0);
+    if (mm !== bestMm) return mm > bestMm ? hour : best;
+    return Number(hour.precipProbPct ?? 0) > Number(best.precipProbPct ?? 0) ? hour : best;
+  }, qualifying[0]);
+
+  return {
+    start: qualifying[0].t,
+    peak: peakHour.t,
+    end: qualifying[qualifying.length - 1].t,
+    peakMm: Number(peakHour.precipMm ?? 0),
+    peakProb: Number(peakHour.precipProbPct ?? 0)
+  };
+}
+
+function maxForecastValue(rows: ForecastAlertHour[], select: (hour: ForecastAlertHour) => number | undefined): { value: number; t: string } {
+  let best = { value: 0, t: rows[0]?.t ?? new Date().toISOString() };
+  for (const hour of rows) {
+    const value = Number(select(hour) ?? 0);
+    if (value > best.value) best = { value, t: hour.t };
+  }
+  return best;
+}
+
+function contiguousWindow(rows: ForecastAlertHour[], predicate: (hour: ForecastAlertHour) => boolean) {
+  const matching = rows.filter(predicate);
+  if (!matching.length) return null;
+  return { start: matching[0].t, end: matching[matching.length - 1].t };
+}
+
+function getDaylightTideRange(events: Array<{ t: string; heightM?: number }>, daylight: DaylightWindow) {
+  const rows = events
+    .filter((event) => isWithinWindow(event.t, daylight) && typeof event.heightM === 'number')
+    .sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
+  if (rows.length < 2) return null;
+
+  let min = rows[0];
+  let max = rows[0];
+  for (const row of rows) {
+    if ((row.heightM ?? 0) < (min.heightM ?? 0)) min = row;
+    if ((row.heightM ?? 0) > (max.heightM ?? 0)) max = row;
+  }
+
+  const sorted = [min, max].sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
+  return {
+    rangeM: Math.abs((max.heightM ?? 0) - (min.heightM ?? 0)),
+    start: sorted[0].t,
+    peak: max.t,
+    end: sorted[1].t
+  };
+}
+
+function windowFromLabel(label: string, forecast: ForecastAlertHour[]) {
+  const match = label.match(/^(.+?)–(.+)$/);
+  if (!match) return undefined;
+  const start = forecast.find((hour) => formatAsOf(hour.t) === match[1].trim());
+  if (!start) return undefined;
+  return {
+    start: start.t,
+    end: addLocalHours(start.t, 3)
+  };
+}
+
+function isWithinWindow(iso: string, window: DaylightWindow) {
+  const minute = extractLocalMinuteOfDay(iso);
+  const start = extractLocalMinuteOfDay(window.start);
+  const end = extractLocalMinuteOfDay(window.end);
+  if (minute == null || start == null || end == null) return false;
+  return minute >= start && minute <= end;
+}
+
+function addLocalHours(iso: string, hours: number) {
+  const day = extractLocalDay(iso);
+  const minute = extractLocalMinuteOfDay(iso);
+  if (!day || minute == null) return iso;
+  return `${day}T${formatLocalMinuteOfDay24(minute + hours * 60)}`;
+}
+
+function formatLocalMinuteOfDay24(totalMinutes: number) {
+  const wrapped = ((totalMinutes % 1440) + 1440) % 1440;
+  const hh = Math.floor(wrapped / 60);
+  const mm = wrapped % 60;
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'warning';
+}
+
 function baseUrl() {
   // In prod (Vercel), never call back to localhost. Build an absolute URL from forwarded headers.
   const h = headers();
@@ -993,92 +1248,6 @@ function formatAsOf(iso: string) {
     minute: '2-digit',
     hour12: true
   }).format(d);
-}
-
-function envCanadaWindCategory(speedKts: number | null | undefined) {
-  const v = typeof speedKts === 'number' && Number.isFinite(speedKts) ? speedKts : null;
-  if (v == null) return null;
-
-  // Environment Canada marine wind warning categories (sustained wind, excluding gusts)
-  if (v >= 64) {
-    return { code: 'hurricane', title: 'Hurricane Force Wind', severity: 'warning' as const };
-  }
-  if (v >= 48) {
-    return { code: 'storm', title: 'Storm', severity: 'warning' as const };
-  }
-  if (v >= 34) {
-    return { code: 'gale', title: 'Gale', severity: 'warning' as const };
-  }
-  if (v >= 20) {
-    return { code: 'strong', title: 'Strong Wind', severity: 'caution' as const };
-  }
-  return null;
-}
-
-function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) {
-  const out: Array<{ t: string; severity: string; title: string; body?: string }> = [];
-
-  const sustainedNow = now?.wind?.speedKts ?? null;
-  const gustNow = now?.wind?.gustKts ?? null;
-
-  const next6 = (forecast || []).slice(0, 6);
-  const next24 = (forecast || []).slice(0, 24);
-
-  const maxSustainedNext6 = Math.max(
-    ...(next6 || []).map((h) => (typeof h.windSpeedKts === 'number' ? h.windSpeedKts : 0))
-  );
-  const maxSustainedNext24 = Math.max(
-    ...(next24 || []).map((h) => (typeof h.windSpeedKts === 'number' ? h.windSpeedKts : 0))
-  );
-
-  const maxGustNext6 = Math.max(
-    ...(next6 || []).map((h) => (typeof h.windGustKts === 'number' ? h.windGustKts : 0))
-  );
-  const maxGustNext24 = Math.max(
-    ...(next24 || []).map((h) => (typeof h.windGustKts === 'number' ? h.windGustKts : 0))
-  );
-
-  // Wind alert (single highest category only; no timeframe labels)
-  const maxSustainedOverall = Math.max(
-    typeof sustainedNow === 'number' ? sustainedNow : 0,
-    Number.isFinite(maxSustainedNext6) ? maxSustainedNext6 : 0,
-    Number.isFinite(maxSustainedNext24) ? maxSustainedNext24 : 0
-  );
-  const maxGustOverall = Math.max(
-    typeof gustNow === 'number' ? gustNow : 0,
-    Number.isFinite(maxGustNext6) ? maxGustNext6 : 0,
-    Number.isFinite(maxGustNext24) ? maxGustNext24 : 0
-  );
-
-  const catOverall = envCanadaWindCategory(maxSustainedOverall);
-  if (catOverall) {
-    out.push({
-      t: now?.asOf ?? next24?.[0]?.t ?? new Date().toISOString(),
-      severity: catOverall.severity,
-      title: catOverall.title,
-      body: `Max sustained ~${Math.round(maxSustainedOverall)} kt${maxGustOverall > 0 ? `\n(max gust ~${Math.round(maxGustOverall)} kt)` : ''}`
-    });
-  }
-
-  // Rain alert only if any hourly precip in next 24h exceeds 5 mm/hr
-  const next24ForRain = (forecast || []).slice(0, 24);
-  const heavyHour = next24ForRain.find((h) => typeof h.precipMm === 'number' && h.precipMm > 5);
-  if (heavyHour) {
-    out.push({
-      t: heavyHour.t,
-      severity: 'info',
-      title: 'Heavy rain expected',
-      body: `~${round(heavyHour.precipMm, 1)} mm/hr around ${isoToLocalTime(heavyHour.t)}`
-    });
-  }
-
-  // De-dupe titles
-  const seen = new Set<string>();
-  return out.filter((a) => {
-    if (seen.has(a.title)) return false;
-    seen.add(a.title);
-    return true;
-  });
 }
 
 function parsePlannerScore(value?: string) {

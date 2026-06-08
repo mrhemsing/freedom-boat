@@ -25,19 +25,21 @@ export function Card({
 }) {
   return (
     <section className={`card ${className || ''}`.trim()} style={{ minWidth: 0 }}>
-      <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
-        <div className="cardHeaderLeft">
-          <h2
-            className={titleNoWrap ? 'cardTitleNoWrap' : undefined}
-            style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
-          >
-            <span className="cardIcon" style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
-            {title}
-          </h2>
-          {subtitle ? <div className="cardSubtitle">{subtitle}</div> : null}
+      {title ? (
+        <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
+          <div className="cardHeaderLeft">
+            <h2
+              className={titleNoWrap ? 'cardTitleNoWrap' : undefined}
+              style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
+            >
+              <span className="cardIcon" style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
+              {title}
+            </h2>
+            {subtitle ? <div className="cardSubtitle">{subtitle}</div> : null}
+          </div>
+          {right ? <div className="miniNote">{right}</div> : null}
         </div>
-        {right ? <div className="miniNote">{right}</div> : null}
-      </div>
+      ) : null}
       <div className="cardBody">{children}</div>
     </section>
   );
@@ -135,72 +137,146 @@ export function ForecastStrip({ forecast }: { forecast: any[] }) {
   );
 }
 
-function severityClass(sev: string) {
-  if (sev === 'warning') return 'sevWarning';
-  if (sev === 'caution') return 'sevCaution';
-  return 'sevInfo';
+export type AlertTier = 'warning' | 'watch' | 'info';
+export type AlertCategory = 'marine_warning' | 'wind' | 'rain' | 'visibility' | 'tide' | 'launch_window';
+
+export interface BoatingAlert {
+  id: string;
+  tier: AlertTier;
+  category: AlertCategory;
+  icon: string;
+  title: string;
+  detail: string;
+  window?: {
+    start: string;
+    peak?: string;
+    end?: string;
+  };
+  source?: string;
 }
 
-function alertIconFromTitle(title: string, fallbackSeverity: string) {
-  const t = String(title || '').toLowerCase();
-  if (t.includes('rain')) return '☔';
-  if (t.includes('wind')) return '💨';
-  if (t.includes('tide')) return '🌊';
-  if (t.includes('fog')) return '🌫️';
-  if ((fallbackSeverity || '').toLowerCase() === 'warning') return '⚠️';
-  if ((fallbackSeverity || '').toLowerCase() === 'caution') return '⚠';
-  return 'ℹ️';
+const ALERT_TIER_LABELS: Record<AlertTier, string> = {
+  warning: 'Warning',
+  watch: 'Watch',
+  info: 'Info'
+};
+
+function iconForAlert(name: string) {
+  if (name === 'alert-triangle') return '!';
+  if (name === 'wind') return '≈';
+  if (name === 'cloud-rain') return '☔';
+  if (name === 'eye') return '◉';
+  if (name === 'wave-sine' || name === 'ripple') return '~';
+  if (name === 'anchor') return '⌁';
+  return 'i';
 }
 
-export function AlertFeed({
+export function BoatingAlertsModule({
   items,
-  topLine
+  dayLabel,
+  daylight
 }: {
-  items: Array<{ t: string; severity: string; title: string; body?: string }>;
-  topLine?: string;
+  items: BoatingAlert[];
+  dayLabel: string;
+  daylight?: { start: string; end: string };
 }) {
-  if (!items?.length) {
-    return <div className="miniNote">No alerts right now.</div>;
-  }
-  return (
-    <div className="alertsFeed">
-      {items.map((a, idx) => {
-        const cleanBody = a.body
-          ? String(a.body)
-              .replace(/\./g, '')
-              .replace(/\s+/g, ' ')
-              .trim()
-          : '';
-        const bodyParts = cleanBody ? cleanBody.replace(/\s+\(max gust/i, '__MG__ (max gust').split('__MG__') : [];
+  const hasWarning = items.some((item) => item.tier === 'warning');
+  const activeCount = items.length;
 
-        return (
-          <div key={idx} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 12, background: 'rgba(255,255,255,0.70)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
-              <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span className={`pill ${severityClass(a.severity)}`}>{alertIconFromTitle(a.title, a.severity)}</span>
+  return (
+    <div className={`boatingAlertsModule ${hasWarning ? 'boatingAlertsModuleWarning' : ''}`.trim()}>
+      <div className="boatingAlertsHeader">
+        <div className="boatingAlertsTitle">
+          <span className="boatingAlertsBell" aria-hidden="true">!</span>
+          <span>Conditions to watch</span>
+        </div>
+        <div className="boatingAlertsMeta">{activeCount} active · {dayLabel}</div>
+      </div>
+
+      {!hasWarning ? (
+        <div className={`marineWarningStrip ${activeCount ? '' : 'marineWarningStripCalm'}`.trim()}>
+          <span className="marineWarningCheck" aria-hidden="true">✓</span>
+          <span>
+            {activeCount
+              ? 'No active marine warnings (Environment Canada)'
+              : 'No active warnings. Conditions look favorable.'}
+          </span>
+        </div>
+      ) : null}
+
+      {activeCount ? (
+        <div className="boatingAlertRows">
+          {items.map((item) => (
+            <div key={item.id} className={`boatingAlertRow boatingAlertRow-${item.tier}`}>
+              <div className="boatingAlertIcon" aria-hidden="true">{iconForAlert(item.icon)}</div>
+              <div className="boatingAlertCopy">
+                <div className="boatingAlertTopLine">
+                  <div className="boatingAlertTitle">{item.title}</div>
+                  <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
+                </div>
+                <div className="boatingAlertDetail">{item.detail}</div>
+                {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
+                {item.window ? <AlertTimeBar window={item.window} daylight={daylight} /> : null}
               </div>
-              <div className="miniNote">{isoToLocalDayTime(a.t)}</div>
             </div>
-            {cleanBody ? (
-              <div style={{ marginTop: 8, color: 'rgba(11,18,32,0.80)' }}>
-                {bodyParts.map((part, i) => (
-                  <React.Fragment key={i}>
-                    {i > 0 ? (
-                      <>
-                        <br className="desktopOnlyBr" />
-                        <span className="mobileOnlyInlineSpace"> </span>
-                      </>
-                    ) : null}
-                    {part}
-                  </React.Fragment>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        );
-      })}
+          ))}
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function AlertTimeBar({
+  window,
+  daylight
+}: {
+  window: NonNullable<BoatingAlert['window']>;
+  daylight?: { start: string; end: string };
+}) {
+  if (!daylight?.start || !daylight?.end) return null;
+
+  const daylightStart = localMinute(daylight.start);
+  const daylightEnd = localMinute(daylight.end);
+  const start = localMinute(window.start);
+  const end = localMinute(window.end ?? window.peak ?? window.start);
+  const peak = window.peak ? localMinute(window.peak) : null;
+  if (daylightStart == null || daylightEnd == null || start == null || end == null || daylightEnd <= daylightStart) {
+    return null;
+  }
+
+  const scale = daylightEnd - daylightStart;
+  const left = clampPercent(((start - daylightStart) / scale) * 100);
+  const right = clampPercent(((end - daylightStart) / scale) * 100);
+  const width = Math.max(3, right - left);
+  const peakLeft = peak == null ? null : clampPercent(((peak - daylightStart) / scale) * 100);
+
+  return (
+    <div className="alertTimeBar" aria-label={`Window ${isoToLocalTime(window.start)} to ${isoToLocalTime(window.end ?? window.start)}`}>
+      <div className="alertTimeTrack">
+        <div className="alertTimeFill" style={{ left: `${left}%`, width: `${width}%` }} />
+        {peakLeft != null ? <div className="alertTimePeak" style={{ left: `${peakLeft}%` }} /> : null}
+      </div>
+      <div className="alertTimeTicks">
+        <span>{isoToLocalTime(daylight.start)}</span>
+        <span>{isoToLocalTime(window.start)}</span>
+        {window.peak ? <span>{isoToLocalTime(window.peak)}</span> : null}
+        {window.end ? <span>{isoToLocalTime(window.end)}</span> : null}
+      </div>
+    </div>
+  );
+}
+
+function localMinute(iso?: string) {
+  const m = String(iso || '').match(/T(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const hh = Number(m[1]);
+  const mm = Number(m[2]);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  return hh * 60 + mm;
+}
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
 }
 
 export function TideList({ events }: { events: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }> }) {

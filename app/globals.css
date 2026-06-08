@@ -979,59 +979,247 @@ summary::-webkit-details-marker {
 
 /* Alerts card styling + icon alignment */
 .alertsCard{
-  border-color: var(--border);
-  background: var(--card);
+  border-color: rgba(11, 18, 32, 0.10);
+  background: #f3f8ff;
+  overflow: hidden;
 }
 
-.alertsCard .cardHeader{
-  background: transparent;
-  border-bottom: 0;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  padding-top: 14px;
-  padding-bottom: 0;
-}
-
-.alertsCard .cardHeader h2,
-.alertsCard .cardHeader h2 .cardIcon{
-  color: rgba(185, 28, 28, 0.92) !important;
-}
-
-.alertsCard .cardHeader h2{
-  gap: 7px !important;
+.alertsCard .cardBody{
+  padding: 0;
 }
 
 .tidesCard .cardHeader .cardIcon{
   transform: translateY(2px) !important;
 }
 
-.alertsCard .pill{
-  border-radius: 8px;
-  margin-bottom: 3px;
+.boatingAlertsModule{
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px 16px;
 }
 
-.alertsAsOfTop{
+.boatingAlertsModuleWarning{
+  background: linear-gradient(180deg, rgba(252, 235, 235, 0.92), rgba(255, 255, 255, 0.78));
+}
+
+.boatingAlertsHeader{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.boatingAlertsTitle{
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(11, 18, 32, 0.92);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.boatingAlertsBell{
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(12, 68, 124, 0.11);
+  color: #0c447c;
   font-size: 12px;
-  font-weight: 700;
-  color: rgba(127, 29, 29, 0.85);
+  font-weight: 950;
 }
 
-.alertsAsOfInBody{
+.boatingAlertsModuleWarning .boatingAlertsBell{
+  background: rgba(163, 45, 45, 0.12);
+  color: #a32d2d;
+}
+
+.boatingAlertsMeta{
+  flex: 0 0 auto;
+  color: rgba(11, 18, 32, 0.56);
   font-size: 12px;
-  font-weight: 700;
-  color: rgba(127, 29, 29, 0.85);
-  margin-bottom: 8px;
+  font-weight: 750;
+  text-align: right;
 }
 
-.alertsFeed {
+.marineWarningStrip{
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 9px 11px;
+  border: 1px solid rgba(22, 101, 52, 0.16);
+  border-left: 3px solid #2fae6b;
+  border-radius: 0 8px 8px 0;
+  background: rgba(220, 252, 231, 0.72);
+  color: rgba(20, 83, 45, 0.94);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.marineWarningStripCalm{
+  min-height: 58px;
+  align-items: center;
+}
+
+.marineWarningCheck{
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.18);
+  color: #166534;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.boatingAlertRows {
   display: grid;
   gap: 10px;
 }
 
-@media (min-width: 1024px) {
-  .alertsFeed {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.boatingAlertRow{
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid rgba(11, 18, 32, 0.10);
+  border-left-width: 3px;
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.boatingAlertRow-warning{
+  border-left-color: #e24b4a;
+  background: #fcebeb;
+  color: #a32d2d;
+}
+
+.boatingAlertRow-watch{
+  border-left-color: #ef9f27;
+  background: #faeeda;
+  color: #854f0b;
+}
+
+.boatingAlertRow-info{
+  border-left-color: #85b7eb;
+  background: #e6f1fb;
+  color: #0c447c;
+}
+
+.boatingAlertIcon{
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.boatingAlertCopy{
+  min-width: 0;
+}
+
+.boatingAlertTopLine{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.boatingAlertTitle{
+  min-width: 0;
+  color: rgba(11, 18, 32, 0.90);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.boatingAlertBadge{
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.boatingAlertBadge-warning{
+  background: rgba(226, 75, 74, 0.14);
+  color: #a32d2d;
+}
+
+.boatingAlertBadge-watch{
+  background: rgba(239, 159, 39, 0.18);
+  color: #854f0b;
+}
+
+.boatingAlertBadge-info{
+  background: rgba(133, 183, 235, 0.22);
+  color: #0c447c;
+}
+
+.boatingAlertDetail{
+  margin-top: 5px;
+  color: rgba(11, 18, 32, 0.72);
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.boatingAlertSource{
+  margin-top: 5px;
+  color: rgba(11, 18, 32, 0.52);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.alertTimeBar{
+  margin-top: 10px;
+}
+
+.alertTimeTrack{
+  position: relative;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.12);
+  overflow: hidden;
+}
+
+.alertTimeFill{
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.38;
+}
+
+.alertTimePeak{
+  position: absolute;
+  top: -2px;
+  width: 3px;
+  height: 9px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+.alertTimeTicks{
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 10px;
+  color: rgba(11, 18, 32, 0.52);
+  font-size: 11px;
+  font-weight: 750;
 }
 
 .cardBody {
