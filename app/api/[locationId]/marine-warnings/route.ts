@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { LOCATIONS, type LocationId } from '../../../../lib/locations';
 
-// Environment Canada warnings RSS (English)
-const EC_BC_WARNINGS = 'https://weather.gc.ca/rss/warning/bc_e.xml';
+const EC_MARINE_ATOM = 'https://weather.gc.ca/rss/marine';
 const NWS_ALERTS = 'https://api.weather.gov/alerts/active';
 
 function warningAuthority(loc: { address?: string }) {
@@ -26,26 +25,29 @@ function stripTags(s: string) {
   return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function extractItems(xml: string): Array<{ title: string; description?: string; link?: string; pubDate?: string }> {
-  const items: Array<{ title: string; description?: string; link?: string; pubDate?: string }> = [];
-  const blocks = xml.split(/<item>/i).slice(1);
+function extractAtomEntries(xml: string): Array<{ title: string; description?: string; link?: string; pubDate?: string; category?: string }> {
+  const entries: Array<{ title: string; description?: string; link?: string; pubDate?: string; category?: string }> = [];
+  const blocks = xml.split(/<entry>/i).slice(1);
   for (const b of blocks) {
-    const end = b.split(/<\/item>/i)[0] ?? '';
+    const end = b.split(/<\/entry>/i)[0] ?? '';
 
-    const title = /<title>([\s\S]*?)<\/title>/i.exec(end)?.[1];
-    const desc = /<description>([\s\S]*?)<\/description>/i.exec(end)?.[1];
-    const link = /<link>([\s\S]*?)<\/link>/i.exec(end)?.[1];
-    const pubDate = /<pubDate>([\s\S]*?)<\/pubDate>/i.exec(end)?.[1];
+    const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(end)?.[1];
+    const summary = /<summary[^>]*>([\s\S]*?)<\/summary>/i.exec(end)?.[1];
+    const link = /<link\b[^>]*href="([^"]+)"/i.exec(end)?.[1];
+    const updated = /<updated[^>]*>([\s\S]*?)<\/updated>/i.exec(end)?.[1];
+    const published = /<published[^>]*>([\s\S]*?)<\/published>/i.exec(end)?.[1];
+    const category = /<category\b[^>]*term="([^"]+)"/i.exec(end)?.[1];
 
     if (!title) continue;
-    items.push({
+    entries.push({
       title: stripTags(decodeHtml(title)),
-      description: desc ? stripTags(decodeHtml(desc)) : undefined,
+      description: summary ? stripTags(decodeHtml(summary)) : undefined,
       link: link ? decodeHtml(link).trim() : undefined,
-      pubDate: pubDate ? pubDate.trim() : undefined
+      pubDate: (published ?? updated)?.trim(),
+      category: category ? decodeHtml(category).trim() : undefined
     });
   }
-  return items;
+  return entries;
 }
 
 function severityOf(title: string): 'warning' | 'caution' | 'info' {
@@ -112,6 +114,84 @@ async function getNwsWarnings(id: LocationId, loc: { lat: number; lon: number },
   return NextResponse.json({ locationId: id, authority, status: 'available', items });
 }
 
+async function getEcWarnings(
+  id: LocationId,
+  loc: { marineAreas?: string[]; marineSiteIds?: string[] },
+  authority: string
+) {
+  const siteIds = loc.marineSiteIds ?? [];
+  if (!siteIds.length) {
+    return NextResponse.json({
+      locationId: id,
+      authority,
+      status: 'unavailable',
+      items: [],
+      error: 'No EC marine site IDs configured'
+    }, { status: 200 });
+  }
+
+  const results = await Promise.all(siteIds.map(async (siteId) => {
+    const url = `${EC_MARINE_ATOM}/${siteId}_e.xml`;
+    const res = await fetch(url, {
+      next: { revalidate: 5 * 60 },
+      headers: {
+        accept: 'application/atom+xml, application/xml, text/xml',
+        'user-agent': 'Fairtide/1.0'
+      }
+    });
+    if (!res.ok) {
+      return { ok: false, siteId, error: `EC marine ATOM ${siteId} HTTP ${res.status}`, items: [] };
+    }
+    const xml = await res.text();
+    return { ok: true, siteId, items: extractAtomEntries(xml) };
+  }));
+
+  const available = results.filter((result) => result.ok);
+  if (!available.length) {
+    return NextResponse.json({
+      locationId: id,
+      authority,
+      status: 'unavailable',
+      items: [],
+      error: results.map((result) => result.error).filter(Boolean).join('; ') || 'EC marine feeds unavailable'
+    }, { status: 200 });
+  }
+
+  const areas = (loc.marineAreas || []).map((s) => s.toLowerCase());
+  const seen = new Set<string>();
+  const filtered = available
+    .flatMap((result) => result.items)
+    .filter((it) => {
+      const title = it.title.toLowerCase();
+      const category = String(it.category || '').toLowerCase();
+      const isWarning = category.includes('marine warnings') || title.includes('warning') || title.includes('watch');
+      if (!isWarning) return false;
+      if (areas.length && !areas.some((a) => title.includes(a))) return false;
+
+      const key = `${it.title}|${it.pubDate ?? ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 6)
+    .map((it) => ({
+      title: toTitleCaseWarning(it.title),
+      body: it.description,
+      link: it.link,
+      severity: severityOf(it.title),
+      pubDate: it.pubDate
+    }));
+
+  return NextResponse.json({ locationId: id, authority, status: 'available', items: filtered });
+}
+
+function toTitleCaseWarning(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .replace(/\bIn\b/g, 'in');
+}
+
 export async function GET(_req: Request, { params }: { params: { locationId: string } }) {
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
@@ -122,47 +202,5 @@ export async function GET(_req: Request, { params }: { params: { locationId: str
     return getNwsWarnings(id, loc, routing.authority);
   }
 
-  const res = await fetch(EC_BC_WARNINGS, { next: { revalidate: 5 * 60 } });
-  if (!res.ok) {
-    return NextResponse.json({
-      locationId: id,
-      authority: routing.authority,
-      status: 'unavailable',
-      items: [],
-      error: `EC RSS HTTP ${res.status}`
-    }, { status: 200 });
-  }
-
-  const xml = await res.text();
-  const items = extractItems(xml);
-
-  const areas = (loc.marineAreas || []).map((s) => s.toLowerCase());
-  const filtered = items
-    .filter((it) => {
-      const title = it.title.toLowerCase();
-      // Only keep marine-ish items (best-effort)
-      const isMarine =
-        title.includes('gale') ||
-        title.includes('storm') ||
-        title.includes('hurricane') ||
-        title.includes('squall') ||
-        title.includes('strong wind') ||
-        title.includes('marine') ||
-        title.includes('wind warning');
-
-      if (!isMarine) return false;
-      if (areas.length === 0) return true;
-      return areas.some((a) => title.includes(a));
-    })
-    .slice(0, 6)
-    .map((it) => ({
-      title: it.title,
-      body: it.description,
-      link: it.link,
-      severity: severityOf(it.title),
-      // We don't strictly trust pubDate parsing, but keep it for display/debug.
-      pubDate: it.pubDate
-    }));
-
-  return NextResponse.json({ locationId: id, authority: routing.authority, status: 'available', items: filtered });
+  return getEcWarnings(id, loc, routing.authority);
 }

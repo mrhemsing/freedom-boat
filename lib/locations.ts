@@ -9,6 +9,8 @@ export type LocationProfile = {
   lon: number;
   // Environment Canada RSS marine warning area keywords to filter on (best-effort)
   marineAreas?: string[];
+  // Environment Canada marine ATOM feed site IDs for the nearest forecast areas.
+  marineSiteIds?: string[];
 };
 
 export const LOCATIONS: Record<LocationId, LocationProfile> = {
@@ -23,7 +25,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
       'Burrard Inlet',
       'Howe Sound',
       'Strait of Georgia'
-    ]
+    ],
+    marineSiteIds: ['06400', '14305']
   },
   'north-saanich': {
     id: 'north-saanich',
@@ -35,7 +38,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
       'Strait of Georgia',
       'Juan de Fuca Strait',
       'Haro Strait'
-    ]
+    ],
+    marineSiteIds: ['06100', '14305']
   },
   'oak-bay': {
     id: 'oak-bay',
@@ -47,7 +51,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
       'Juan de Fuca Strait',
       'Haro Strait',
       'Strait of Georgia'
-    ]
+    ],
+    marineSiteIds: ['06100', '07003', '14305']
   },
   'west-vancouver': {
     id: 'west-vancouver',
@@ -59,7 +64,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
       'Howe Sound',
       'Strait of Georgia',
       'Burrard Inlet'
-    ]
+    ],
+    marineSiteIds: ['06400', '14305']
   },
   'richmond': {
     id: 'richmond',
@@ -70,7 +76,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     marineAreas: [
       'Strait of Georgia',
       'Burrard Inlet'
-    ]
+    ],
+    marineSiteIds: ['14305']
   },
   'bellingham': {
     id: 'bellingham',

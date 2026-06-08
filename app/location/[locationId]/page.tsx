@@ -817,6 +817,8 @@ function getWindTideRiskSummary({
   return { label: 'Low', detail: 'Limited wind/current interaction signal' };
 }
 
+const VISIBILITY_RAIN_THRESHOLD_MM = 3;
+
 function getVisibilityRiskSummary({
   now,
   forecast,
@@ -835,13 +837,13 @@ function getVisibilityRiskSummary({
   }
 
   const next12 = (forecast || []).slice(0, 12);
-  const rainHit = next12.find((h) => Number(h.precipProbPct ?? 0) >= 70 || Number(h.precipMm ?? 0) >= 1.5);
+  const rainHit = next12.find((h) => Number(h.precipMm ?? 0) >= VISIBILITY_RAIN_THRESHOLD_MM);
   if (rainHit) {
     return { label: 'Reduced likely', detail: `Rain may reduce visibility around ${isoToLocalTime(rainHit.t)}` };
   }
 
   const precipNow = Number(now?.precipMmHr ?? 0);
-  if (precipNow >= 0.8) {
+  if (precipNow >= VISIBILITY_RAIN_THRESHOLD_MM) {
     return { label: 'Reduced now', detail: 'Active rain can reduce visibility' };
   }
 
@@ -849,17 +851,27 @@ function getVisibilityRiskSummary({
 }
 
 function getVisibilityWatchWindow(forecast: ForecastAlertHour[], daylight?: DaylightWindow, nowIso?: string | null) {
-  const rainWindow = getRainWindow(forecast, daylight);
-  if (rainWindow) return { start: rainWindow.start, peak: rainWindow.peak, end: rainWindow.end };
-
   const daylightForecast = getTodayDaylightForecast(forecast, daylight);
-  const hit = daylightForecast.find((hour) => Number(hour.precipProbPct ?? 0) >= 70 || Number(hour.precipMm ?? 0) >= 1.5);
-  if (!hit) return null;
+  const qualifying = daylightForecast.filter((hour) => Number(hour.precipMm ?? 0) >= VISIBILITY_RAIN_THRESHOLD_MM);
+  if (!qualifying.length) return null;
 
-  const next = nextForecastHour(daylightForecast, hit.t);
-  const fallbackEnd = next?.t ?? addLocalHours(hit.t, 1);
+  const peak = qualifying.reduce((best, hour) => {
+    const bestMm = Number(best.precipMm ?? 0);
+    const mm = Number(hour.precipMm ?? 0);
+    return mm > bestMm ? hour : best;
+  }, qualifying[0]);
+
+  const segment = contiguousWindowAroundPeak(
+    daylightForecast,
+    (hour) => Number(hour.precipMm ?? 0) >= VISIBILITY_RAIN_THRESHOLD_MM,
+    peak.t
+  );
+  if (segment) return { start: segment.start, peak: peak.t, end: segment.end };
+
+  const next = nextForecastHour(daylightForecast, peak.t);
+  const fallbackEnd = next?.t ?? addLocalHours(peak.t, 1);
   const end = nowIso && compareLocalIso(fallbackEnd, nowIso) <= 0 ? addLocalHours(nowIso, 1) : fallbackEnd;
-  return { start: hit.t, peak: hit.t, end };
+  return { start: peak.t, peak: peak.t, end };
 }
 
 function getBestLaunchWindowSummary({
@@ -1302,7 +1314,7 @@ function visibilityDetail({
   if (nowIso && compareLocalIso(window.start, nowIso) <= 0) {
     return `Reduced visibility possible through ${alertLocalTime(window.end ?? window.start)}.`;
   }
-  return `Reduced visibility likely as rain moves in near ${alertLocalTime(window.start)}.`;
+  return `Reduced visibility likely as rain peaks near ${alertLocalTime(window.peak ?? window.start)}.`;
 }
 
 function tideWatchDetail({
