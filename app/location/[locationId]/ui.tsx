@@ -275,11 +275,22 @@ function AlertTimeBar({
   const left = pct(window.start, daylight.start, daylight.end);
   const endPct = pct(endIso, daylight.start, daylight.end);
   const width = Math.max(3, endPct - left);
+  const rangeAnchorClass = left <= 20
+    ? 'alertTimeRangeLabelDawn'
+    : endPct >= 80
+      ? 'alertTimeRangeLabelEvening'
+      : 'alertTimeRangeLabelMidday';
+  const rangeAnchorStyle = rangeAnchorClass === 'alertTimeRangeLabelEvening'
+    ? { left: `${endPct}%` }
+    : rangeAnchorClass === 'alertTimeRangeLabelDawn'
+      ? { left: `${left}%` }
+      : { left: `${left + (endPct - left) / 2}%` };
   const showPeak = Boolean(
     window.peak
     && Math.abs(localMs(window.peak) - localMs(window.start)) > 30 * 60_000
     && Math.abs(localMs(endIso) - localMs(window.peak)) > 30 * 60_000
   );
+  const showPeakText = Boolean(showPeak && window.peak && width >= 28);
   const peakLeft = window.peak ? pct(window.peak, daylight.start, daylight.end) : null;
   const nowVisible = Boolean(nowIso && sameLocalDay(nowIso, daylight.start) && localMs(nowIso) >= localMs(daylight.start) && localMs(nowIso) <= localMs(daylight.end));
   const nowLeft = nowVisible && nowIso ? pct(nowIso, daylight.start, daylight.end) : null;
@@ -296,33 +307,27 @@ function AlertTimeBar({
         {nowLeft != null ? <div className="alertTimeNow" style={{ left: `${nowLeft}%` }} /> : null}
       </div>
       <div className="alertTimeLabels">
-        <span className="alertTimeLabel alertTimeLabelEdgeLeft">
-          {formatLocalTimeLabel(daylight.start)}
-          <em>sunrise</em>
-        </span>
-        {nowLeft != null ? (
-          <span className="alertTimeLabel alertTimeLabelNow" style={{ left: `${nowLeft}%` }}>
-            now
+        <div className="alertTimeAxisLabels">
+          <span className="alertTimeLabel alertTimeLabelEdgeLeft">
+            {formatLocalTimeLabel(daylight.start)}
+            <em>sunrise</em>
           </span>
-        ) : null}
-        <span className="alertTimeLabel" style={{ left: `${left}%` }}>
-          {formatLocalTimeLabel(window.start)}
-          <em>starts</em>
-        </span>
-        {showPeak && window.peak && peakLeft != null ? (
-          <span className="alertTimeLabel" style={{ left: `${peakLeft}%` }}>
-            {formatLocalTimeLabel(window.peak)}
-            <em>peak</em>
+          {nowLeft != null ? (
+            <span className="alertTimeLabel alertTimeLabelNow" style={{ left: `${nowLeft}%` }}>
+              now
+            </span>
+          ) : null}
+          <span className="alertTimeLabel alertTimeLabelEdgeRight">
+            {formatLocalTimeLabel(daylight.end)}
+            <em>sunset</em>
           </span>
-        ) : null}
-        <span className="alertTimeLabel" style={{ left: `${endPct}%` }}>
-          {formatLocalTimeLabel(endIso)}
-          <em>eases</em>
-        </span>
-        <span className="alertTimeLabel alertTimeLabelEdgeRight">
-          {formatLocalTimeLabel(daylight.end)}
-          <em>sunset</em>
-        </span>
+        </div>
+        <div className="alertTimeWindowLabels">
+          <span className={`alertTimeRangeLabel ${rangeAnchorClass}`} style={rangeAnchorStyle}>
+            {formatLocalTimeLabel(window.start)}-{formatLocalTimeLabel(endIso)}
+            {showPeakText && window.peak ? <em>peak {formatLocalTimeLabel(window.peak)}</em> : null}
+          </span>
+        </div>
       </div>
     </div>
   );

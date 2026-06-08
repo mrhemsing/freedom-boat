@@ -1306,7 +1306,9 @@ function visibilityDetail({
     return `Possible through ${alertLocalTime(window.end ?? window.start)}.`;
   }
   const peakText = alertLocalTime(window.peak ?? window.start);
-  const endText = window.end ? `, eases after ${alertLocalTime(window.end)}` : '';
+  const endText = window.end && compareLocalIso(window.end, window.peak ?? window.start) > 0
+    ? `, eases after ${alertLocalTime(window.end)}`
+    : '';
   return `Likely as rain peaks near ${peakText}${endText}.`;
 }
 

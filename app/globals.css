@@ -1269,9 +1269,23 @@ summary::-webkit-details-marker {
 
 .alertTimeLabels{
   position: relative;
-  height: 34px;
+  height: 47px;
   margin-top: 8px;
   color: rgba(11, 18, 32, 0.52);
+}
+
+.alertTimeAxisLabels,
+.alertTimeWindowLabels{
+  position: relative;
+}
+
+.alertTimeAxisLabels{
+  height: 19px;
+}
+
+.alertTimeWindowLabels{
+  height: 24px;
+  margin-top: 4px;
 }
 
 .alertTimeLabel{
@@ -1314,6 +1328,42 @@ summary::-webkit-details-marker {
 .alertTimeLabelEdgeRight{
   right: 0;
   transform: none;
+  text-align: right;
+}
+
+.alertTimeRangeLabel{
+  position: absolute;
+  top: 0;
+  display: inline-grid;
+  gap: 2px;
+  max-width: min(176px, 100%);
+  color: rgba(11, 18, 32, 0.62);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.alertTimeRangeLabel em{
+  color: rgba(11, 18, 32, 0.42);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.alertTimeRangeLabelDawn{
+  transform: none;
+  text-align: left;
+}
+
+.alertTimeRangeLabelMidday{
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.alertTimeRangeLabelEvening{
+  transform: translateX(-100%);
   text-align: right;
 }
 
