@@ -1120,6 +1120,15 @@ summary::-webkit-details-marker {
   font-weight: 950;
 }
 
+.marineWarningCheckOk::before{
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-left: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
 .boatingAlertRows {
   display: grid;
   gap: 10px;
