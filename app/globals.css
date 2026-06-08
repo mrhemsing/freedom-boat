@@ -1091,7 +1091,7 @@ summary::-webkit-details-marker {
 
 .marineWarningStrip small{
   color: rgba(20, 83, 45, 0.72);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.25;
 }
@@ -1219,8 +1219,8 @@ summary::-webkit-details-marker {
 .boatingAlertSource{
   margin-top: 5px;
   color: rgba(11, 18, 32, 0.52);
-  font-size: 11px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .alertTimeBar{
