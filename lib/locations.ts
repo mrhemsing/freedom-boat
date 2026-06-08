@@ -21,12 +21,12 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     // Marina anchor (Burrard Inlet)
     lat: 49.291406,
     lon: -122.884611,
+    // EC does not publish a Burrard Inlet marine ATOM zone. Do not fall
+    // through to Howe Sound; use the south Strait of Georgia feed instead.
     marineAreas: [
-      'Burrard Inlet',
-      'Howe Sound',
-      'Strait of Georgia'
+      'Strait of Georgia - south of Nanaimo'
     ],
-    marineSiteIds: ['06400', '14305']
+    marineSiteIds: ['14300']
   },
   'north-saanich': {
     id: 'north-saanich',
