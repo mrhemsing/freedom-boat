@@ -1141,6 +1141,10 @@ summary::-webkit-details-marker {
   color: #854f0b;
 }
 
+.boatingAlertRowSoft{
+  align-items: center;
+}
+
 .boatingAlertIcon{
   width: 30px;
   height: 30px;
@@ -1155,6 +1159,14 @@ summary::-webkit-details-marker {
 
 .boatingAlertCopy{
   min-width: 0;
+}
+
+.boatingAlertSoftLine{
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .boatingAlertTopLine{
@@ -1196,6 +1208,14 @@ summary::-webkit-details-marker {
   color: rgba(11, 18, 32, 0.72);
   font-size: 13px;
   line-height: 1.38;
+}
+
+.boatingAlertDetailSoft{
+  min-width: 0;
+  margin-top: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .boatingAlertSource{

@@ -229,20 +229,32 @@ export function BoatingAlertsModule({
 
       {activeCount ? (
         <div className="boatingAlertRows">
-          {items.map((item) => (
-            <div key={item.id} className={`boatingAlertRow boatingAlertRow-${item.tier}`}>
-              <div className="boatingAlertIcon" aria-hidden="true">{iconForAlert(item.icon)}</div>
-              <div className="boatingAlertCopy">
-                <div className="boatingAlertTopLine">
-                  <div className="boatingAlertTitle">{item.title}</div>
-                  <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
+          {items.map((item) => {
+            const isSoftWatch = item.tier === 'watch' && item.window?.confidence === 'soft';
+            return (
+              <div key={item.id} className={`boatingAlertRow boatingAlertRow-${item.tier} ${isSoftWatch ? 'boatingAlertRowSoft' : ''}`.trim()}>
+                <div className="boatingAlertIcon" aria-hidden="true">{iconForAlert(item.icon)}</div>
+                <div className="boatingAlertCopy">
+                  {isSoftWatch ? (
+                    <div className="boatingAlertSoftLine">
+                      <div className="boatingAlertDetail boatingAlertDetailSoft">{item.detail}</div>
+                      <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="boatingAlertTopLine">
+                        <div className="boatingAlertTitle">{item.title}</div>
+                        <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
+                      </div>
+                      <div className="boatingAlertDetail">{item.detail}</div>
+                      {item.window?.confidence === 'sharp' ? <AlertTimeBar window={item.window} daylight={daylight} nowIso={nowIso} /> : null}
+                    </>
+                  )}
+                  {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
                 </div>
-                <div className="boatingAlertDetail">{item.detail}</div>
-                {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
-                {item.window?.confidence === 'sharp' ? <AlertTimeBar window={item.window} daylight={daylight} nowIso={nowIso} /> : null}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : null}
     </div>
