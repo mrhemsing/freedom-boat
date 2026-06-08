@@ -25,6 +25,44 @@ function stripTags(s: string) {
   return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function withPeriod(text: string) {
+  const cleaned = text.trim();
+  return /[.!?]$/.test(cleaned) ? cleaned : `${cleaned}.`;
+}
+
+function cleanNwsAlertBody(description?: string) {
+  if (!description) return undefined;
+
+  const text = description.replace(/\s+/g, ' ').trim();
+  const sections = text
+    .split(/\s*\*\s*(?=[A-Z][A-Z ]+\.\.\.)/g)
+    .map((section) => section.trim())
+    .filter(Boolean)
+    .map((section) => {
+      const match = /^([A-Z][A-Z ]+)\.\.\.(.+)$/i.exec(section);
+      return match
+        ? { label: match[1].trim().toUpperCase(), body: match[2].trim() }
+        : { label: '', body: section.replace(/^\*\s*/, '').trim() };
+    });
+
+  if (!sections.length) return text;
+
+  const preferred = ['WHAT', 'WHEN', 'IMPACTS']
+    .map((label) => sections.find((section) => section.label === label))
+    .filter((section): section is { label: string; body: string } => Boolean(section?.body));
+
+  if (preferred.length) {
+    return preferred
+      .map((section) => withPeriod(section.body))
+      .join(' ');
+  }
+
+  return sections
+    .filter((section) => section.label !== 'WHERE')
+    .map((section) => withPeriod(section.body))
+    .join(' ');
+}
+
 function extractAtomEntries(xml: string): Array<{ title: string; description?: string; link?: string; pubDate?: string; category?: string }> {
   const entries: Array<{ title: string; description?: string; link?: string; pubDate?: string; category?: string }> = [];
   const blocks = xml.split(/<entry>/i).slice(1);
@@ -105,7 +143,7 @@ async function getNwsWarnings(id: LocationId, loc: { lat: number; lon: number },
     .slice(0, 6)
     .map((props: any) => ({
       title: String(props.event || props.headline || 'Marine alert'),
-      body: props.description ? String(props.description).replace(/\s+/g, ' ').trim() : undefined,
+      body: cleanNwsAlertBody(String(props.description || '')),
       link: props['@id'],
       severity: severityOf(String(props.event || props.headline || '')),
       pubDate: props.sent
