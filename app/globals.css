@@ -1056,7 +1056,7 @@ summary::-webkit-details-marker {
   align-items: center;
   gap: var(--alert-icon-gap);
   min-height: 38px;
-  padding: 9px 11px;
+  padding: 12px 11px;
   border: 1px solid rgba(22, 101, 52, 0.16);
   border-left: 3px solid #2fae6b;
   border-radius: 0 8px 8px 0;
@@ -1091,8 +1091,8 @@ summary::-webkit-details-marker {
 
 .marineWarningStrip small{
   color: rgba(20, 83, 45, 0.72);
-  font-size: 12px;
-  font-weight: 750;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.25;
 }
 
