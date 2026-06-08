@@ -99,6 +99,8 @@ const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
+const ALL_MARKERS_OVERVIEW_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM - 1;
+const ALL_MARKERS_OVERVIEW_LAT_OFFSET = -0.18;
 const DEFAULT_HOME_MARINA_OVERVIEW_ZOOM = 11;
 const DEFAULT_HOME_MARINA_WATER_LON_OFFSET = -0.2;
 const DEFAULT_MARINA_FOCUS_ZOOM = 13;
@@ -647,7 +649,11 @@ export default function TripMap({ marinas }: TripMapProps) {
         });
       }
 
-      const loadBounds = initialBounds.isValid() ? initialBounds : bounds;
+      const loadBounds = wantsAllMarkersOverview() && bounds.isValid()
+        ? bounds
+        : initialBounds.isValid()
+          ? initialBounds
+          : bounds;
       initialMapBoundsRef.current = loadBounds;
       applyInitialPlannerMapView(map, loadBounds, false, activeMarinas);
       setMapReadyTick((tick) => tick + 1);
@@ -2243,9 +2249,18 @@ function isMobilePlanner() {
 }
 
 function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, marinas: Marina[]) {
-  const hasLinkedMarina = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('marina');
+  const searchParams = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
+  const hasLinkedMarina = searchParams?.has('marina') ?? false;
+  const showAllMarkersOverview = searchParams?.get('overview') === 'all';
   const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
   const homeMarina = isDesktop && !hasLinkedMarina ? findPlannerHomeMarina(marinas) : null;
+
+  if (showAllMarkersOverview) {
+    fitPlannerMap(map, bounds, isExpanded, ALL_MARKERS_OVERVIEW_ZOOM);
+    const center = map.getCenter();
+    map.setView([center.lat + ALL_MARKERS_OVERVIEW_LAT_OFFSET, center.lng], Math.min(map.getZoom(), ALL_MARKERS_OVERVIEW_ZOOM), { animate: false });
+    return;
+  }
 
   if (homeMarina) {
     map.setView([homeMarina.lat, homeMarina.lon + DEFAULT_HOME_MARINA_WATER_LON_OFFSET], DEFAULT_HOME_MARINA_OVERVIEW_ZOOM, { animate: false });
@@ -2253,6 +2268,10 @@ function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, 
   }
 
   fitPlannerMap(map, bounds, isExpanded);
+}
+
+function wantsAllMarkersOverview() {
+  return typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('overview') === 'all';
 }
 
 function findPlannerHomeMarina(marinas: Marina[]) {
@@ -2266,12 +2285,12 @@ function findPlannerHomeMarina(marinas: Marina[]) {
   );
 }
 
-function fitPlannerMap(map: any, bounds: any, isExpanded: boolean) {
+function fitPlannerMap(map: any, bounds: any, isExpanded: boolean, maxZoom = DEFAULT_PLANNER_OVERVIEW_ZOOM) {
   if (!map || !bounds?.isValid?.()) return;
   const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
   map.fitBounds(bounds.pad(0.16), {
     animate: false,
-    maxZoom: DEFAULT_PLANNER_OVERVIEW_ZOOM,
+    maxZoom,
     paddingTopLeft: [0, 0],
     paddingBottomRight: isDesktop && !isExpanded ? [24, 0] : [0, 0]
   });

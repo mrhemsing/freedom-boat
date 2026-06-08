@@ -25,6 +25,7 @@ export default function GlobalHeader({ active, showDaySlot = false }: GlobalHead
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const homeMarinaName = homeMarinaLabel(homeMarina);
   const homeHref = homeMarinaHref(homeMarina);
+  const mapHref = active === 'home' || active === 'conditions' ? '/plan-my-trip?overview=all' : '/plan-my-trip';
 
   useEffect(() => {
     function updateScrolledState() {
@@ -109,7 +110,7 @@ export default function GlobalHeader({ active, showDaySlot = false }: GlobalHead
             <strong>{homeMarinaName}</strong>
             <span>Home marina</span>
           </a>
-          <a className={active === 'map' ? 'active' : ''} href="/plan-my-trip" aria-current={active === 'map' ? 'page' : undefined}>
+          <a className={active === 'map' ? 'active' : ''} href={mapHref} aria-current={active === 'map' ? 'page' : undefined}>
             <strong>Map</strong>
             <span>Trip planner</span>
           </a>
@@ -121,7 +122,7 @@ export default function GlobalHeader({ active, showDaySlot = false }: GlobalHead
       </details>
 
       <nav className="globalPrimaryNav" aria-label="Primary navigation">
-        <a className={active === 'map' ? 'active' : ''} href="/plan-my-trip" aria-current={active === 'map' ? 'page' : undefined}>Map</a>
+        <a className={active === 'map' ? 'active' : ''} href={mapHref} aria-current={active === 'map' ? 'page' : undefined}>Map</a>
         <a className={active === 'browse' || active === 'area' ? 'active' : ''} href="/browse" aria-current={active === 'browse' || active === 'area' ? 'page' : undefined}>Browse</a>
       </nav>
 
