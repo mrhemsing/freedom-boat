@@ -176,8 +176,7 @@ export function BoatingAlertsModule({
   daylight,
   nowIso,
   warningAuthority = 'Environment Canada',
-  warningStatus = 'available',
-  calmSummary
+  warningStatus = 'available'
 }: {
   items: BoatingAlert[];
   dayLabel: string;
@@ -185,7 +184,6 @@ export function BoatingAlertsModule({
   nowIso?: string | null;
   warningAuthority?: string;
   warningStatus?: 'available' | 'unavailable';
-  calmSummary?: string;
 }) {
   const hasWarning = items.some((item) => item.tier === 'warning');
   const activeCount = items.length;
@@ -200,7 +198,6 @@ export function BoatingAlertsModule({
               {warningStatus === 'unavailable' ? 'Marine warnings unavailable' : 'No active warnings or watches.'}
             </strong>
             <small>{warningAuthority}</small>
-            {warningStatus !== 'unavailable' && calmSummary ? <small>{calmSummary}</small> : null}
           </span>
         </div>
       </div>

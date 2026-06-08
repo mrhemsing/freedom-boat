@@ -86,8 +86,6 @@ export default async function LocationPage({
   const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
   const weeklyOutlook = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5);
-  const todayOutlook = getTodayOutlook(weeklyOutlook, boatingAlertDaylight);
-  const calmSummary = todayOutlook ? calmSummaryForScore(todayOutlook.score) : undefined;
   const marineAuthority = typeof marine?.authority === 'string' ? marine.authority : warningAuthorityForLocation(loc);
   const marineWarningStatus = marine?.status === 'unavailable' ? 'unavailable' : 'available';
   const boatingAlerts = buildBoatingAlerts({
@@ -152,7 +150,6 @@ export default async function LocationPage({
               nowIso={boatingAlertNowIso}
               warningAuthority={marineAuthority}
               warningStatus={marineWarningStatus}
-              calmSummary={calmSummary}
             />
           </Card>
         ) : (
@@ -163,7 +160,6 @@ export default async function LocationPage({
             nowIso={boatingAlertNowIso}
             warningAuthority={marineAuthority}
             warningStatus={marineWarningStatus}
-            calmSummary={calmSummary}
           />
         )}
 
@@ -757,22 +753,6 @@ function getAdvisorySummary(items: Array<{ title?: string; severity?: string }>)
 function warningAuthorityForLocation(loc: { address?: string }) {
   const address = String(loc.address || '').toUpperCase();
   return /\bBC\b|\bCANADA\b/.test(address) ? 'Environment Canada' : 'National Weather Service';
-}
-
-function getTodayOutlook(week: DailyOutlook[], daylight?: DaylightWindow) {
-  const day = extractLocalDay(daylight?.start);
-  if (day) {
-    const match = week.find((item) => item.day === day);
-    if (match) return match;
-  }
-  return week[0] ?? null;
-}
-
-function calmSummaryForScore(score: number) {
-  const band = scoreBand(score);
-  if (band.tone === 'excellent' || band.tone === 'good') return 'Good day to get out.';
-  if (band.tone === 'fair') return 'Fair conditions, check the forecast.';
-  return 'Marginal conditions today.';
 }
 
 function getSlackTideSummary({
