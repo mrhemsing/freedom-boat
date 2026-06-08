@@ -1076,9 +1076,15 @@ summary::-webkit-details-marker {
 
 .marineWarningStrip span:last-child{
   display: grid;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
   line-height: 1.22;
+}
+
+.marineWarningStatusLine{
+  display: block;
+  margin: 0 0 4px;
+  font: inherit;
 }
 
 .marineWarningStrip small{
