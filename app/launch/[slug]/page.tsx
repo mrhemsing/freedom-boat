@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!launch) return {};
   const snapshot = await getLaunchSeoSnapshot(launch);
   return {
-    title: `${launch.name} Boat Launch & Tides | Fairtide`,
+    title: `${launch.name} Boat Launch & Tides | Fair Tide`,
     description: snapshot.summary,
     alternates: {
       canonical: canonicalUrl(`/launch/${launch.slug}`)
@@ -34,11 +34,11 @@ export default async function LaunchSeoPage({
   const launch = getLaunchBySlug(params.slug);
   if (!launch) return notFound();
 
+  const isPlannerEmbed = searchParams?.embed === 'planner';
   const snapshot = await getLaunchSeoSnapshot(launch);
   const area = areaHubForPlace(launch);
-  const nearby = nearbyMarinas(launch.lat, launch.lon);
+  const nearby = isPlannerEmbed ? [] : nearbyMarinas(launch.lat, launch.lon);
   const minTide = launch.minTide ?? (launch.type.toLowerCase().includes('hand') ? 0.8 : 1.2);
-  const isPlannerEmbed = searchParams?.embed === 'planner';
 
   return (
     <main className="container seoPage">
@@ -91,15 +91,19 @@ export default async function LaunchSeoPage({
           <div><dt>Fee</dt><dd>{launch.fee ?? 'Verify locally'}</dd></div>
         </dl>
 
-        <h2>Nearby Destinations</h2>
-        <div className="seoLinkGrid">
-          {nearby.map((marina) => (
-            <a key={marina.slug} href={marinaPath(marina)}>
-              <strong>{marina.name}</strong>
-              <span>{marina.area}</span>
-            </a>
-          ))}
-        </div>
+        {!isPlannerEmbed ? (
+          <>
+            <h2>Nearby Destinations</h2>
+            <div className="seoLinkGrid">
+              {nearby.map((marina) => (
+                <a key={marina.slug} href={marinaPath(marina)}>
+                  <strong>{marina.name}</strong>
+                  <span>{marina.area}</span>
+                </a>
+              ))}
+            </div>
+          </>
+        ) : null}
       </section>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(launchJsonLd(launch)) }} />

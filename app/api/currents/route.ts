@@ -104,7 +104,7 @@ async function fetchNoaaEvents(pass: CurrentPass, from: Date, to: Date) {
   url.searchParams.set('end_date', formatNoaaDate(to));
   url.searchParams.set('time_zone', 'gmt');
   url.searchParams.set('units', 'english');
-  url.searchParams.set('application', 'Fairtide');
+  url.searchParams.set('application', 'Fair Tide');
   url.searchParams.set('format', 'json');
   if (pass.bin != null) url.searchParams.set('bin', String(pass.bin));
 

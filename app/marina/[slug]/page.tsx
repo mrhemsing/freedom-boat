@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getMarinaSeoSnapshot, scorePhrase } from '../../../lib/seo-live';
+import { scoreBand } from '../../../lib/outlook';
 import { marinaJsonLd } from '../../../lib/seo-schema';
 import { areaHubForPlace, canonicalUrl, getMarinaBySlug, marinaPath, SEO_MARINAS } from '../../../lib/seo-slugs';
 import { MARINA_ACCESS_INFO } from '../../../lib/marinas';
@@ -18,13 +19,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (marina.locationId) {
     const path = marinaPath(marina);
     return {
-      title: `FAIRTIDE Boat Planner - ${marina.area}`,
+      title: `Fair Tide Boat Planner - ${marina.area}`,
       description: `Hyper-local boating conditions for ${marina.area}.`,
       alternates: {
         canonical: canonicalUrl(path)
       },
       openGraph: {
-        title: `FAIRTIDE Boat Planner - ${marina.area}`,
+        title: `Fair Tide Boat Planner - ${marina.area}`,
         description: `Hyper-local boating conditions for ${marina.area}.`,
         url: canonicalUrl(path),
         type: 'website'
@@ -34,13 +35,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const snapshot = await getMarinaSeoSnapshot(marina);
   const title = marinaPageTitle(marina);
   return {
-    title: `${title} | Fairtide`,
+    title: `${title} | Fair Tide`,
     description: snapshot.summary,
     alternates: {
       canonical: canonicalUrl(`/marina/${marina.slug}`)
     },
     openGraph: {
-      title: `${title} | Fairtide`,
+      title: `${title} | Fair Tide`,
       description: snapshot.summary,
       url: canonicalUrl(`/marina/${marina.slug}`),
       type: 'website'
@@ -53,20 +54,22 @@ export default async function MarinaSeoPage({
   searchParams
 }: {
   params: { slug: string };
-  searchParams?: { embed?: string };
+  searchParams?: { embed?: string; plannerScore?: string; plannerVessel?: string };
 }) {
   const marina = getMarinaBySlug(params.slug);
   if (!marina) return notFound();
   if (marina.locationId) redirect(marinaPath(marina));
 
+  const isPlannerEmbed = searchParams?.embed === 'planner';
   const [snapshot, nearby] = await Promise.all([
     getMarinaSeoSnapshot(marina),
-    Promise.resolve(nearbyMarinas(marina.slug))
+    Promise.resolve(isPlannerEmbed ? [] : nearbyMarinas(marina.slug))
   ]);
   const access = marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
   const area = areaHubForPlace(marina);
   const title = marinaPageTitle(marina);
-  const isPlannerEmbed = searchParams?.embed === 'planner';
+  const plannerScore = isPlannerEmbed ? parsePlannerScore(searchParams?.plannerScore) : null;
+  const displayedScore = plannerScore ?? snapshot.score;
 
   return (
     <main className="container seoPage">
@@ -94,8 +97,8 @@ export default async function MarinaSeoPage({
       <section className="seoGrid" aria-label={`${marina.name} current boating snapshot`}>
         <div className="seoCard">
           <span>Boating score</span>
-          <strong>{snapshot.score ?? '--'}</strong>
-          <p>{snapshot.score != null ? scorePhrase(snapshot.score) : 'Forecast unavailable right now'}</p>
+          <strong>{displayedScore ?? '--'}</strong>
+          <p>{scoreCardText(displayedScore, plannerScore != null, searchParams?.plannerVessel)}</p>
         </div>
         <div className="seoCard">
           <span>Wind forecast</span>
@@ -127,15 +130,19 @@ export default async function MarinaSeoPage({
           ) : null}
         </dl>
 
-        <h2>Destinations Near {marina.name}</h2>
-        <div className="seoLinkGrid">
-          {nearby.map((near) => (
-            <a key={near.slug} href={marinaPath(near)}>
-              <strong>{near.name}</strong>
-              <span>{near.area}</span>
-            </a>
-          ))}
-        </div>
+        {!isPlannerEmbed ? (
+          <>
+            <h2>Destinations Near {marina.name}</h2>
+            <div className="seoLinkGrid">
+              {nearby.map((near) => (
+                <a key={near.slug} href={marinaPath(near)}>
+                  <strong>{near.name}</strong>
+                  <span>{near.area}</span>
+                </a>
+              ))}
+            </div>
+          </>
+        ) : null}
       </section>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(marinaJsonLd(marina)) }} />
@@ -163,6 +170,19 @@ function marinaPageTitle(marina: { name: string; waterType?: 'tidal' | 'lake' | 
   if (marina.waterType === 'lake') return `${marina.name} Boating Conditions`;
   if (marina.waterType === 'river') return `${marina.name} River Boating Conditions`;
   return `${marina.name} Tides & Boating Conditions`;
+}
+
+function parsePlannerScore(value?: string) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) return null;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function scoreCardText(score: number | null, isPlannerScore: boolean, vessel?: string) {
+  if (score == null) return 'Forecast unavailable right now';
+  if (!isPlannerScore) return scorePhrase(score);
+  const band = scoreBand(score);
+  return `${band.label} planner score${vessel ? ` for ${vessel.toLowerCase()}` : ''}`;
 }
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {

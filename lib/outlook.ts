@@ -29,6 +29,26 @@ export type DailyOutlook = {
   maxTempC?: number;
 };
 
+export type ScoreBand = {
+  label: 'Poor' | 'Fair' | 'Good' | 'Excellent';
+  min: number;
+  max: number;
+  color: string;
+  tone: 'poor' | 'fair' | 'good' | 'excellent';
+};
+
+export const SCORE_BANDS: ScoreBand[] = [
+  { label: 'Poor', min: 0, max: 40, color: '#d95c58', tone: 'poor' },
+  { label: 'Fair', min: 41, max: 60, color: '#e6a13c', tone: 'fair' },
+  { label: 'Good', min: 61, max: 80, color: '#2fae6b', tone: 'good' },
+  { label: 'Excellent', min: 81, max: 100, color: '#0e9f9a', tone: 'excellent' }
+];
+
+export function scoreBand(score: number): ScoreBand {
+  const normalized = Math.max(0, Math.min(100, Math.round(score)));
+  return SCORE_BANDS.find((band) => normalized >= band.min && normalized <= band.max) ?? SCORE_BANDS[0];
+}
+
 function extractHour(isoLike?: string) {
   const s = String(isoLike || '');
   const m = s.match(/T(\d{2}):/);

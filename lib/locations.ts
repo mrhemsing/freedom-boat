@@ -61,6 +61,17 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
       'Burrard Inlet'
     ]
   },
+  'richmond': {
+    id: 'richmond',
+    name: 'Richmond',
+    address: '8031 River Rd, Richmond, BC',
+    lat: 49.188,
+    lon: -123.126,
+    marineAreas: [
+      'Strait of Georgia',
+      'Burrard Inlet'
+    ]
+  },
   'bellingham': {
     id: 'bellingham',
     name: 'Bellingham',

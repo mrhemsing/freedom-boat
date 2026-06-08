@@ -56,13 +56,15 @@ a:hover {
 }
 
 .globalHeader {
+  position: relative;
+  z-index: 6000;
   width: 100%;
   display: grid;
-  grid-template-columns: auto auto minmax(180px, 1fr) minmax(0, auto) auto;
+  grid-template-columns: auto auto minmax(180px, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   min-height: 58px;
-  padding: 6px 10px;
+  padding: 12px 14px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
   background: rgba(4, 18, 31, 0.72);
@@ -71,20 +73,24 @@ a:hover {
   color: #fff;
 }
 
+.globalHeader.hasDaySlot {
+  grid-template-columns: auto auto minmax(180px, 1fr) minmax(0, auto) auto;
+}
+
 .container > .globalHeader {
   position: relative;
   left: calc(50% + 1px - var(--scrollbar-half-width, 0px));
   width: calc(100vw - var(--scrollbar-width, 0px) - 36px);
   margin-left: 0;
   margin-right: 0;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
   transform: translateX(-50%);
 }
 
 .globalBrand {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
   min-width: 0;
   text-decoration: none;
 }
@@ -106,7 +112,7 @@ a:hover {
 }
 
 .globalBrand .brandTitle {
-  gap: 0;
+  gap: 2px;
   line-height: 1;
 }
 
@@ -118,8 +124,8 @@ a:hover {
 .globalPrimaryNav {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px;
+  gap: 10px;
+  padding: 4px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
 }
@@ -129,7 +135,7 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 11px;
+  padding: 7px 14px;
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
@@ -144,13 +150,16 @@ a:hover {
 
 .globalSearch {
   position: relative;
+  z-index: 1;
+  justify-self: start;
+  width: min(100%, 360px);
   min-width: 0;
 }
 
 .globalSearchBox {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   min-width: 0;
   min-height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -474,12 +483,12 @@ a:hover {
 
 .sourceLegend {
   width: 100%;
-  padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(4, 18, 31, 0.58);
+  padding: 14px 0;
+  border: 0;
+  background: transparent;
   color: rgba(255, 255, 255, 0.92);
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
+  border-radius: 0;
+  backdrop-filter: none;
 }
 
 .sourceLegendTitle {
@@ -581,7 +590,7 @@ a:hover {
 
 .sunBadge {
   align-items: stretch;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 8px;
 }
 
@@ -664,6 +673,10 @@ a:hover {
   background: rgba(255, 255, 255, 0.08);
   font-size: 12px;
   color: rgba(255, 255, 255, 0.85);
+}
+
+.badge.sunBadge {
+  border-radius: 8px;
 }
 
 .seg {
@@ -846,6 +859,53 @@ a:hover {
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.marinaJumpOption {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.marinaHomeButton {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: transparent;
+  color: rgba(209, 213, 219, 0.62);
+  cursor: pointer;
+}
+
+.marinaHomeButton:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(229, 231, 235, 0.82);
+}
+
+.marinaHomeButton.active {
+  background: transparent;
+  color: #d8f6ff;
+}
+
+.marinaHomeIcon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.marinaHomeIconFilled {
+  fill: currentColor;
+  stroke: none;
 }
 
 .marinaJumpPanel a:hover,
@@ -1050,10 +1110,30 @@ summary::-webkit-details-marker {
   margin-top: 8px;
   padding: 6px 10px;
   border-radius: 4px; /* square-ish */
-  border: 1px solid rgba(56, 189, 248, 0.55);
-  background: rgba(255,255,255,0.82);
+  border: 1px solid currentColor;
+  background: transparent;
   font-weight: 950;
   letter-spacing: 0.2px;
+}
+
+.dayScorePillLabel {
+  display: none;
+}
+
+.dayScorePill-excellent {
+  color: #0f766e;
+}
+
+.dayScorePill-good {
+  color: #166534;
+}
+
+.dayScorePill-fair {
+  color: #92400e;
+}
+
+.dayScorePill-poor {
+  color: #991b1b;
 }
 
 .dayTitleRow{
@@ -1403,13 +1483,17 @@ hr.soft {
 @media (max-width: 720px) {
   .globalHeader {
     position: sticky;
-    top: 6px;
+    top: 4px;
     z-index: 3800;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     min-height: 0;
-    padding: 6px 8px;
+    padding: 16px;
     transition: padding 160ms ease, gap 160ms ease;
+  }
+
+  .globalHeader.hasDaySlot {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .container > .globalHeader {
@@ -1430,7 +1514,7 @@ hr.soft {
   }
 
   .globalBrand .brandTitle {
-    gap: 2px;
+    gap: 3px;
     line-height: 1;
   }
 
@@ -1573,8 +1657,8 @@ hr.soft {
   }
 
   .globalHeader.scrolled {
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
   .globalHeader.scrolled .globalPrimaryNav {
@@ -1629,7 +1713,7 @@ hr.soft {
   .tidesCard{ order: 50; }
 
   .container{
-    padding-top: 8px;
+    padding-top: 4px;
     padding-bottom: calc(42px + env(safe-area-inset-bottom));
   }
 
@@ -1753,6 +1837,10 @@ hr.soft {
     min-width: 0;
   }
 
+  .marinaHomeButton:not(.active) {
+    color: rgba(229, 231, 235, 0.42);
+  }
+
   .mobileSunBadgeWrap {
     display: flex;
     flex: 0 0 auto;
@@ -1866,6 +1954,10 @@ hr.soft {
     margin-bottom: 6px;
   }
 
+  .dayScorePillLabel {
+    display: inline;
+  }
+
   .dayTempLine{
     display: none;
   }
@@ -1911,10 +2003,6 @@ hr.soft {
   }
 
   .quickLookCard .quickItem{
-    padding: 12px;
-  }
-
-  .sourceLegend {
     padding: 12px;
   }
 
@@ -2389,8 +2477,8 @@ hr.soft {
 }
 
 .tripFooter .sourceLegend {
-  background: #12303a;
-  border-color: rgba(18, 48, 58, 0.10);
+  background: transparent;
+  border-color: transparent;
 }
 
 @media (max-width: 1100px) {
@@ -2819,6 +2907,10 @@ hr.soft {
   pointer-events: none;
 }
 
+.plannerMapDayOverlay {
+  display: none;
+}
+
 .plannerChip {
   pointer-events: auto;
   display: inline-flex;
@@ -2900,6 +2992,10 @@ hr.soft {
   background: #2fae6b;
 }
 
+.plannerLegend .scoreExcellent {
+  background: #0e9f9a;
+}
+
 .plannerLegend .scoreFair {
   background: #e6a13c;
 }
@@ -2947,96 +3043,117 @@ hr.soft {
 .plannerDay {
   position: relative;
   flex: 0 0 auto;
-  min-width: 94px;
-  min-height: 64px;
+  width: 94px;
+  min-height: 86px;
   display: grid;
-  grid-template-rows: auto auto auto;
-  align-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  border-radius: 12px;
-  padding: 7px 9px 8px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 6px 16px rgba(2, 12, 27, 0.12);
-  color: #0c3a4c;
+  grid-template-rows: auto auto auto auto;
+  align-content: start;
+  gap: 4px;
+  border: 1px solid rgba(12, 16, 24, 0.06);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fbfaf4;
+  box-shadow: 0 8px 18px rgba(2, 12, 27, 0.10);
+  color: #172334;
   cursor: pointer;
   font: inherit;
   text-align: left;
 }
 
 .plannerDay.active {
-  border-color: rgba(20, 184, 166, 0.82);
-  background: #fff;
-  color: #0c3a4c;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.34), 0 12px 26px rgba(2, 12, 27, 0.22);
+  border-color: rgba(45, 122, 183, 0.34);
+  background: #fffdf6;
+  color: #172334;
+  box-shadow: inset 3px 0 0 #2d7ab7, 0 12px 24px rgba(2, 12, 27, 0.18);
 }
 
-.plannerDay.active::before {
-  content: "";
-  position: absolute;
-  top: 5px;
-  right: 7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--day-score, var(--planner-teal));
-}
-
+.plannerDayTopline,
 .plannerDayLabel,
 .plannerDayDate,
-.plannerDayScore {
+.plannerDayTemperature,
+.plannerDayScoreBar,
+.plannerDayWind {
   display: block;
 }
 
+.plannerDayTopline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .plannerDayLabel {
-  font-size: 11px;
+  font-size: 9px;
   line-height: 1.05;
   font-weight: 900;
-  color: #4d6771;
+  color: #213344;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .plannerDay.active .plannerDayLabel {
-  color: #0f5e67;
+  color: #24465f;
 }
 
 .plannerDay.active .plannerDayDate {
-  color: #0c3a4c;
+  color: #172334;
 }
 
-.plannerDay.active .plannerDayScore span {
-  color: #375d67;
+.plannerDayIcon {
+  margin-top: 1px;
+  color: #6b7780;
+  font-size: 13px;
+  line-height: 1;
 }
 
 .plannerDayDate {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.1;
   font-weight: 900;
-  color: #0c3a4c;
+  color: #172334;
 }
 
-.plannerDayScore {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
-  margin-top: 5px;
-  font-style: normal;
-  white-space: nowrap;
-}
-
-.plannerDayScore strong {
+.plannerDayTemperature {
   color: var(--day-score, var(--planner-teal));
-  font-size: 17px;
-  line-height: 1;
-  font-weight: 900;
+  font-size: 25px;
+  line-height: 0.95;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
-.plannerDayScore span {
-  color: #607780;
+.plannerDayScoreBar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 0;
+  background: rgba(23, 35, 52, 0.15);
+}
+
+.plannerDayScoreBar span {
+  display: block;
+  width: var(--day-score-width, 50%);
+  height: 100%;
+  background: var(--day-score, var(--planner-teal));
+}
+
+.plannerDayWind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1px;
+  color: #273746;
+  font-style: normal;
   font-size: 10px;
   line-height: 1;
   font-weight: 850;
   text-transform: uppercase;
+}
+
+.plannerDayWind strong {
+  font: inherit;
 }
 
 .plannerCluster {
@@ -3835,6 +3952,13 @@ hr.soft {
   gap: 12px;
 }
 
+.plannerDetailSummary {
+  display: block;
+  border-radius: 16px;
+  color: inherit;
+  text-decoration: none;
+}
+
 .plannerDetail h1 {
   margin: 0;
   color: var(--planner-navy);
@@ -4143,6 +4267,7 @@ hr.soft {
 .plannerPlanToggle.primary {
   width: 100%;
   min-height: 52px;
+  gap: 10px;
   border-color: var(--planner-teal);
   background: var(--planner-teal);
   color: #fff;
@@ -4237,56 +4362,6 @@ hr.soft {
   box-shadow: 0 -10px 24px rgba(12, 58, 76, 0.10);
 }
 
-.plannerConditionsOverlay {
-  position: fixed;
-  z-index: 10000;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-}
-
-.plannerConditionsBackdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(8, 28, 40, 0.54);
-}
-
-.plannerConditionsModal {
-  position: relative;
-  width: min(1080px, 100%);
-  height: min(760px, calc(100dvh - 36px));
-  overflow: hidden;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 24px 70px rgba(8, 28, 40, 0.34);
-}
-
-.plannerConditionsClose {
-  position: absolute;
-  z-index: 2;
-  top: 14px;
-  right: 34px;
-  min-height: 36px;
-  border: 0;
-  border-radius: 999px;
-  padding: 8px 13px;
-  background: rgba(9, 30, 44, 0.86);
-  color: #fff;
-  cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 900;
-  box-shadow: 0 10px 24px rgba(8, 28, 40, 0.24);
-}
-
-.plannerConditionsFrame {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  background: #12303a;
-}
-
 .plannerLaunchStatus {
   display: grid;
   gap: 2px;
@@ -4345,7 +4420,8 @@ hr.soft {
 .plannerDepartTime {
   grid-column: 1;
   display: grid;
-  grid-template-columns: minmax(54px, 1fr) minmax(54px, 1fr) 52px;
+  grid-template-columns: auto minmax(82px, 1fr) minmax(82px, auto);
+  align-items: center;
   gap: 8px;
   border-radius: 13px;
   padding: 9px 10px;
@@ -4358,9 +4434,34 @@ hr.soft {
   align-content: start;
 }
 
-.plannerDepartTime label {
-  padding: 0;
-  background: transparent;
+.plannerDepartTimeLabel {
+  align-self: center;
+}
+
+.plannerDepartTimeFields {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 9px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.plannerTripControls .plannerDepartTimeFields select {
+  width: 3ch;
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.plannerDepartSeparator {
+  color: var(--planner-navy) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+  line-height: 1;
+  text-transform: none !important;
 }
 
 .plannerTripControls input,
@@ -4398,17 +4499,23 @@ hr.soft {
 
 .plannerDepartMeridiem {
   display: grid;
-  gap: 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: center;
+  gap: 2px;
+  border-radius: 9px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.10);
 }
 
 .plannerDepartMeridiem button {
-  min-height: 30px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.72);
+  min-height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
   color: var(--planner-navy);
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   cursor: pointer;
 }
@@ -4418,6 +4525,40 @@ hr.soft {
   border-color: #075fb2;
   box-shadow: 0 0 0 2px rgba(7, 95, 178, 0.16);
   color: #ffffff;
+}
+
+.plannerTripScoreIndicator {
+  display: grid;
+  gap: 3px;
+  margin-top: 13px;
+  border-top: 1px solid rgba(12, 58, 76, 0.10);
+  padding-top: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.plannerTripControls .plannerTripScoreIndicator span {
+  color: var(--planner-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.plannerTripScoreIndicator strong {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid var(--trip-score-color);
+  border-radius: 4px;
+  padding: 5px 7px;
+  color: var(--trip-score-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .plannerRouteActions {
@@ -4669,6 +4810,17 @@ hr.soft {
     border-radius: inherit;
   }
 
+  .plannerMapDayOverlay {
+    position: absolute;
+    z-index: 640;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: flex-end;
+    max-width: calc(100% - 120px);
+    pointer-events: none;
+  }
+
   .plannerTimebar {
     position: relative;
     z-index: 1;
@@ -4682,34 +4834,49 @@ hr.soft {
     padding-bottom: 0;
   }
 
-  .tripPlannerDaySlot .plannerTimebar {
+  .plannerMapDayOverlay .plannerTimebar {
     overflow-x: auto;
+    max-width: 100%;
+    gap: 6px;
+    pointer-events: auto;
   }
 
-  .tripPlannerDaySlot .plannerDay {
-    min-width: 96px;
-    border-radius: 10px;
-    padding: 6px 8px 7px;
-    color: #0c3a4c;
-    box-shadow: 0 8px 18px rgba(2, 12, 27, 0.18);
+  .plannerMapDayOverlay .plannerDay {
+    width: 78px;
+    min-height: 72px;
+    border-radius: 8px;
+    padding: 6px 8px;
+    color: #172334;
+    box-shadow: 0 8px 18px rgba(2, 12, 27, 0.16);
   }
 
-  .tripPlannerDaySlot .plannerDayLabel,
-  .tripPlannerDaySlot .plannerDayScore span {
+  .plannerMapDayOverlay .plannerDay.active,
+  .plannerMapDayOverlay .plannerDay.active .plannerDayDate {
+    color: #172334;
+  }
+
+  .plannerMapDayOverlay .plannerDayTopline {
+    gap: 5px;
+  }
+
+  .plannerMapDayOverlay .plannerDayLabel {
+    font-size: 8px;
+  }
+
+  .plannerMapDayOverlay .plannerDayDate {
     font-size: 10px;
   }
 
-  .tripPlannerDaySlot .plannerDayDate {
-    font-size: 12px;
+  .plannerMapDayOverlay .plannerDayIcon {
+    font-size: 11px;
   }
 
-  .tripPlannerDaySlot .plannerDay.active,
-  .tripPlannerDaySlot .plannerDay.active .plannerDayDate {
-    color: #0c3a4c;
+  .plannerMapDayOverlay .plannerDayTemperature {
+    font-size: 21px;
   }
 
-  .tripPlannerDaySlot .plannerDayScore strong {
-    font-size: 16px;
+  .plannerMapDayOverlay .plannerDayWind {
+    font-size: 9px;
   }
 
   .plannerWrapExpanded .plannerTimebar {
@@ -5152,6 +5319,7 @@ hr.soft {
 
   .plannerSheet-collapsed {
     transform: translateY(calc(100% - 62px));
+    cursor: pointer;
   }
 
   .plannerSheetInner {
@@ -5203,43 +5371,44 @@ hr.soft {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 18px;
-    padding: 18px 16px 22px;
+    padding: 58px 16px 22px;
     background: #fff;
     box-shadow: 0 18px 46px rgba(9, 28, 40, 0.28);
   }
 
   .plannerMobileModalClose {
-    position: sticky;
-    top: 0;
+    position: absolute;
+    top: 12px;
+    right: 12px;
     z-index: 2;
-    float: right;
-    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
     border: 0;
     border-radius: 999px;
-    padding: 8px 12px;
+    padding: 0;
     background: var(--planner-navy);
     color: #fff;
     cursor: pointer;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 900;
+    box-shadow: 0 10px 22px rgba(9, 28, 40, 0.24);
+  }
+
+  .plannerMobileModalClose svg {
+    width: 21px;
+    height: 21px;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
   }
 
   .plannerMobileModal .plannerDetail {
-    clear: both;
+    clear: none;
   }
 
-  .plannerConditionsOverlay {
-    padding: 10px;
-  }
-
-  .plannerConditionsModal {
-    height: calc(100dvh - 20px);
-    border-radius: 16px;
-  }
-
-  .plannerConditionsClose {
-    right: 24px;
+  .plannerMobileModal .plannerDetailClose {
+    display: none;
   }
 
   .plannerName {
@@ -5487,6 +5656,17 @@ hr.soft {
 
   .seoHero p {
     font-size: 16px;
+  }
+
+  .browseFilters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .browseFilters .seoButton {
+    width: 100%;
+    min-width: 0;
   }
 
   .browseDirectory .seoLinkGrid {

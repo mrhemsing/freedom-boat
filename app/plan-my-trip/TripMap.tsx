@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   MARINA_ACCESS_INFO,
   PUBLIC_LAUNCHES,
@@ -9,10 +8,12 @@ import {
   type Marina
 } from '../../lib/marinas';
 import { snapMarinaList } from '../../lib/marina-snap';
-import { buildWeeklyOutlook, type DailyOutlook } from '../../lib/outlook';
+import { SCORE_BANDS, buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../lib/outlook';
 import { degToCardinal } from '../../lib/format';
-import { marinaPath, seoSlugForLaunch, seoSlugForMarina } from '../../lib/seo-slugs';
+import { seoSlugForMarina } from '../../lib/seo-slugs';
 import { CURRENT_PASSES, type CurrentEvent, type CurrentPassForecast } from '../../lib/current-passes';
+import { LOCATIONS } from '../../lib/locations';
+import { HOME_MARINA_STORAGE_KEY, normalizeHomeMarinaId } from '../../lib/home-marina';
 
 type TripMapProps = {
   marinas: Marina[];
@@ -24,7 +25,6 @@ type PlannerResult =
   | { kind: 'launch'; launch: BoatLaunch };
 type PlannerOutlooks = Record<string, DailyOutlook[]>;
 type CurrentForecasts = Record<string, CurrentPassForecast>;
-type ConditionsPopoverState = { title: string; href: string } | null;
 type RouteStopNode = { kind: 'stop'; marinaId: number };
 type RouteWaypointNode = { kind: 'waypoint'; id: string; lat: number; lon: number };
 type RouteNode = RouteStopNode | RouteWaypointNode;
@@ -99,6 +99,7 @@ const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
+const DEFAULT_HOME_MARINA_OVERVIEW_ZOOM = 11;
 const DEFAULT_MARINA_FOCUS_ZOOM = 13;
 const LINKED_MARINA_FOCUS_ZOOM = DEFAULT_MARINA_FOCUS_ZOOM + 4;
 const MOBILE_LINKED_MARINA_FOCUS_ZOOM = 10;
@@ -112,6 +113,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const listScrollTopRef = useRef(0);
   const restoreListScrollRef = useRef(false);
   const showSheetDetailRef = useRef(false);
+  const grabDragStartYRef = useRef<number | null>(null);
   const pendingListScrollMarinaIdRef = useRef<number | null>(null);
   const pendingListScrollFrameRef = useRef<number | null>(null);
   const initialInteractiveMapHandledRef = useRef(false);
@@ -135,8 +137,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [mobileMarkerModal, setMobileMarkerModal] = useState(false);
   const [isTimebarPinned, setIsTimebarPinned] = useState(false);
   const [timebarHeight, setTimebarHeight] = useState(0);
-  const [dayTabsSlot, setDayTabsSlot] = useState<HTMLElement | null>(null);
-  const [useHeaderDayTabs, setUseHeaderDayTabs] = useState(false);
+  const [useMapDayOverlay, setUseMapDayOverlay] = useState(false);
   const [tripMode, setTripMode] = useState(false);
   const [showLaunches, setShowLaunches] = useState(false);
   const [showFreedomOnly, setShowFreedomOnly] = useState(false);
@@ -148,7 +149,6 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [speedKt, setSpeedKt] = useState(DEFAULT_SPEED_KT);
   const [shareText, setShareText] = useState('');
   const [shareMessage, setShareMessage] = useState('');
-  const [conditionsPopover, setConditionsPopover] = useState<ConditionsPopoverState>(null);
   const [planToast, setPlanToast] = useState<PlanToast>(null);
   const [dayIndex, setDayIndex] = useState(0);
   const [mapReadyTick, setMapReadyTick] = useState(0);
@@ -241,11 +241,10 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   useEffect(() => {
     const media = window.matchMedia('(min-width: 900px)');
-    setDayTabsSlot(document.getElementById('planner-day-tabs-slot'));
-    setUseHeaderDayTabs(media.matches);
+    setUseMapDayOverlay(media.matches);
 
     function handleChange(event: MediaQueryListEvent) {
-      setUseHeaderDayTabs(event.matches);
+      setUseMapDayOverlay(event.matches);
     }
 
     media.addEventListener('change', handleChange);
@@ -260,22 +259,6 @@ export default function TripMap({ marinas }: TripMapProps) {
       document.body.style.overflow = originalOverflow;
     };
   }, [mobileMarkerModal]);
-
-  useEffect(() => {
-    if (!conditionsPopover) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setConditionsPopover(null);
-    }
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [conditionsPopover]);
 
   useEffect(() => {
     const sheet = sheetInnerRef.current;
@@ -300,6 +283,14 @@ export default function TripMap({ marinas }: TripMapProps) {
 
     return () => window.cancelAnimationFrame(frame);
   }, [routeNodes, selectedId, selectedLaunchId, showSheetDetail, tripMode]);
+
+  useEffect(() => {
+    if (!tripMode) return;
+    const frame = window.requestAnimationFrame(() => {
+      sheetInnerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [tripMode]);
 
   useEffect(() => {
     if (!mobileMarkerModal) return;
@@ -336,7 +327,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   }, [isFullscreen]);
 
   useEffect(() => {
-    const locationIds = [...new Set(activeMarinas.map((marina) => marina.locationId).filter(Boolean))] as string[];
+    const locationIds = [...new Set(activeMarinas.map(weatherLocationIdFor).filter(Boolean))] as string[];
     if (!locationIds.length) {
       setWeeklyOutlooks({});
       return;
@@ -657,13 +648,13 @@ export default function TripMap({ marinas }: TripMapProps) {
 
       const loadBounds = initialBounds.isValid() ? initialBounds : bounds;
       initialMapBoundsRef.current = loadBounds;
-      fitPlannerMap(map, loadBounds, false);
+      applyInitialPlannerMapView(map, loadBounds, false, activeMarinas);
       setMapReadyTick((tick) => tick + 1);
 
       setTimeout(() => {
         if (!disposed && leafletMapRef.current === map) {
           map.invalidateSize();
-          fitPlannerMap(map, loadBounds, false);
+          applyInitialPlannerMapView(map, loadBounds, false, activeMarinas);
         }
       }, 0);
 
@@ -720,10 +711,10 @@ export default function TripMap({ marinas }: TripMapProps) {
       const map = leafletMapRef.current;
       if (!map) return;
       map.invalidateSize?.();
-      fitPlannerMap(map, initialMapBoundsRef.current, isFullscreen);
+      applyInitialPlannerMapView(map, initialMapBoundsRef.current, isFullscreen, activeMarinas);
     }, 260);
     return () => window.clearTimeout(timer);
-  }, [isFullscreen]);
+  }, [activeMarinas, isFullscreen]);
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -1015,6 +1006,30 @@ export default function TripMap({ marinas }: TripMapProps) {
     setShareMessage('');
   }
 
+  function toggleSheetFromGrab() {
+    if (isMobilePlanner()) {
+      setSheetState((state) => (state === 'collapsed' ? 'full' : 'collapsed'));
+      return;
+    }
+    setSheetState((state) => nextSheetState(state));
+  }
+
+  function handleGrabPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (!isMobilePlanner() || sheetState === 'collapsed') return;
+    grabDragStartYRef.current = event.clientY;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function handleGrabPointerUp(event: ReactPointerEvent<HTMLButtonElement>) {
+    const startY = grabDragStartYRef.current;
+    grabDragStartYRef.current = null;
+    if (startY == null || !isMobilePlanner()) return;
+    if (event.clientY - startY > 24) {
+      event.stopPropagation();
+      setSheetState('collapsed');
+    }
+  }
+
   function reorderTripStop(fromIndex: number, toIndex: number) {
     setRouteNodes((nodes) => reorderStopNodes(nodes, fromIndex, toIndex));
     setTripMode(true);
@@ -1029,7 +1044,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     setShareMessage('');
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'FAIRTIDE float plan', text, url });
+        await navigator.share({ title: 'Fair Tide float plan', text, url });
         setShareMessage('Share sheet opened.');
         return;
       }
@@ -1082,7 +1097,10 @@ export default function TripMap({ marinas }: TripMapProps) {
         {DAYS.map((label, index) => {
           const score = timebarScore(index);
           const wind = timebarWind(index);
-          const date = dayChipDate(index, timebarOutlook(index));
+          const outlook = timebarOutlook(index);
+          const date = dayChipDate(index, outlook);
+          const temperature = dayTemperatureLabel(outlook);
+          const condition = dayConditionIcon(outlook, score);
           return (
             <button
               key={label}
@@ -1090,29 +1108,45 @@ export default function TripMap({ marinas }: TripMapProps) {
               className={`plannerDay ${dayIndex === index ? 'active' : ''}`}
               onClick={() => setDayIndex(index)}
               aria-pressed={dayIndex === index}
-              style={{ '--day-score': scoreColor(score) } as CSSProperties}
+              style={{
+                '--day-score': scoreColor(score),
+                '--day-score-width': `${Math.max(8, Math.min(100, score))}%`
+              } as CSSProperties}
             >
-              <span className="plannerDayLabel">{date.isToday ? 'Today' : date.weekday}</span>
-              <b className="plannerDayDate">{date.isToday ? `Today ${date.monthDay}` : date.monthDay}</b>
-              <em className="plannerDayScore">
-                <strong>{score}</strong>
-                <span>{wind}</span>
+              <span className="plannerDayTopline">
+                <span>
+                  <span className="plannerDayLabel">{date.isToday ? 'Today' : date.weekday}</span>
+                  <b className="plannerDayDate">{date.monthDay}</b>
+                </span>
+                <span className="plannerDayIcon" aria-label={condition.label}>{condition.icon}</span>
+              </span>
+              <span className="plannerDayTemperature">{temperature}</span>
+              <span className="plannerDayScoreBar" aria-label={`${score} boating score`}>
+                <span />
+              </span>
+              <em className="plannerDayWind">
+                <span>{windArrow(outlook?.maxWindDirDeg)}</span>
+                <strong>{wind}</strong>
               </em>
             </button>
           );
         })}
       </div>
   );
-  const headerTimebar = useHeaderDayTabs && dayTabsSlot ? createPortal(timebar, dayTabsSlot) : null;
 
   return (
     <div className={`plannerWrap ${isFullscreen ? 'plannerWrapExpanded' : ''}`}>
-      {headerTimebar ?? timebar}
-      {isTimebarPinned ? <div className="plannerTimebarSpacer" style={{ height: timebarHeight }} /> : null}
+      {useMapDayOverlay ? null : timebar}
+      {!useMapDayOverlay && isTimebarPinned ? <div className="plannerTimebarSpacer" style={{ height: timebarHeight }} /> : null}
 
       <div className={`plannerApp ${isFullscreen ? 'plannerAppExpanded' : ''}`}>
         <div className="plannerMapPane">
           <div ref={mapRef} className="plannerMap" aria-label="Vancouver and Gulf Islands marina map" />
+          {useMapDayOverlay ? (
+            <div className="plannerMapDayOverlay" aria-label="Trip date controls">
+              {timebar}
+            </div>
+          ) : null}
 
           <div className="plannerTopbar">
             <button
@@ -1185,9 +1219,12 @@ export default function TripMap({ marinas }: TripMapProps) {
           </div>
 
           <div className="plannerLegend" aria-label="Map legend">
-            <span><i className="scoreGood" />Good</span>
-            <span><i className="scoreFair" />Fair</span>
-            <span><i className="scorePoor" />Poor</span>
+            {[...SCORE_BANDS].reverse().map((band) => (
+              <span key={band.label}>
+                <i className={`score${band.label}`} />
+                {band.label} {band.min}-{band.max}
+              </span>
+            ))}
             {tripStops.length >= 2 ? (
               <span>
                 <i className={hasRouteWaypoints ? 'manualLineShape' : 'directLineShape'} />
@@ -1200,8 +1237,8 @@ export default function TripMap({ marinas }: TripMapProps) {
           {mobileMarkerModal && (selected || selectedLaunch) ? (
             <div className="plannerMobileModal" role="dialog" aria-modal="true" aria-label="Marker details">
               <div className="plannerMobileModalCard">
-                <button className="plannerMobileModalClose" type="button" onClick={closeSelectedDetail}>
-                  Close
+                <button className="plannerMobileModalClose" type="button" onClick={closeSelectedDetail} aria-label="Close marker details">
+                  <CloseIcon />
                 </button>
                 {selected ? (
                   <MarinaDetail
@@ -1213,44 +1250,37 @@ export default function TripMap({ marinas }: TripMapProps) {
                     inTrip={tripStopSet.has(selected.id)}
                     planOrder={tripStopOrder.get(selected.id)}
                     onToggleTrip={() => toggleTripStop(selected.id)}
-                    onOpenConditions={() => setConditionsPopover({
-                      title: `${selected.name} conditions`,
-                      href: conditionsEmbedPath(marinaPath(selected))
-                    })}
                     onBack={closeSelectedDetail}
                   />
                 ) : selectedLaunch ? (
                   <LaunchDetail
                     launch={selectedLaunch}
                     dayIndex={dayIndex}
-                    onOpenConditions={() => setConditionsPopover({
-                      title: `${selectedLaunch.name} conditions`,
-                      href: conditionsEmbedPath(`/launch/${seoSlugForLaunch(selectedLaunch)}`)
-                    })}
                     onBack={closeSelectedDetail}
                   />
                 ) : null}
               </div>
             </div>
           ) : null}
-          {conditionsPopover ? (
-            <ConditionsPopover
-              title={conditionsPopover.title}
-              href={conditionsPopover.href}
-              onClose={() => setConditionsPopover(null)}
-            />
-          ) : null}
         </div>
 
       <section
         className={`plannerSheet plannerSheet-${sheetState} ${showSheetDetail ? 'plannerSheet-detail' : ''}`}
         aria-label="Marina results"
+        onClick={() => {
+          if (sheetState === 'collapsed') setSheetState('full');
+        }}
       >
         <button
           type="button"
           className="plannerGrab"
-          aria-label="Toggle marina sheet"
-          onClick={() => setSheetState(nextSheetState(sheetState))}
+          aria-label={sheetState === 'collapsed' ? 'Open destination sheet' : 'Collapse destination sheet'}
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleSheetFromGrab();
+          }}
+          onPointerDown={handleGrabPointerDown}
+          onPointerUp={handleGrabPointerUp}
         >
           <span />
         </button>
@@ -1266,20 +1296,12 @@ export default function TripMap({ marinas }: TripMapProps) {
               inTrip={tripStopSet.has(selected.id)}
               planOrder={tripStopOrder.get(selected.id)}
               onToggleTrip={() => toggleTripStop(selected.id)}
-              onOpenConditions={() => setConditionsPopover({
-                title: `${selected.name} conditions`,
-                href: conditionsEmbedPath(marinaPath(selected))
-              })}
               onBack={closeSelectedDetail}
             />
           ) : showSheetDetail && selectedLaunch ? (
             <LaunchDetail
               launch={selectedLaunch}
               dayIndex={dayIndex}
-              onOpenConditions={() => setConditionsPopover({
-                title: `${selectedLaunch.name} conditions`,
-                href: conditionsEmbedPath(`/launch/${seoSlugForLaunch(selectedLaunch)}`)
-              })}
               onBack={closeSelectedDetail}
             />
           ) : tripMode ? (
@@ -1509,7 +1531,6 @@ function MarinaDetail({
   inTrip,
   planOrder,
   onToggleTrip,
-  onOpenConditions,
   onBack
 }: {
   marina: Marina;
@@ -1520,7 +1541,6 @@ function MarinaDetail({
   inTrip: boolean;
   planOrder?: number;
   onToggleTrip: () => void;
-  onOpenConditions: () => void;
   onBack: () => void;
 }) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
@@ -1547,70 +1567,57 @@ function MarinaDetail({
           </svg>
         </button>
       </div>
-      <div className="plannerDetailTitleRow">
-        <div>
-          <h1>{marina.name}</h1>
-          <p>{marina.address} - {distanceFromHome(marina).toFixed(1)} nm</p>
+      <div className="plannerDetailSummary">
+        <div className="plannerDetailTitleRow">
+          <div>
+            <h1>{marina.name}</h1>
+            <p>{marina.address} - {distanceFromHome(marina).toFixed(1)} nm</p>
+          </div>
         </div>
-        <PlanToggleButton
-          compact
-          name={marina.name}
-          inPlan={inTrip}
-          order={planOrder}
-          onToggle={onToggleTrip}
-        />
+
+        {info ? (
+          <div className="plannerTags">
+            <span className={`plannerTag ${info.access === 'Public' ? 'pub' : ''}`}>{info.access}</span>
+            <span className="plannerTag">Transient: {transientLabel(info.transient)}</span>
+            <span className="plannerTag">Fuel: {info.fuel}</span>
+            <span className="plannerTag">Launch: {info.launch}</span>
+            <span className="plannerTag">{info.moorage}</span>
+            <span className="plannerTag verify">{info.verified ? 'verified' : 'verify before publish'}</span>
+          </div>
+        ) : null}
+
+        <div className="plannerScoreHero">
+          <div className="plannerScoreRing" style={{ background: scoreColor(score) }}>{score}</div>
+          <div>
+            <span>Trip score</span>
+            <strong>{verdict(score)}</strong>
+            <small>{vessel.label}</small>
+          </div>
+        </div>
+
+        {warning ? <div className={`plannerWarning ${warning.level}`}>{warning.text}</div> : null}
+
+        <div className="plannerMetrics">
+          <div>
+            <span>Wind</span>
+            <strong>{windLabel(conditions)}</strong>
+          </div>
+          <div>
+            <span>Gust</span>
+            <strong>{Math.round(conditions.gust)} <small>kt</small></strong>
+          </div>
+          <div>
+            <span>Wave</span>
+            <strong>{conditions.wave.toFixed(1)} <small>m</small></strong>
+          </div>
+          <div>
+            <span>Area</span>
+            <strong>{marina.area}</strong>
+          </div>
+        </div>
+
+        {tide ? <TideCard tide={tide} /> : <NonTidalWaterCard marina={marina} />}
       </div>
-
-      {info ? (
-        <div className="plannerTags">
-          <span className={`plannerTag ${info.access === 'Public' ? 'pub' : ''}`}>{info.access}</span>
-          <span className="plannerTag">Transient: {transientLabel(info.transient)}</span>
-          <span className="plannerTag">Fuel: {info.fuel}</span>
-          <span className="plannerTag">Launch: {info.launch}</span>
-          <span className="plannerTag">{info.moorage}</span>
-          <span className="plannerTag verify">{info.verified ? 'verified' : 'verify before publish'}</span>
-        </div>
-      ) : null}
-
-      <div className="plannerScoreHero">
-        <div className="plannerScoreRing" style={{ background: scoreColor(score) }}>{score}</div>
-        <div>
-          <span>Trip score</span>
-          <strong>{verdict(score)}</strong>
-          <small>{vessel.label}</small>
-        </div>
-      </div>
-
-      {warning ? <div className={`plannerWarning ${warning.level}`}>{warning.text}</div> : null}
-
-      <div className="plannerMetrics">
-        <div>
-          <span>Wind</span>
-          <strong>{windLabel(conditions)}</strong>
-        </div>
-        <div>
-          <span>Gust</span>
-          <strong>{conditions.gust} <small>kt</small></strong>
-        </div>
-        <div>
-          <span>Wave</span>
-          <strong>{conditions.wave.toFixed(1)} <small>m</small></strong>
-        </div>
-        <div>
-          <span>Area</span>
-          <strong>{marina.area}</strong>
-        </div>
-      </div>
-
-      {tide ? <TideCard tide={tide} /> : <NonTidalWaterCard marina={marina} />}
-
-      <button
-        className="plannerSecondary"
-        type="button"
-        onClick={onOpenConditions}
-      >
-        Open conditions
-      </button>
       <div className="plannerDetailFooter">
         <PlanToggleButton
           primary
@@ -1649,7 +1656,7 @@ function PlanToggleButton({
       onClick={onToggle}
     >
       <span className="plannerPlanToggleIcon">{inPlan ? (order ?? '') : '+'}</span>
-      <span className="plannerPlanToggleText">{inPlan ? 'In plan' : 'Add'}</span>
+      <span className="plannerPlanToggleText">{inPlan ? 'In plan' : 'Add to trip'}</span>
       {inPlan ? <span className="plannerPlanToggleHover">Remove</span> : null}
     </button>
   );
@@ -1729,42 +1736,22 @@ function TideSparkline({ points, nowIndex }: { points: TidePoint[]; nowIndex: nu
   );
 }
 
-function ConditionsPopover({
-  title,
-  href,
-  onClose
-}: {
-  title: string;
-  href: string;
-  onClose: () => void;
-}) {
-  return createPortal(
-    <div className="plannerConditionsOverlay" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="plannerConditionsBackdrop" onClick={onClose} />
-      <div className="plannerConditionsModal">
-        <button className="plannerConditionsClose" type="button" onClick={onClose} aria-label="Close conditions">
-          Close
-        </button>
-        <iframe className="plannerConditionsFrame" src={href} title={title} />
-      </div>
-    </div>,
-    document.body
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+      <line x1="7" y1="7" x2="17" y2="17" />
+      <line x1="17" y1="7" x2="7" y2="17" />
+    </svg>
   );
-}
-
-function conditionsEmbedPath(path: string) {
-  return `${path}${path.includes('?') ? '&' : '?'}embed=planner`;
 }
 
 function LaunchDetail({
   launch,
   dayIndex,
-  onOpenConditions,
   onBack
 }: {
   launch: BoatLaunch;
   dayIndex: number;
-  onOpenConditions: () => void;
   onBack: () => void;
 }) {
   const status = launchDepthStatus(launch, plannerTimeForDay(dayIndex));
@@ -1784,26 +1771,25 @@ function LaunchDetail({
           </svg>
         </button>
       </div>
-      <h1>{launch.name}</h1>
-      <p>{launch.area} - {distanceFromHome(launch).toFixed(1)} nm</p>
-      <div className="plannerTags">
-        <span className="plannerTag pub">Public launch</span>
-        <span className="plannerTag">{launch.type}</span>
-        <span className="plannerTag">Usable tide: {launchMinTide(launch).toFixed(1)}m+</span>
-        {launch.access ? <span className="plannerTag">Access: {launch.access}</span> : null}
-        {launch.fee ? <span className="plannerTag">Fee: {launch.fee}</span> : null}
+      <div className="plannerDetailSummary">
+        <div className="plannerDetailTitleRow">
+          <div>
+            <h1>{launch.name}</h1>
+            <p>{launch.area} - {distanceFromHome(launch).toFixed(1)} nm</p>
+          </div>
+        </div>
+        <div className="plannerTags">
+          <span className="plannerTag pub">Public launch</span>
+          <span className="plannerTag">{launch.type}</span>
+          <span className="plannerTag">Usable tide: {launchMinTide(launch).toFixed(1)}m+</span>
+          {launch.access ? <span className="plannerTag">Access: {launch.access}</span> : null}
+          {launch.fee ? <span className="plannerTag">Fee: {launch.fee}</span> : null}
+        </div>
+        <div className={`plannerLaunchStatus ${status.ok ? 'ok' : 'warn'}`}>
+          <strong>{status.ok ? 'Launchable now' : 'Too shallow'}</strong>
+          <span>{status.message}</span>
+        </div>
       </div>
-      <div className={`plannerLaunchStatus ${status.ok ? 'ok' : 'warn'}`}>
-        <strong>{status.ok ? 'Launchable now' : 'Too shallow'}</strong>
-        <span>{status.message}</span>
-      </div>
-      <button
-        className="plannerSecondary"
-        type="button"
-        onClick={onOpenConditions}
-      >
-        Open launch conditions
-      </button>
     </div>
   );
 }
@@ -1884,22 +1870,20 @@ function TripPlanView({
           <input type="date" value={departParts.date} onChange={(event) => updateDepartPart({ date: event.target.value })} />
         </label>
         <div className="plannerDepartTime" aria-label="Departure time">
-          <label>
-            <span>Hour</span>
+          <span className="plannerDepartTimeLabel">Time</span>
+          <div className="plannerDepartTimeFields">
             <select value={departParts.hour} onChange={(event) => updateDepartPart({ hour: event.target.value })}>
               {Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0')).map((hour) => (
                 <option key={hour} value={hour}>{hour}</option>
               ))}
             </select>
-          </label>
-          <label>
-            <span>Min</span>
+            <span className="plannerDepartSeparator" aria-hidden>:</span>
             <select value={departParts.minute} onChange={(event) => updateDepartPart({ minute: event.target.value })}>
               {Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0')).map((minute) => (
                 <option key={minute} value={minute}>{minute}</option>
               ))}
             </select>
-          </label>
+          </div>
           <div className="plannerDepartMeridiem" role="group" aria-label="AM or PM">
             {(['AM', 'PM'] as const).map((meridiem) => (
               <button
@@ -1914,7 +1898,7 @@ function TripPlanView({
             ))}
           </div>
         </div>
-        <label>
+        <label className="plannerTripSpeed">
           <span>Speed</span>
           <span className="plannerSpeedInput">
             <input
@@ -1926,6 +1910,13 @@ function TripPlanView({
               onChange={(event) => onSpeedChange(Number(event.target.value) || DEFAULT_SPEED_KT)}
             />
             <span>kt</span>
+          </span>
+          <span
+            className="plannerTripScoreIndicator"
+            style={{ '--trip-score-color': scoreColor(summary.score) } as CSSProperties}
+          >
+            <span>Trip score</span>
+            <strong>{summary.score}/100 {verdict(summary.score)}</strong>
           </span>
         </label>
       </div>
@@ -2064,7 +2055,7 @@ function marinaPopupHtml(
 ) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
   const distance = distanceFromHome(marina).toFixed(1);
-  const label = inPlan ? 'Remove' : 'Add';
+  const label = inPlan ? 'Remove' : 'Add to trip';
   const badge = inPlan ? `<span class="plannerPinPopupOrder">${order ?? ''}</span>` : '';
   return `
     <div class="plannerPinPopup">
@@ -2075,7 +2066,7 @@ function marinaPopupHtml(
       <span>${score} score · ${distance} nm · ${escapeHtml(windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks)))}</span>
       <div class="plannerPinPopupActions">
         <button type="button" data-planner-pin-action="toggle" data-marina-id="${marina.id}" aria-pressed="${inPlan}">
-          ${inPlan ? '✓ In plan' : '+ Add'}
+          ${inPlan ? '✓ In plan' : '+ Add to trip'}
           <em>${label}</em>
         </button>
         <button type="button" data-planner-pin-action="detail" data-marina-id="${marina.id}">Details</button>
@@ -2216,6 +2207,26 @@ function dayChipDate(offset: number, outlook?: DailyOutlook | null) {
   };
 }
 
+function dayTemperatureLabel(outlook?: DailyOutlook | null) {
+  const tempC = outlook?.maxTempC ?? outlook?.minTempC;
+  if (typeof tempC !== 'number' || !Number.isFinite(tempC)) return '--';
+  return String(Math.round((tempC * 9) / 5 + 32));
+}
+
+function dayConditionIcon(outlook: DailyOutlook | null | undefined, score: number) {
+  const precipMm = outlook?.totalPrecipMm ?? 0;
+  const precipProb = outlook?.maxPrecipProb ?? 0;
+  if (precipMm >= 1.5 || precipProb >= 55) return { icon: '☔', label: 'Rain likely' };
+  if (precipMm >= 0.2 || precipProb >= 30 || score < 62) return { icon: '☁', label: 'Cloudy' };
+  return { icon: '☀', label: 'Clear' };
+}
+
+function windArrow(deg?: number) {
+  if (typeof deg !== 'number' || !Number.isFinite(deg)) return '→';
+  const arrows = ['↓', '↙', '←', '↖', '↑', '↗', '→', '↘'];
+  return arrows[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
+}
+
 function nextSheetState(state: SheetState): SheetState {
   if (state === 'full') return 'half';
   if (state === 'half') return 'collapsed';
@@ -2228,6 +2239,30 @@ function isInitialBcFocus(location: Pick<Marina | BoatLaunch, 'lat' | 'lon'>) {
 
 function isMobilePlanner() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 560px)').matches;
+}
+
+function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, marinas: Marina[]) {
+  const hasLinkedMarina = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('marina');
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
+  const homeMarina = isDesktop && !hasLinkedMarina ? findPlannerHomeMarina(marinas) : null;
+
+  if (homeMarina) {
+    map.setView([homeMarina.lat, homeMarina.lon], DEFAULT_HOME_MARINA_OVERVIEW_ZOOM, { animate: false });
+    return;
+  }
+
+  fitPlannerMap(map, bounds, isExpanded);
+}
+
+function findPlannerHomeMarina(marinas: Marina[]) {
+  const homeId = normalizeHomeMarinaId(
+    typeof window === 'undefined' ? null : window.localStorage.getItem(HOME_MARINA_STORAGE_KEY)
+  );
+  return (
+    marinas.find((marina) => marina.locationId === homeId && marina.freedomClub) ??
+    marinas.find((marina) => marina.locationId === homeId) ??
+    null
+  );
 }
 
 function fitPlannerMap(map: any, bounds: any, isExpanded: boolean) {
@@ -2278,8 +2313,25 @@ function conditionsFor(marina: Marina, dayIndex: number, weeklyOutlooks: Planner
 }
 
 function outlookFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks) {
-  if (!marina.locationId) return null;
-  return weeklyOutlooks[marina.locationId]?.[dayIndex] ?? null;
+  const locationId = weatherLocationIdFor(marina);
+  if (!locationId) return null;
+  return weeklyOutlooks[locationId]?.[dayIndex] ?? null;
+}
+
+const NEAREST_WEATHER_ANCHOR_MAX_KM = 45;
+
+function weatherLocationIdFor(marina: Marina) {
+  if (marina.locationId) return marina.locationId;
+
+  let best: { id: string; distanceKm: number } | null = null;
+  for (const location of Object.values(LOCATIONS)) {
+    const distanceKm = haversine(marina.lat, marina.lon, location.lat, location.lon) / 1000;
+    if (!best || distanceKm < best.distanceKm) {
+      best = { id: location.id, distanceKm };
+    }
+  }
+
+  return best && best.distanceKm <= NEAREST_WEATHER_ANCHOR_MAX_KM ? best.id : null;
 }
 
 function windLabel(conditions: Pick<ReturnType<typeof conditionsFor>, 'wind' | 'windDirDeg'>) {
@@ -2299,16 +2351,11 @@ function vesselWarning(conditions: ReturnType<typeof conditionsFor>, vessel: Ves
 }
 
 function scoreColor(score: number) {
-  if (score >= 75) return '#2fae6b';
-  if (score >= 55) return '#e6a13c';
-  return '#e0584f';
+  return scoreBand(score).color;
 }
 
 function verdict(score: number) {
-  if (score >= 85) return 'Great day';
-  if (score >= 75) return 'Good';
-  if (score >= 55) return 'Fair';
-  return 'Marginal';
+  return scoreBand(score).label;
 }
 
 function distanceFromHome(place: { lat: number; lon: number }) {
@@ -2868,7 +2915,7 @@ function buildFloatPlanText(
   const summary = tripSummary(legs);
   const depart = new Date(departAt || defaultDepartInput());
   const lines = [
-    'FAIRTIDE float plan',
+    'Fair Tide float plan',
     `Vessel: ${vessel.label}`,
     `Depart: ${formatShortDateTime(depart)}`,
     `Cruise speed: ${speedKt || DEFAULT_SPEED_KT} kt`,

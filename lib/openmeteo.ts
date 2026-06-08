@@ -319,7 +319,7 @@ async function fetchMetNoFallback({
     const res = await fetch(url.toString(), {
       next: { revalidate: 15 * 60 },
       headers: {
-        'User-Agent': 'FAIRTIDE Boat Planner/1.0 https://soma1.b-average.com'
+        'User-Agent': 'Fair Tide Boat Planner/1.0 https://soma1.b-average.com'
       }
     });
     if (!res.ok) return null;

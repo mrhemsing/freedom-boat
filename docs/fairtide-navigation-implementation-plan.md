@@ -1,4 +1,4 @@
-# FAIRTIDE Navigation Implementation Plan
+# Fair Tide Navigation Implementation Plan
 
 This plan translates `docs/fairtide-navigation-requirements.md` into a build sequence. The key principle is to ship structural clarity first, then deepen the overlay/search/trip layers.
 
@@ -125,4 +125,3 @@ For each phase:
 - `npm run build`
 - Route smoke checks for `/`, `/plan-my-trip`, `/browse`, one `/location/...`, one `/marina/...`, one `/launch/...`.
 - Headless Chrome/CDP checks for header links, active state, overlay/back behavior, and mobile layout where relevant.
-

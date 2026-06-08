@@ -12,8 +12,8 @@ const FILTERS: { label: string; type: BrowseType }[] = [
 ];
 
 export const metadata: Metadata = {
-  title: 'Browse Marinas, Marine Parks, Launches & Area Guides | Fairtide',
-  description: 'Browse Fairtide marina condition pages, public boat launches, and Pacific Northwest area guides.',
+  title: 'Browse Marinas, Marine Parks, Launches & Area Guides | Fair Tide',
+  description: 'Browse Fair Tide marina condition pages, public boat launches, and Pacific Northwest area guides.',
   alternates: {
     canonical: canonicalUrl('/browse')
   }

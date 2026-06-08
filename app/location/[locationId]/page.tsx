@@ -3,13 +3,13 @@ import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
-import { buildWeeklyOutlook, type DailyOutlook } from '../../../lib/outlook';
+import { buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../../lib/outlook';
 import { marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
 import { getLocationWeatherSnapshot } from '../../../lib/weather-snapshots';
 import { AlertFeed, Card, ForecastStrip, KpiRow, TideList, WindArrow } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
-import MarinaJump from './MarinaJump';
+import MarinaJump, { type MarinaJumpGroup } from './MarinaJump';
 import GlobalHeader from '../../GlobalHeader';
 
 export async function generateMetadata({
@@ -22,15 +22,17 @@ export async function generateMetadata({
   const name = loc?.name ?? 'Marina';
 
   return {
-    title: `FAIRTIDE Boat Planner - ${name}`,
+    title: `Fair Tide Boat Planner - ${name}`,
     description: `Hyper-local boating conditions for ${name}.`
   };
 }
 
 export default async function LocationPage({
-  params
+  params,
+  searchParams
 }: {
   params: { locationId: string };
+  searchParams?: { embed?: string; plannerScore?: string; plannerDay?: string };
 }) {
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
@@ -84,10 +86,13 @@ export default async function LocationPage({
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
   const marinaJumpGroups = buildMarinaJumpGroups();
   const mapHref = plannerMapHrefForLocation(id);
+  const isPlannerEmbed = searchParams?.embed === 'planner';
+  const plannerScore = isPlannerEmbed ? parsePlannerScore(searchParams?.plannerScore) : null;
+  const plannerDayIndex = isPlannerEmbed ? parsePlannerDayIndex(searchParams?.plannerDay) : 0;
 
   return (
     <main className="container">
-      <GlobalHeader active="conditions" contextLabel={loc.name} />
+      {!isPlannerEmbed ? <GlobalHeader active="conditions" contextLabel={loc.name} /> : null}
       <header className="topbar">
         <div className="headerBrand">
           <div className="locationHeroTitle">
@@ -134,19 +139,24 @@ export default async function LocationPage({
         <Card
           className="weeklyCard"
           title={<span className="weeklyTitleMain">5-day outlook</span>}
-          subtitle={<span className="weeklyTitleSub">(best boating day highlighted)</span>}
           icon={<span style={{ fontWeight: 900, fontSize: 17, color: 'rgba(11,18,32,0.62)' }}>◉</span>}
           right={null}
           headerStackOnMobile
         >
           {(() => {
-            const week = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5);
+            const week = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5)
+              .map((day, index) => (
+                plannerScore != null && index === plannerDayIndex
+                  ? { ...day, score: plannerScore }
+                  : day
+              ));
             const best = week.reduce((acc, d) => (acc == null || d.score > acc.score ? d : acc), null as DailyOutlook | null);
             if (!week.length) return <div className="miniNote">No forecast available.</div>;
             return (
               <div className="outlookGrid">
                 {week.map((d, idx) => {
                   const isBest = best?.day === d.day;
+                  const score = scoreBand(d.score);
                   return (
                     <div
                       key={d.day}
@@ -190,7 +200,12 @@ export default async function LocationPage({
                       })()}
 
                       <div className="dayTempLine">{round(d.minTempC, 0) ?? '—'}/{round(d.maxTempC, 0) ?? '—'}°C</div>
-                      <div className="dayScorePill" title="Boating score (higher is better)">{d.score}/100</div>
+                      <div
+                        className={`dayScorePill dayScorePill-${score.tone}`}
+                        title={`Boating score: ${score.min}-${score.max} ${score.label}`}
+                      >
+                        {d.score}/100<span className="dayScorePillLabel"> {score.label}</span>
+                      </div>
                       <div className="dayMeta">
                         <div><span className="dayMetaIcon" style={{ fontSize: 11 }}>🌀</span>Max wind {round(d.maxWind, 0)} kt {degToCardinal(d.maxWindDirDeg) ?? ''}</div>
                         <div><span className="dayMetaIcon">💨</span>Max gust {round(d.maxGust, 0)} kt</div>
@@ -510,7 +525,7 @@ const BC_LOCATION_ORDER = new Map([
 ]);
 
 function buildMarinaJumpGroups() {
-  const groups = new Map<string, Array<{ label: string; path: string }>>();
+  const groups = new Map<string, MarinaJumpGroup['options']>();
 
   for (const marina of [...SEO_MARINAS].filter((marina) => marina.freedomClub && marina.locationId).sort(compareMarinaOptions)) {
     const label = regionLabel(menuRegion(marina));
@@ -519,7 +534,8 @@ function buildMarinaJumpGroups() {
       ...(groups.get(label) ?? []),
       {
         label: marina.area,
-        path
+        path,
+        locationId: marina.locationId as LocationId
       }
     ]);
   }
@@ -1065,6 +1081,14 @@ function computeDefaultAlerts({ now, forecast }: { now: any; forecast: any[] }) 
   });
 }
 
+function parsePlannerScore(value?: string) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) return null;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
 
-
-
+function parsePlannerDayIndex(value?: string) {
+  const index = Number(value);
+  if (!Number.isInteger(index)) return 0;
+  return Math.max(0, Math.min(4, index));
+}

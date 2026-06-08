@@ -1,6 +1,6 @@
 # BC Off-Page SEO Playbook
 
-FAIRTIDE's SEO moat is local specificity: server-rendered pages for BC places,
+Fair Tide's SEO moat is local specificity: server-rendered pages for BC places,
 plus a small number of topical local links from boating, marina, harbour, yacht
 club, sailing, and sport-fishing communities.
 
@@ -94,7 +94,7 @@ Subject: BC boating conditions page for [place]
 
 Hi [name],
 
-I help maintain FAIRTIDE, a BC-focused boating conditions planner with
+I help maintain Fair Tide, a BC-focused boating conditions planner with
 server-rendered pages for local marinas, launches, tide stations, and area
 conditions.
 

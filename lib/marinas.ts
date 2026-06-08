@@ -139,7 +139,8 @@ export const TRIP_MARINAS: Marina[] = [
     address: '8211 River Rd, Richmond, BC',
     lat: 49.189,
     lon: -123.129,
-    area: 'Richmond'
+    area: 'Richmond',
+    locationId: 'richmond'
   },
   {
     id: 5,
@@ -148,7 +149,8 @@ export const TRIP_MARINAS: Marina[] = [
     address: '8031 River Rd, Richmond, BC',
     lat: 49.188,
     lon: -123.126,
-    area: 'Richmond'
+    area: 'Richmond',
+    locationId: 'richmond'
   },
   {
     id: 6,
@@ -393,7 +395,8 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     address: '12740 Trites Road, Richmond, BC',
     lat: 49.1234,
     lon: -123.1868,
-    area: 'Richmond'
+    area: 'Richmond',
+    locationId: 'richmond'
   },
   {
     id: 32,

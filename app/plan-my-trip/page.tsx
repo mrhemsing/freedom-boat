@@ -5,7 +5,7 @@ import GlobalHeader from '../GlobalHeader';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
-  title: 'FAIRTIDE Boat Planner',
+  title: 'Fair Tide Boat Planner',
   description: 'Map-based marina trip planner with forecasted boating conditions.'
 };
 
@@ -17,7 +17,7 @@ export default function PlanMyTripPage() {
 
   return (
     <main className="tripPlannerPage">
-      <GlobalHeader active="map" showDaySlot />
+      <GlobalHeader active="map" />
       <div className="tripPlannerMenuRow">
         <div className="tripPlannerSubhead">Freedom Club marinas, public marinas, launches, tides, and day scores across the Pacific Northwest.</div>
         <details className="tripPlannerMenu">

@@ -2,7 +2,7 @@
   "name": "fairtide",
   "private": true,
   "version": "1.0.0",
-  "description": "Map-based marina trip planner for FAIRTIDE with Vercel serverless data proxies.",
+  "description": "Map-based marina trip planner for Fair Tide with Vercel serverless data proxies.",
   "engines": {
     "node": ">=18"
   },

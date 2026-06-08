@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const hub = getAreaHubBySlug(params.slug);
   if (!hub) return {};
   return {
-    title: `${hub.name} Marinas, Marine Parks, Boat Launches & Boating Conditions | Fairtide`,
+    title: `${hub.name} Marinas, Marine Parks, Boat Launches & Boating Conditions | Fair Tide`,
     description: hub.description,
     alternates: {
       canonical: canonicalUrl(`/area/${hub.slug}`)

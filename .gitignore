@@ -7,3 +7,5 @@ tsconfig.tsbuildinfo
 data/marinas.raw.json
 data/ramps.raw.json
 data/marinas.enriched.json
+.tmp-*/
+next-*.log

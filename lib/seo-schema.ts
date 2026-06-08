@@ -33,7 +33,7 @@ export function marinaJsonLd(marina: Marina) {
     faqJsonLd([
       {
         q: `What are the tide times at ${marina.name} today?`,
-        a: `${marina.name} tide times are shown with the nearest Canadian Hydrographic Service tide station and refreshed through FAIRTIDE.`
+        a: `${marina.name} tide times are shown with the nearest Canadian Hydrographic Service tide station and refreshed through Fair Tide.`
       },
       {
         q: `Does ${marina.name} have guest moorage?`,

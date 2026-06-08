@@ -59,14 +59,14 @@ export default function GlobalSearch({ selectedLabel }: GlobalSearchProps) {
   return (
     <form className="globalSearch" action="/browse" role="search" onSubmit={submitSearch}>
       <label className="globalSearchBox">
-        <span className="srOnly">Search Fairtide</span>
+        <span className="srOnly">Search Fair Tide</span>
         {selectedLabel ? <span className="globalSearchToken">{selectedLabel}<span className="globalSearchTokenClose" aria-hidden="true">x</span></span> : null}
         <input
           name="q"
           type="search"
           value={query}
           placeholder="Search marinas, launches, areas"
-          aria-label="Search Fairtide"
+          aria-label="Search Fair Tide"
           aria-expanded={showSuggestions}
           aria-controls="global-search-suggestions"
           aria-autocomplete="list"

@@ -1,4 +1,4 @@
-# FAIRTIDE Navigation & Information Architecture Requirements
+# Fair Tide Navigation & Information Architecture Requirements
 
 Imported from Matt's June 2, 2026 requirements spec. This is the working source of truth for the navigation, map, browse, canonical detail, and trip-builder restructuring.
 
@@ -8,7 +8,7 @@ Resolve navigation confusion between Home, Plan a Trip / Map, and Browse / Direc
 
 ## Product Model
 
-FAIRTIDE has three navigable surfaces plus one canonical content entity:
+Fair Tide has three navigable surfaces plus one canonical content entity:
 
 - Home: a personalized hub at `/`.
 - Map: the spatial explore surface at `/plan-my-trip`.
@@ -121,4 +121,3 @@ Trip planning is a cross-cutting layer. It is visible and resumable from every s
 2. Overlay with real canonical URL from Map: recommended, but it is the largest architectural call.
 3. Canonical URL scheme for marinas, destinations, and launches.
 4. Whether guest-built trips need to survive device changes.
-

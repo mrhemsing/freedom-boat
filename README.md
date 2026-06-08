@@ -1,4 +1,4 @@
-# FAIRTIDE
+# Fair Tide
 
 Map-based marina trip planner for live wind and wave forecasts, CHS tides,
 vessel-aware boating scores, launch-depth checks, optional OSM marina pulls, and

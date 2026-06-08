@@ -5,7 +5,7 @@ import { SITE_URL } from '../lib/seo-slugs';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'FAIRTIDE Boat Planner',
+  title: 'Fair Tide Boat Planner',
   description: 'Hyper-local boating conditions for Port Moody, West Vancouver, and North Saanich.'
 };
 
