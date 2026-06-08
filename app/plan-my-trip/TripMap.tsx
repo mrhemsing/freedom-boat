@@ -100,6 +100,7 @@ const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
 const DEFAULT_HOME_MARINA_OVERVIEW_ZOOM = 11;
+const DEFAULT_HOME_MARINA_WATER_LON_OFFSET = -0.075;
 const DEFAULT_MARINA_FOCUS_ZOOM = 13;
 const LINKED_MARINA_FOCUS_ZOOM = DEFAULT_MARINA_FOCUS_ZOOM + 4;
 const MOBILE_LINKED_MARINA_FOCUS_ZOOM = 10;
@@ -2247,7 +2248,7 @@ function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, 
   const homeMarina = isDesktop && !hasLinkedMarina ? findPlannerHomeMarina(marinas) : null;
 
   if (homeMarina) {
-    map.setView([homeMarina.lat, homeMarina.lon], DEFAULT_HOME_MARINA_OVERVIEW_ZOOM, { animate: false });
+    map.setView([homeMarina.lat, homeMarina.lon + DEFAULT_HOME_MARINA_WATER_LON_OFFSET], DEFAULT_HOME_MARINA_OVERVIEW_ZOOM, { animate: false });
     return;
   }
 
