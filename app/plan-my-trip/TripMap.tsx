@@ -100,7 +100,9 @@ const CHS_REGION = 'PAC';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
 const ALL_MARKERS_OVERVIEW_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM - 1;
+const ALL_MARKERS_OVERVIEW_MOBILE_ZOOM = ALL_MARKERS_OVERVIEW_ZOOM + 1;
 const ALL_MARKERS_OVERVIEW_LAT_OFFSET = -0.18;
+const ALL_MARKERS_OVERVIEW_MOBILE_LON_OFFSET = -0.28;
 const DEFAULT_HOME_MARINA_OVERVIEW_ZOOM = 11;
 const DEFAULT_HOME_MARINA_WATER_LON_OFFSET = -0.2;
 const DEFAULT_MARINA_FOCUS_ZOOM = 13;
@@ -2256,9 +2258,21 @@ function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, 
   const homeMarina = isDesktop && !hasLinkedMarina ? findPlannerHomeMarina(marinas) : null;
 
   if (showAllMarkersOverview) {
-    fitPlannerMap(map, bounds, isExpanded, ALL_MARKERS_OVERVIEW_ZOOM);
+    const isMobileOverview = isMobilePlanner();
+    const overviewMaxZoom = isMobileOverview ? ALL_MARKERS_OVERVIEW_MOBILE_ZOOM : ALL_MARKERS_OVERVIEW_ZOOM;
+    fitPlannerMap(map, bounds, isExpanded, overviewMaxZoom);
     const center = map.getCenter();
-    map.setView([center.lat + ALL_MARKERS_OVERVIEW_LAT_OFFSET, center.lng], Math.min(map.getZoom(), ALL_MARKERS_OVERVIEW_ZOOM), { animate: false });
+    const zoom = isMobileOverview
+      ? Math.min(map.getZoom() + 1, ALL_MARKERS_OVERVIEW_MOBILE_ZOOM)
+      : Math.min(map.getZoom(), ALL_MARKERS_OVERVIEW_ZOOM);
+    map.setView(
+      [
+        center.lat + ALL_MARKERS_OVERVIEW_LAT_OFFSET,
+        center.lng + (isMobileOverview ? ALL_MARKERS_OVERVIEW_MOBILE_LON_OFFSET : 0)
+      ],
+      zoom,
+      { animate: false }
+    );
     return;
   }
 
