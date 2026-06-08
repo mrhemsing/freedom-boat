@@ -170,6 +170,29 @@ function iconForAlert(name: string) {
   return 'i';
 }
 
+function BellIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+      <path
+        d="M13.73 21a2 2 0 0 1-3.46 0"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 export function BoatingAlertsModule({
   items,
   dayLabel,
@@ -213,7 +236,7 @@ export function BoatingAlertsModule({
     <div className={`boatingAlertsModule ${hasWarning ? 'boatingAlertsModuleWarning' : ''}`.trim()}>
       <div className="boatingAlertsHeader">
         <div className="boatingAlertsTitle">
-          <span className="boatingAlertsBell" aria-hidden="true">!</span>
+          <span className="boatingAlertsBell" aria-hidden="true"><BellIcon /></span>
           <span>Conditions to watch</span>
         </div>
         <div className="boatingAlertsMeta">{activeCount} active · {dayLabel}</div>
