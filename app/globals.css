@@ -993,6 +993,7 @@ summary::-webkit-details-marker {
 }
 
 .boatingAlertsModule{
+  --alert-icon-gap: 10px;
   display: grid;
   gap: 12px;
   padding: 14px 16px 16px;
@@ -1017,7 +1018,7 @@ summary::-webkit-details-marker {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--alert-icon-gap);
   color: rgba(11, 18, 32, 0.92);
   font-size: 16px;
   font-weight: 900;
@@ -1052,7 +1053,7 @@ summary::-webkit-details-marker {
 .marineWarningStrip{
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--alert-icon-gap);
   min-height: 38px;
   padding: 9px 11px;
   border: 1px solid rgba(22, 101, 52, 0.16);
@@ -1126,8 +1127,8 @@ summary::-webkit-details-marker {
 
 .boatingAlertRow{
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 11px;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: var(--alert-icon-gap);
   padding: 12px;
   border: 1px solid rgba(11, 18, 32, 0.10);
   border-left-width: 3px;
