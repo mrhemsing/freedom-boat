@@ -131,6 +131,7 @@ export default async function LocationPage({
               items={boatingAlerts}
               dayLabel={now?.asOf ? formatAsOfWithDay(now.asOf).split(' ')[0] ?? 'Today' : 'Today'}
               daylight={boatingAlertDaylight}
+              nowIso={now?.asOf}
             />
           </Card>
         ) : (
@@ -138,6 +139,7 @@ export default async function LocationPage({
             items={boatingAlerts}
             dayLabel={now?.asOf ? formatAsOfWithDay(now.asOf).split(' ')[0] ?? 'Today' : 'Today'}
             daylight={boatingAlertDaylight}
+            nowIso={now?.asOf}
           />
         )}
 
@@ -912,32 +914,43 @@ function buildBoatingAlerts({
   if (!hasMarineWarning && (maxWind.value >= 12 || maxGust.value >= 18)) {
     const peak = maxGust.value >= 18 ? maxGust : maxWind;
     const windWindow = contiguousWindow(daylightForecast, (hour) => Number(hour.windSpeedKts ?? 0) >= 12 || Number(hour.windGustKts ?? 0) >= 18);
+    const window = windWindow
+      ? buildWatchWindow({ start: windWindow.start, peak: peak.t, end: windWindow.end, daylight })
+      : undefined;
     rows.push({
       id: 'wind-watch',
       tier: 'watch',
       category: 'wind',
       icon: 'wind',
       title: 'Breezy daylight window',
-      detail: `Plan for chop: sustained wind up to ${round(maxWind.value, 0)} kt and gusts up to ${round(maxGust.value, 0)} kt near ${isoToLocalTime(peak.t)}.`,
-      window: windWindow ? { start: windWindow.start, peak: peak.t, end: windWindow.end } : undefined
+      detail: window
+        ? `Plan for chop: gusts build from ${isoToLocalTime(window.start)}, peaking up to ${round(maxGust.value, 0)} kt near ${isoToLocalTime(window.peak ?? peak.t)}. Easing by ${isoToLocalTime(window.end ?? window.start)}.`
+        : `Plan for chop: sustained wind up to ${round(maxWind.value, 0)} kt and gusts up to ${round(maxGust.value, 0)} kt near ${isoToLocalTime(peak.t)}.`,
+      window
     });
   }
 
   const rainWindow = getRainWindow(forecast, daylight);
   if (rainWindow && rainWindow.peakMm >= 4) {
+    const window = buildWatchWindow({ start: rainWindow.start, peak: rainWindow.peak, end: rainWindow.end, daylight });
     rows.push({
       id: `rain-${extractLocalDay(rainWindow.peak) ?? 'watch'}`,
       tier: 'watch',
       category: 'rain',
       icon: 'cloud-rain',
       title: 'Moderate rain',
-      detail: `Heaviest around ${isoToLocalTime(rainWindow.peak)}, up to ${round(rainWindow.peakMm, 1)} mm/hr. Reduced visibility and a wet launch. Eases after ~${isoToLocalTime(rainWindow.end)}.`,
-      window: { start: rainWindow.start, peak: rainWindow.peak, end: rainWindow.end }
+      detail: window.confidence === 'sharp'
+        ? `Rain builds from ${isoToLocalTime(window.start)}, peaking up to ${round(rainWindow.peakMm, 1)} mm/hr near ${isoToLocalTime(window.peak ?? rainWindow.peak)}. Easing by ${isoToLocalTime(window.end ?? window.start)}.`
+        : 'Reduced visibility likely through the afternoon as rain moves in.',
+      window
     });
   }
 
   if (visibility.label !== 'Generally good') {
     const visibilityHit = daylightForecast.find((hour) => Number(hour.precipProbPct ?? 0) >= 70 || Number(hour.precipMm ?? 0) >= 1.5);
+    const window = visibilityHit
+      ? buildWatchWindow({ start: visibilityHit.t, peak: visibilityHit.t, end: addLocalHours(visibilityHit.t, 2), daylight, forceSoft: true })
+      : undefined;
     rows.push({
       id: 'visibility-watch',
       tier: 'watch',
@@ -945,20 +958,23 @@ function buildBoatingAlerts({
       icon: 'eye',
       title: 'Reduced visibility',
       detail: visibility.detail,
-      window: visibilityHit ? { start: visibilityHit.t, peak: visibilityHit.t, end: addLocalHours(visibilityHit.t, 2) } : undefined
+      window
     });
   }
 
   const tideRange = daylight ? getDaylightTideRange(tideEvents, daylight) : null;
   if (tideRange && tideRange.rangeM >= 3.5) {
+    const window = buildWatchWindow({ start: tideRange.start, peak: tideRange.peak, end: tideRange.end, daylight });
     rows.push({
       id: 'tide-watch',
       tier: 'watch',
       category: 'tide',
       icon: 'wave-sine',
       title: 'Large tide swing',
-      detail: `${round(tideRange.rangeM, 1)} m range in daylight. Expect stronger current near the turns.`,
-      window: { start: tideRange.start, peak: tideRange.peak, end: tideRange.end }
+      detail: window.confidence === 'sharp'
+        ? `${round(tideRange.rangeM, 1)} m daylight range from ${isoToLocalTime(window.start)} to ${isoToLocalTime(window.end ?? window.start)}. Stronger current near the turns.`
+        : `${round(tideRange.rangeM, 1)} m range in daylight. Expect stronger current near the turns.`,
+      window
     });
   }
 
@@ -1025,6 +1041,43 @@ function contiguousWindow(rows: ForecastAlertHour[], predicate: (hour: ForecastA
   const matching = rows.filter(predicate);
   if (!matching.length) return null;
   return { start: matching[0].t, end: matching[matching.length - 1].t };
+}
+
+function buildWatchWindow({
+  start,
+  peak,
+  end,
+  daylight,
+  forceSoft = false
+}: {
+  start: string;
+  peak?: string;
+  end: string;
+  daylight?: DaylightWindow;
+  forceSoft?: boolean;
+}): NonNullable<BoatingAlert['window']> {
+  const confidence = !forceSoft && isSharpWatchWindow({ start, end, daylight }) ? 'sharp' : 'soft';
+  return { start, peak, end, confidence };
+}
+
+function isSharpWatchWindow({
+  start,
+  end,
+  daylight
+}: {
+  start: string;
+  end: string;
+  daylight?: DaylightWindow;
+}) {
+  if (!daylight) return false;
+  if (!isWithinWindow(start, daylight) || !isWithinWindow(end, daylight)) return false;
+
+  const startMinute = extractLocalMinuteOfDay(start);
+  const endMinute = extractLocalMinuteOfDay(end);
+  if (startMinute == null || endMinute == null) return false;
+
+  const spanMinutes = endMinute - startMinute;
+  return spanMinutes > 0 && spanMinutes <= 6 * 60;
 }
 
 function getDaylightTideRange(events: Array<{ t: string; heightM?: number }>, daylight: DaylightWindow) {

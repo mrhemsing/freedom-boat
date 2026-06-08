@@ -1180,7 +1180,8 @@ summary::-webkit-details-marker {
 }
 
 .alertTimeBar{
-  margin-top: 10px;
+  margin-top: 12px;
+  padding-top: 8px;
 }
 
 .alertTimeTrack{
@@ -1188,7 +1189,7 @@ summary::-webkit-details-marker {
   height: 5px;
   border-radius: 999px;
   background: rgba(11, 18, 32, 0.12);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .alertTimeFill{
@@ -1202,22 +1203,74 @@ summary::-webkit-details-marker {
 
 .alertTimePeak{
   position: absolute;
-  top: -2px;
-  width: 3px;
-  height: 9px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: currentColor;
+  border: 2px solid rgba(255, 255, 255, 0.90);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1px rgba(11, 18, 32, 0.12);
+}
+
+.alertTimeNow{
+  position: absolute;
+  top: -7px;
+  bottom: -7px;
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.72);
   transform: translateX(-50%);
 }
 
-.alertTimeTicks{
-  margin-top: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px 10px;
+.alertTimeLabels{
+  position: relative;
+  height: 34px;
+  margin-top: 8px;
   color: rgba(11, 18, 32, 0.52);
-  font-size: 11px;
-  font-weight: 750;
+}
+
+.alertTimeLabel{
+  position: absolute;
+  top: 0;
+  display: inline-grid;
+  gap: 1px;
+  min-width: 42px;
+  transform: translateX(-50%);
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.alertTimeLabel em{
+  color: rgba(11, 18, 32, 0.42);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.alertTimeLabelNow{
+  top: -31px;
+  min-width: 24px;
+  padding: 0;
+  color: rgba(11, 18, 32, 0.70);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.alertTimeLabelEdgeLeft{
+  left: 0;
+  transform: none;
+  text-align: left;
+}
+
+.alertTimeLabelEdgeRight{
+  right: 0;
+  transform: none;
+  text-align: right;
 }
 
 .cardBody {

@@ -151,6 +151,7 @@ export interface BoatingAlert {
     start: string;
     peak?: string;
     end?: string;
+    confidence: 'sharp' | 'soft';
   };
   source?: string;
 }
@@ -172,11 +173,13 @@ function iconForAlert(name: string) {
 export function BoatingAlertsModule({
   items,
   dayLabel,
-  daylight
+  daylight,
+  nowIso
 }: {
   items: BoatingAlert[];
   dayLabel: string;
   daylight?: { start: string; end: string };
+  nowIso?: string | null;
 }) {
   const hasWarning = items.some((item) => item.tier === 'warning');
   const activeCount = items.length;
@@ -221,7 +224,7 @@ export function BoatingAlertsModule({
                 </div>
                 <div className="boatingAlertDetail">{item.detail}</div>
                 {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
-                {item.window ? <AlertTimeBar window={item.window} daylight={daylight} /> : null}
+                {item.window?.confidence === 'sharp' ? <AlertTimeBar window={item.window} daylight={daylight} nowIso={nowIso} /> : null}
               </div>
             </div>
           ))}
@@ -233,51 +236,105 @@ export function BoatingAlertsModule({
 
 function AlertTimeBar({
   window,
-  daylight
+  daylight,
+  nowIso
 }: {
   window: NonNullable<BoatingAlert['window']>;
   daylight?: { start: string; end: string };
+  nowIso?: string | null;
 }) {
   if (!daylight?.start || !daylight?.end) return null;
 
-  const daylightStart = localMinute(daylight.start);
-  const daylightEnd = localMinute(daylight.end);
-  const start = localMinute(window.start);
-  const end = localMinute(window.end ?? window.peak ?? window.start);
-  const peak = window.peak ? localMinute(window.peak) : null;
-  if (daylightStart == null || daylightEnd == null || start == null || end == null || daylightEnd <= daylightStart) {
+  const endIso = window.end ?? window.peak ?? window.start;
+  const left = pct(window.start, daylight.start, daylight.end);
+  const endPct = pct(endIso, daylight.start, daylight.end);
+  const width = Math.max(3, endPct - left);
+  const showPeak = Boolean(
+    window.peak
+    && Math.abs(localMs(window.peak) - localMs(window.start)) > 30 * 60_000
+    && Math.abs(localMs(endIso) - localMs(window.peak)) > 30 * 60_000
+  );
+  const peakLeft = window.peak ? pct(window.peak, daylight.start, daylight.end) : null;
+  const nowVisible = Boolean(nowIso && sameLocalDay(nowIso, daylight.start) && localMs(nowIso) >= localMs(daylight.start) && localMs(nowIso) <= localMs(daylight.end));
+  const nowLeft = nowVisible && nowIso ? pct(nowIso, daylight.start, daylight.end) : null;
+
+  if (!Number.isFinite(left) || !Number.isFinite(endPct) || localMs(daylight.end) <= localMs(daylight.start)) {
     return null;
   }
 
-  const scale = daylightEnd - daylightStart;
-  const left = clampPercent(((start - daylightStart) / scale) * 100);
-  const right = clampPercent(((end - daylightStart) / scale) * 100);
-  const width = Math.max(3, right - left);
-  const peakLeft = peak == null ? null : clampPercent(((peak - daylightStart) / scale) * 100);
-
   return (
-    <div className="alertTimeBar" aria-label={`Window ${isoToLocalTime(window.start)} to ${isoToLocalTime(window.end ?? window.start)}`}>
+    <div className="alertTimeBar" aria-label={`Window ${formatLocalTimeLabel(window.start)} to ${formatLocalTimeLabel(endIso)}`}>
       <div className="alertTimeTrack">
         <div className="alertTimeFill" style={{ left: `${left}%`, width: `${width}%` }} />
-        {peakLeft != null ? <div className="alertTimePeak" style={{ left: `${peakLeft}%` }} /> : null}
+        {showPeak && peakLeft != null ? <div className="alertTimePeak" style={{ left: `${peakLeft}%` }} /> : null}
+        {nowLeft != null ? <div className="alertTimeNow" style={{ left: `${nowLeft}%` }} /> : null}
       </div>
-      <div className="alertTimeTicks">
-        <span>{isoToLocalTime(daylight.start)}</span>
-        <span>{isoToLocalTime(window.start)}</span>
-        {window.peak ? <span>{isoToLocalTime(window.peak)}</span> : null}
-        {window.end ? <span>{isoToLocalTime(window.end)}</span> : null}
+      <div className="alertTimeLabels">
+        <span className="alertTimeLabel alertTimeLabelEdgeLeft">
+          {formatLocalTimeLabel(daylight.start)}
+          <em>sunrise</em>
+        </span>
+        {nowLeft != null ? (
+          <span className="alertTimeLabel alertTimeLabelNow" style={{ left: `${nowLeft}%` }}>
+            now
+          </span>
+        ) : null}
+        <span className="alertTimeLabel" style={{ left: `${left}%` }}>
+          {formatLocalTimeLabel(window.start)}
+          <em>starts</em>
+        </span>
+        {showPeak && window.peak && peakLeft != null ? (
+          <span className="alertTimeLabel" style={{ left: `${peakLeft}%` }}>
+            {formatLocalTimeLabel(window.peak)}
+            <em>peak</em>
+          </span>
+        ) : null}
+        <span className="alertTimeLabel" style={{ left: `${endPct}%` }}>
+          {formatLocalTimeLabel(endIso)}
+          <em>eases</em>
+        </span>
+        <span className="alertTimeLabel alertTimeLabelEdgeRight">
+          {formatLocalTimeLabel(daylight.end)}
+          <em>sunset</em>
+        </span>
       </div>
     </div>
   );
 }
 
-function localMinute(iso?: string) {
+export function alertTimePct(t: string, sunrise: string, sunset: string) {
+  return pct(t, sunrise, sunset);
+}
+
+function pct(t: string, sunrise: string, sunset: string) {
+  const span = localMs(sunset) - localMs(sunrise);
+  if (span <= 0) return 0;
+  const value = ((localMs(t) - localMs(sunrise)) / span) * 100;
+  return clampPercent(value);
+}
+
+function sameLocalDay(a?: string | null, b?: string | null) {
+  const left = String(a || '').match(/^(\d{4}-\d{2}-\d{2})T/)?.[1];
+  const right = String(b || '').match(/^(\d{4}-\d{2}-\d{2})T/)?.[1];
+  return Boolean(left && right && left === right);
+}
+
+function localMs(iso?: string) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return Number.NaN;
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]));
+}
+
+function formatLocalTimeLabel(iso?: string) {
   const m = String(iso || '').match(/T(\d{2}):(\d{2})/);
-  if (!m) return null;
-  const hh = Number(m[1]);
-  const mm = Number(m[2]);
-  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
-  return hh * 60 + mm;
+  if (!m) return isoToLocalTime(String(iso || ''));
+  let hh = Number(m[1]);
+  const mm = m[2];
+  if (!Number.isFinite(hh)) return isoToLocalTime(String(iso || ''));
+  const ampm = hh >= 12 ? 'PM' : 'AM';
+  hh = hh % 12;
+  if (hh === 0) hh = 12;
+  return `${hh}:${mm} ${ampm}`;
 }
 
 function clampPercent(value: number) {
