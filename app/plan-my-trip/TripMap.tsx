@@ -101,8 +101,7 @@ const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
 const ALL_MARKERS_OVERVIEW_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM + 1;
 const ALL_MARKERS_OVERVIEW_MOBILE_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM;
-const ALL_MARKERS_OVERVIEW_LAT_OFFSET = -0.18;
-const ALL_MARKERS_OVERVIEW_WATER_LON_OFFSET = -0.7;
+const ALL_MARKERS_OVERVIEW_CENTER = { lat: 48.85, lon: -123.7 };
 const DEFAULT_HOME_MARINA_OVERVIEW_ZOOM = 11;
 const DEFAULT_HOME_MARINA_WATER_LON_OFFSET = -0.2;
 const DEFAULT_MARINA_FOCUS_ZOOM = 13;
@@ -2259,18 +2258,12 @@ function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, 
 
   if (showAllMarkersOverview) {
     const isMobileOverview = isMobilePlanner();
-    const overviewMaxZoom = isMobileOverview ? ALL_MARKERS_OVERVIEW_MOBILE_ZOOM : ALL_MARKERS_OVERVIEW_ZOOM;
-    fitPlannerMap(map, bounds, isExpanded, overviewMaxZoom);
-    const center = map.getCenter();
-    const zoom = isMobileOverview
-      ? Math.min(map.getZoom() + 1, ALL_MARKERS_OVERVIEW_MOBILE_ZOOM)
-      : Math.min(map.getZoom() + 1, ALL_MARKERS_OVERVIEW_ZOOM);
     map.setView(
       [
-        center.lat + ALL_MARKERS_OVERVIEW_LAT_OFFSET,
-        center.lng + ALL_MARKERS_OVERVIEW_WATER_LON_OFFSET
+        ALL_MARKERS_OVERVIEW_CENTER.lat,
+        ALL_MARKERS_OVERVIEW_CENTER.lon
       ],
-      zoom,
+      isMobileOverview ? ALL_MARKERS_OVERVIEW_MOBILE_ZOOM : ALL_MARKERS_OVERVIEW_ZOOM,
       { animate: false }
     );
     return;
