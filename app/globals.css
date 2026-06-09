@@ -3410,7 +3410,7 @@ hr.soft {
 .plannerDayTopline,
 .plannerDayLabel,
 .plannerDayDate,
-.plannerDayTemperature,
+.plannerDayScoreValue,
 .plannerDayScoreBar,
 .plannerDayWind {
   display: block;
@@ -3455,7 +3455,7 @@ hr.soft {
   color: #172334;
 }
 
-.plannerDayTemperature {
+.plannerDayScoreValue {
   color: var(--day-score, var(--planner-teal));
   font-size: 25px;
   line-height: 0.95;
@@ -5275,7 +5275,7 @@ hr.soft {
     font-size: 11px;
   }
 
-  .plannerMapDayOverlay .plannerDayTemperature {
+  .plannerMapDayOverlay .plannerDayScoreValue {
     font-size: 21px;
   }
 

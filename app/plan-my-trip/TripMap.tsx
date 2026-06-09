@@ -1125,7 +1125,6 @@ export default function TripMap({ marinas }: TripMapProps) {
           const wind = timebarWind(index);
           const outlook = timebarOutlook(index);
           const date = dayChipDate(index, outlook);
-          const temperature = dayTemperatureLabel(outlook);
           const condition = dayConditionIcon(outlook, score);
           return (
             <button
@@ -1146,7 +1145,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                 </span>
                 <span className="plannerDayIcon" aria-label={condition.label}>{condition.icon}</span>
               </span>
-              <span className="plannerDayTemperature">{temperature}</span>
+              <span className="plannerDayScoreValue" aria-label={`${score} boating score`}>{score}</span>
               <span className="plannerDayScoreBar" aria-label={`${score} boating score`}>
                 <span />
               </span>
@@ -2267,12 +2266,6 @@ function dayChipDate(offset: number, outlook?: DailyOutlook | null) {
     weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
     monthDay: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   };
-}
-
-function dayTemperatureLabel(outlook?: DailyOutlook | null) {
-  const tempC = outlook?.maxTempC ?? outlook?.minTempC;
-  if (typeof tempC !== 'number' || !Number.isFinite(tempC)) return '--';
-  return String(Math.round((tempC * 9) / 5 + 32));
 }
 
 function dayConditionIcon(outlook: DailyOutlook | null | undefined, score: number) {
