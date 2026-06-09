@@ -2306,7 +2306,11 @@ function isMobilePlanner() {
 
 function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, marinas: Marina[]) {
   const searchParams = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
-  const hasLinkedMarina = searchParams?.has('marina') ?? false;
+  const linkedMarinaSlug = searchParams?.get('marina') ?? null;
+  const linkedMarina = linkedMarinaSlug
+    ? marinas.find((marina) => seoSlugForMarina(marina) === linkedMarinaSlug) ?? null
+    : null;
+  const hasLinkedMarina = Boolean(linkedMarinaSlug);
   const showAllMarkersOverview = searchParams?.get('overview') === 'all';
   const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
   const homeMarina = isDesktop && !hasLinkedMarina ? findPlannerHomeMarina(marinas) : null;
@@ -2321,6 +2325,12 @@ function applyInitialPlannerMapView(map: any, bounds: any, isExpanded: boolean, 
       isMobileOverview ? ALL_MARKERS_OVERVIEW_MOBILE_ZOOM : ALL_MARKERS_OVERVIEW_ZOOM,
       { animate: false }
     );
+    return;
+  }
+
+  if (linkedMarina) {
+    const linkedFocusZoom = isMobilePlanner() ? MOBILE_LINKED_MARINA_FOCUS_ZOOM : LINKED_MARINA_FOCUS_ZOOM;
+    map.setView([linkedMarina.lat, linkedMarina.lon], linkedFocusZoom, { animate: false });
     return;
   }
 
