@@ -136,6 +136,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const isRouteEditingRef = useRef(false);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [forecastFocusMarinaId, setForecastFocusMarinaId] = useState<number | null>(null);
   const [selectedLaunchId, setSelectedLaunchId] = useState<number | null>(null);
   const [sheetState, setSheetState] = useState<SheetState>('half');
   const [mobileMarkerModal, setMobileMarkerModal] = useState(false);
@@ -199,6 +200,9 @@ export default function TripMap({ marinas }: TripMapProps) {
   }, [launches, query, showLaunches, visibleMarinas]);
 
   const selected = selectedId ? activeMarinas.find((marina) => marina.id === selectedId) ?? null : null;
+  const forecastFocusMarina = selected
+    ?? (forecastFocusMarinaId ? activeMarinas.find((marina) => marina.id === forecastFocusMarinaId) ?? null : null);
+  const focusedMarinaId = selectedId ?? forecastFocusMarinaId;
   const selectedLaunch = selectedLaunchId ? launches.find((launch) => launch.id === selectedLaunchId) ?? null : null;
   const showSheetDetail = Boolean((selected || selectedLaunch) && !mobileMarkerModal);
   const planButtonLabel = tripStops.length ? `View float plan (${tripStops.length})` : 'Plan a trip';
@@ -229,10 +233,11 @@ export default function TripMap({ marinas }: TripMapProps) {
   useEffect(() => {
     alwaysVisibleClusterIdsRef.current = new Set([
       ...(selectedId == null ? [] : [selectedId]),
+      ...(forecastFocusMarinaId == null ? [] : [forecastFocusMarinaId]),
       ...tripStops
     ]);
     clusterRefreshRef.current?.();
-  }, [selectedId, tripStops]);
+  }, [forecastFocusMarinaId, selectedId, tripStops]);
 
   useEffect(() => {
     if (!planToast) return;
@@ -375,6 +380,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     const selectedMarina = activeMarinas.find((marina) => marina.id === selectedId);
     if (selectedMarina && !selectedMarina.freedomClub) {
       setSelectedId(null);
+      setForecastFocusMarinaId(null);
       setMobileMarkerModal(false);
     }
   }, [activeMarinas, selectedId, showFreedomOnly]);
@@ -503,6 +509,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             pendingListScrollMarinaIdRef.current = id;
             setTripMode(false);
             setSelectedId(null);
+            setForecastFocusMarinaId(id);
             setSelectedLaunchId(null);
             setMobileMarkerModal(false);
             setSheetState('full');
@@ -512,6 +519,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         } else if (action === 'detail') {
           rememberListScroll();
           setSelectedId(id);
+          setForecastFocusMarinaId(id);
           setSelectedLaunchId(null);
           setMobileMarkerModal(false);
           setSheetState('full');
@@ -594,7 +602,7 @@ export default function TripMap({ marinas }: TripMapProps) {
           initialBounds.extend([marina.lat, marina.lon]);
         }
         const marker = L.marker([marina.lat, marina.lon], {
-          icon: marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, tripStopOrder.get(marina.id), selectedId, tripStopSet.has(marina.id), dayIndex, vessel, weeklyOutlooks),
+          icon: marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, tripStopOrder.get(marina.id), focusedMarinaId, tripStopSet.has(marina.id), dayIndex, vessel, weeklyOutlooks),
           bubblingMouseEvents: false,
           zIndexOffset: marina.freedomClub ? 600 : 0
         }).addTo(map);
@@ -706,7 +714,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         const listIndex = marinaListIndex.get(marina.id) ?? marina.id;
         const order = tripStopOrder.get(marina.id);
         const inPlan = tripStopSet.has(marina.id);
-        marker.setIcon(marinaIcon(L, marina, listIndex, order, selectedId, inPlan, dayIndex, vessel, weeklyOutlooks));
+        marker.setIcon(marinaIcon(L, marina, listIndex, order, focusedMarinaId, inPlan, dayIndex, vessel, weeklyOutlooks));
         marker.getPopup?.()?.setContent(marinaPopupHtml(marina, dayIndex, vessel, weeklyOutlooks, inPlan, order));
       });
     });
@@ -714,7 +722,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       disposed = true;
     };
-  }, [dayIndex, marinaListIndex, selectedId, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
+  }, [dayIndex, focusedMarinaId, marinaListIndex, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
 
   useEffect(() => {
     isRouteEditingRef.current = isRouteEditing;
@@ -748,9 +756,9 @@ export default function TripMap({ marinas }: TripMapProps) {
         if (marker) {
           const order = tripStopOrder.get(marina.id);
           const inPlan = tripStopSet.has(marina.id);
-          marker.setIcon(marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, order, selectedId, inPlan, dayIndex, vessel, weeklyOutlooks));
+          marker.setIcon(marinaIcon(L, marina, marinaListIndex.get(marina.id) ?? marina.id, order, focusedMarinaId, inPlan, dayIndex, vessel, weeklyOutlooks));
           marker.getPopup?.()?.setContent(marinaPopupHtml(marina, dayIndex, vessel, weeklyOutlooks, inPlan, order));
-          marker.setZIndexOffset(selectedId === marina.id || inPlan || marina.freedomClub ? 700 : 0);
+          marker.setZIndexOffset(focusedMarinaId === marina.id || inPlan || marina.freedomClub ? 700 : 0);
         }
       });
       clusterRefreshRef.current?.();
@@ -758,7 +766,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     return () => {
       active = false;
     };
-  }, [dayIndex, marinaListIndex, selectedId, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
+  }, [dayIndex, focusedMarinaId, marinaListIndex, tripStopOrder, tripStopSet, vessel, visibleMarinas, weeklyOutlooks]);
 
   useEffect(() => {
     routeClickHandlerRef.current = (latlng) => {
@@ -862,6 +870,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   function openMarina(marina: Marina) {
     rememberListScroll();
     setSelectedId(marina.id);
+    setForecastFocusMarinaId(marina.id);
     setSelectedLaunchId(null);
     setMobileMarkerModal(false);
     setSheetState('full');
@@ -875,6 +884,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     setTripMode(false);
     setShowLaunches(false);
     setSelectedId(null);
+    setForecastFocusMarinaId(marinaId);
     setSelectedLaunchId(null);
     setMobileMarkerModal(false);
     setSheetState('full');
@@ -890,6 +900,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       setTripMode(false);
       setShowLaunches(false);
       setSelectedId(null);
+      setForecastFocusMarinaId(marina.id);
       setSelectedLaunchId(null);
       setMobileMarkerModal(false);
       setSheetState('collapsed');
@@ -929,6 +940,7 @@ export default function TripMap({ marinas }: TripMapProps) {
     rememberListScroll();
     setSelectedLaunchId(launch.id);
     setSelectedId(null);
+    setForecastFocusMarinaId(null);
     setMobileMarkerModal(false);
     setSheetState('full');
     setIsFullscreen(false);
@@ -937,6 +949,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   function closeSelectedDetail() {
     restoreListScrollRef.current = true;
     setSelectedId(null);
+    setForecastFocusMarinaId(null);
     setSelectedLaunchId(null);
     setMobileMarkerModal(false);
   }
@@ -1071,13 +1084,13 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   function timebarScore(index: number) {
-    return selected
-      ? marinaScore(selected, index, vessel, weeklyOutlooks)
+    return forecastFocusMarina
+      ? marinaScore(forecastFocusMarina, index, vessel, weeklyOutlooks)
       : averageScore(visibleMarinas.length ? visibleMarinas : activeMarinas, index, vessel, weeklyOutlooks);
   }
 
   function timebarWind(index: number) {
-    if (selected) return windLabel(conditionsFor(selected, index, weeklyOutlooks));
+    if (forecastFocusMarina) return windLabel(conditionsFor(forecastFocusMarina, index, weeklyOutlooks));
     const marinasForWind = visibleMarinas.length ? visibleMarinas : activeMarinas;
     if (!marinasForWind.length) return null;
     const averageWind = Math.round(marinasForWind.reduce((sum, marina) => {
@@ -1087,8 +1100,8 @@ export default function TripMap({ marinas }: TripMapProps) {
   }
 
   function timebarOutlook(index: number) {
-    if (selected?.locationId) {
-      const selectedOutlook = weeklyOutlooks[selected.locationId]?.[index];
+    if (forecastFocusMarina?.locationId) {
+      const selectedOutlook = weeklyOutlooks[forecastFocusMarina.locationId]?.[index];
       if (selectedOutlook) return selectedOutlook;
     }
 
@@ -1169,6 +1182,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               onClick={() => {
                 setTripMode((value) => !value);
                 setSelectedId(null);
+                setForecastFocusMarinaId(null);
                 setSelectedLaunchId(null);
                 setMobileMarkerModal(false);
                 setIsFullscreen(false);
@@ -1190,6 +1204,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                   setTripMode(true);
                   setSheetState('full');
                   setSelectedId(null);
+                  setForecastFocusMarinaId(null);
                   setSelectedLaunchId(null);
                   setMobileMarkerModal(false);
                 }}
@@ -1208,6 +1223,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               aria-pressed={isFullscreen}
               onClick={() => {
                 setSelectedId(null);
+                setForecastFocusMarinaId(null);
                 setSelectedLaunchId(null);
                 setMobileMarkerModal(false);
                 setIsFullscreen((value) => !value);
@@ -1531,6 +1547,7 @@ export default function TripMap({ marinas }: TripMapProps) {
             onOpen={() => {
               setTripMode(true);
               setSelectedId(null);
+              setForecastFocusMarinaId(null);
               setSelectedLaunchId(null);
               setMobileMarkerModal(false);
               setIsFullscreen(false);
