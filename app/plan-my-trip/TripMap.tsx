@@ -349,16 +349,20 @@ export default function TripMap({ marinas }: TripMapProps) {
 
     let cancelled = false;
     Promise.all(locationIds.map(async (locationId) => {
-      const res = await fetch(`/api/${locationId}/forecast?hours=120`);
-      if (!res.ok) throw new Error(`forecast ${locationId}`);
-      const data = await res.json();
-      return [
-        locationId,
-        buildWeeklyOutlook(data?.forecast ?? [], data?.sunByDay ?? [], 5)
-      ] as const;
+      try {
+        const res = await fetch(`/api/${locationId}/forecast?hours=120`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return [
+          locationId,
+          buildWeeklyOutlook(data?.forecast ?? [], data?.sunByDay ?? [], 5)
+        ] as const;
+      } catch {
+        return null;
+      }
     }))
       .then((entries) => {
-        if (!cancelled) setWeeklyOutlooks(Object.fromEntries(entries));
+        if (!cancelled) setWeeklyOutlooks(Object.fromEntries(entries.filter((entry): entry is [string, DailyOutlook[]] => entry != null)));
       })
       .catch(() => {
         if (!cancelled) setWeeklyOutlooks({});
