@@ -172,6 +172,10 @@ export default function TripMap({ marinas }: TripMapProps) {
     return new Map(tripStops.map((id, index) => [id, index + 1]));
   }, [tripStops]);
   const resolvedRouteNodes = useMemo(() => resolveRouteNodes(routeNodes, activeMarinas), [routeNodes, activeMarinas]);
+  const tripTray = useMemo(() => {
+    const legs = buildTripLegs(resolvedRouteNodes, departAt, speedKt, dayIndex, vessel, weeklyOutlooks, liveTides, currentForecasts);
+    return tripSummary(legs);
+  }, [currentForecasts, dayIndex, departAt, liveTides, resolvedRouteNodes, speedKt, vessel, weeklyOutlooks]);
   const marinaListIndex = useMemo(() => {
     return new Map(activeMarinas.map((marina, index) => [marina.id, index + 1]));
   }, [activeMarinas]);
@@ -197,6 +201,8 @@ export default function TripMap({ marinas }: TripMapProps) {
   const selected = selectedId ? activeMarinas.find((marina) => marina.id === selectedId) ?? null : null;
   const selectedLaunch = selectedLaunchId ? launches.find((launch) => launch.id === selectedLaunchId) ?? null : null;
   const showSheetDetail = Boolean((selected || selectedLaunch) && !mobileMarkerModal);
+  const planButtonLabel = tripStops.length ? `View float plan (${tripStops.length})` : 'Plan a trip';
+  const showTripTray = tripStops.length > 0 && !tripMode && !showSheetDetail;
 
   useEffect(() => {
     showSheetDetailRef.current = showSheetDetail;
@@ -1172,7 +1178,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               <svg viewBox="0 0 24 24" fill="none" aria-hidden>
                 <polygon points="3 11 22 2 13 21 11 13 3 11" />
               </svg>
-              <span>Plan a trip</span>
+              <span>{planButtonLabel}</span>
             </button>
             {tripStops.length >= 2 ? (
               <button
@@ -1518,6 +1524,20 @@ export default function TripMap({ marinas }: TripMapProps) {
             </>
           )}
         </div>
+        {showTripTray ? (
+          <TripTray
+            stopCount={tripStops.length}
+            distance={tripTray.distance}
+            onOpen={() => {
+              setTripMode(true);
+              setSelectedId(null);
+              setSelectedLaunchId(null);
+              setMobileMarkerModal(false);
+              setIsFullscreen(false);
+              setSheetState('full');
+            }}
+          />
+        ) : null}
       </section>
       {planToast ? (
         <div className="plannerToast" role="status" aria-live="polite">
@@ -1663,9 +1683,27 @@ function PlanToggleButton({
       aria-label={label}
       onClick={onToggle}
     >
-      <span className="plannerPlanToggleIcon">{inPlan ? (order ?? '') : '+'}</span>
+      {compact && inPlan ? null : <span className="plannerPlanToggleIcon">{inPlan ? (order ?? '') : '+'}</span>}
       <span className="plannerPlanToggleText">{inPlan ? 'In plan' : 'Add to trip'}</span>
       {inPlan ? <span className="plannerPlanToggleHover">Remove</span> : null}
+    </button>
+  );
+}
+
+function TripTray({
+  stopCount,
+  distance,
+  onOpen
+}: {
+  stopCount: number;
+  distance: number;
+  onOpen: () => void;
+}) {
+  const stopLabel = `${stopCount} ${stopCount === 1 ? 'stop' : 'stops'}`;
+  return (
+    <button className="plannerTripTray" type="button" onClick={onOpen} aria-label={`View float plan for ${stopLabel}`}>
+      <span>{stopLabel} · {distance.toFixed(1)} nm</span>
+      <strong>View float plan →</strong>
     </button>
   );
 }

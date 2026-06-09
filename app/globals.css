@@ -3813,6 +3813,56 @@ hr.soft {
   padding: 0 18px 26px;
 }
 
+.plannerTripTray {
+  flex: 0 0 auto;
+  width: calc(100% - 36px);
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-radius: 15px;
+  margin: 0 18px 18px;
+  padding: 12px 14px;
+  background: var(--planner-navy);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  box-shadow: 0 12px 28px rgba(12, 58, 76, 0.22);
+}
+
+.plannerTripTray span,
+.plannerTripTray strong {
+  display: block;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.plannerTripTray span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.plannerTripTray strong {
+  flex: 0 0 auto;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.plannerTripTray:hover,
+.plannerTripTray:focus-visible {
+  background: #082d3b;
+}
+
+.plannerTripTray:focus-visible {
+  outline: 3px solid rgba(31, 138, 155, 0.28);
+  outline-offset: 2px;
+}
+
 .plannerSearchRow {
   display: flex;
   align-items: center;
@@ -4674,9 +4724,23 @@ hr.soft {
   color: #6D28D9;
 }
 
+.plannerPlanToggle.compact.active {
+  min-width: 74px;
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
 .plannerPlanToggle.compact.active .plannerPlanToggleIcon {
   background: transparent;
   color: currentColor;
+}
+
+.plannerPlanToggle.compact.active .plannerPlanToggleText {
+  display: none;
+}
+
+.plannerPlanToggle.compact.active .plannerPlanToggleHover {
+  display: inline;
 }
 
 .plannerPlanToggleHover {
@@ -5664,6 +5728,18 @@ hr.soft {
 
   .plannerSheetInner {
     padding: 0 14px 20px;
+  }
+
+  .plannerTripTray {
+    width: calc(100% - 28px);
+    min-height: 54px;
+    margin: 0 14px 14px;
+    padding: 12px 14px;
+  }
+
+  .plannerTripTray span,
+  .plannerTripTray strong {
+    font-size: 14px;
   }
 
   .plannerSheet-collapsed .plannerGrab {
