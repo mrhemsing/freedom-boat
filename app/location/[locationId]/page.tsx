@@ -6,7 +6,7 @@ import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../li
 import { buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../../lib/outlook';
 import { areaHubForPlace, canonicalUrl, marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
 import { breadcrumbJsonLd, placeJsonLd } from '../../../lib/seo-schema';
-import { ISR_REVALIDATE_SECONDS, POOR_SCORE_THRESHOLD } from '../../../lib/seo-config';
+import { ISR_REVALIDATE_SECONDS } from '../../../lib/seo-config';
 import { getLocationWeatherSnapshot } from '../../../lib/weather-snapshots';
 import { BoatingAlertsModule, Card, ForecastStrip, KpiRow, TideList, WindArrow, type BoatingAlert } from './ui';
 import { TideMiniChart, WindChart } from './charts';
@@ -155,10 +155,7 @@ export default async function LocationPage({
     nextTide,
     isTidalLocation
   });
-  const severeAdvisory = getSevereAdvisory(marine?.items ?? []);
-  const beforeBookWarning = homeMarina ? getBeforeBookWarning(displayedTodayScore, severeAdvisory) : null;
-  const lakeContext = homeMarina ? lakeOrSaltContext(loc, homeMarina) : null;
-  const planLinkLabel = `Plan a trip from ${loc.name}`;
+  const planLinkLabel = `Plan a trip to ${loc.name}`;
 
   return (
     <main className="container">
@@ -195,7 +192,7 @@ export default async function LocationPage({
         </div>
       </header>
 
-      {!isPlannerEmbed ? (
+      {!isPlannerEmbed && !homeMarina ? (
         <section className="answerFirstPanel" aria-label={`${loc.name} boating conditions summary`}>
           {area ? (
             <nav className="seoBreadcrumb locationBreadcrumb" aria-label="Breadcrumb">
@@ -207,27 +204,6 @@ export default async function LocationPage({
             </nav>
           ) : null}
           <p>{answerFirstVerdict}</p>
-          {homeMarina ? (
-            <div className="beforeBookStrip" aria-label={`Before you book ${loc.name}`}>
-              <div>
-                <span>Best window today</span>
-                <strong>{launchWindow.label}</strong>
-                <em>{launchWindow.detail}</em>
-              </div>
-              <div>
-                <span>Daylight</span>
-                <strong>{now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : 'Updating'} · {now?.sun?.sunset ? formatAsOf(now.sun.sunset) : 'Updating'}</strong>
-                <em>local marina time</em>
-              </div>
-              <div>
-                <span>Advisories</span>
-                <strong>{advisoryText.label}</strong>
-                <em>{advisoryText.detail}</em>
-              </div>
-            </div>
-          ) : null}
-          {beforeBookWarning ? <p className="bookingWarning">{beforeBookWarning}</p> : null}
-          {lakeContext ? <p className="lakeContext">{lakeContext}</p> : null}
           <a className="seoButton seoButtonPrimary locationPlanLink" href={mapHref} aria-label={planLinkLabel}>
             {planLinkLabel}
           </a>
@@ -714,32 +690,6 @@ function buildAnswerFirstVerdict({
   const warningText = advisoryLabel === 'No advisory' ? 'no active marine advisory' : advisoryLabel.toLowerCase();
 
   return `Boating conditions at ${placeName} today: ${scoreText}. ${windText}; ${warningText}.${tideText ? ` ${tideText}` : ''}`;
-}
-
-function getSevereAdvisory(items: Array<{ title?: string; severity?: string }>) {
-  return items.find((item) => String(item.severity || '').toLowerCase() === 'warning') ?? null;
-}
-
-function getBeforeBookWarning(score: number | undefined, advisory: { title?: string } | null) {
-  if (advisory?.title) return `Conditions are under a ${advisory.title} - check the forecast before booking.`;
-  if (typeof score === 'number' && score < POOR_SCORE_THRESHOLD) return 'Conditions are Poor today - check the forecast before booking.';
-  return null;
-}
-
-function lakeOrSaltContext(loc: { waterType?: 'tidal' | 'lake' | 'river'; name: string }, marina: SeoMarina) {
-  if (loc.waterType === 'lake') {
-    if (/coeur|hayden/i.test(`${loc.name} ${marina.area}`)) {
-      return `${loc.name} has no tide planning layer. Fair Tide still shows wind, gusts, daylight, rain, and 5-day boating scores so lake trips do not look like broken salt-water pages.`;
-    }
-    return `${loc.name} is a lake boating page. Fair Tide focuses on wind, daylight, rain, and launch windows; Lake Washington and Lake Union trips to Puget Sound may also involve the Ballard Locks and summer congestion.`;
-  }
-  if (loc.waterType === 'river') {
-    return `${loc.name} is a river boating page, so Fair Tide emphasizes wind, daylight, rain, and local river exposure rather than coastal tide timing.`;
-  }
-  if (/lake washington|lake union|leschi|yarrow bay|agc/i.test(`${marina.name} ${marina.area}`)) {
-    return 'Lake Washington and Lake Union trips may involve locks or bridges when crossing to Puget Sound; use this page as a pre-booking weather and daylight check.';
-  }
-  return 'Salt-water trips can change quickly with wind, tide, current, and marine advisories; use this page before booking and again before departure.';
 }
 
 const BC_LOCATION_ORDER = new Map([
