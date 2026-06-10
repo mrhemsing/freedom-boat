@@ -559,6 +559,134 @@ a:hover {
   font-weight: 750;
 }
 
+.beforeBookStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.beforeBookStrip div {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.beforeBookStrip span,
+.beforeBookStrip em {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.beforeBookStrip strong {
+  display: block;
+  margin-top: 5px;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.beforeBookStrip em {
+  margin-top: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.bookingWarning {
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(127, 29, 29, 0.32);
+  color: rgba(254, 226, 226, 0.95);
+  font-weight: 800;
+}
+
+.lakeContext {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px !important;
+}
+
+.locationPlanLink {
+  width: fit-content;
+}
+
+.independenceDisclosure {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.liveFrame {
+  position: relative;
+  height: 185px;
+  overflow: hidden;
+  border: 1px solid rgba(11, 18, 32, 0.10);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(14, 165, 164, 0.12), rgba(255, 255, 255, 0.92));
+}
+
+.liveFrameFill,
+.liveFrameIframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.liveFrameIframe {
+  border: 0;
+}
+
+.liveFrameMap {
+  height: 240px;
+  transform: translateY(-22px);
+}
+
+.liveFrameVideo {
+  transform: scale(1.8);
+  transform-origin: center center;
+}
+
+.liveFramePlaceholder,
+.webcamPoster {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  text-align: center;
+  color: rgba(11, 18, 32, 0.72);
+  font-weight: 850;
+}
+
+.webcamPoster {
+  gap: 8px;
+  background-position: center;
+  background-size: cover;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(2, 12, 27, 0.8);
+}
+
+.webcamPlay {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(14, 165, 164, 0.92);
+  box-shadow: 0 8px 22px rgba(2, 12, 27, 0.28);
+}
+
 .withinReachList {
   display: grid;
   gap: 8px;
@@ -1882,6 +2010,10 @@ hr.soft {
 .chartSvg { width: 100%; max-width: 100%; }
 
 @media (max-width: 720px) {
+  .beforeBookStrip {
+    grid-template-columns: 1fr;
+  }
+
   .globalHeader {
     position: sticky;
     top: 4px;

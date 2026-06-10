@@ -5,13 +5,17 @@ import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../../lib/outlook';
 import { areaHubForPlace, canonicalUrl, marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
-import { breadcrumbJsonLd } from '../../../lib/seo-schema';
+import { breadcrumbJsonLd, placeJsonLd } from '../../../lib/seo-schema';
+import { ISR_REVALIDATE_SECONDS, POOR_SCORE_THRESHOLD } from '../../../lib/seo-config';
 import { getLocationWeatherSnapshot } from '../../../lib/weather-snapshots';
 import { BoatingAlertsModule, Card, ForecastStrip, KpiRow, TideList, WindArrow, type BoatingAlert } from './ui';
 import { TideMiniChart, WindChart } from './charts';
 import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, IconThermometer, IconTide, IconWind } from './icons';
 import MarinaJump, { type MarinaJumpGroup } from './MarinaJump';
+import LazyFrame from './LazyFrame';
 import GlobalHeader from '../../GlobalHeader';
+
+export const revalidate = ISR_REVALIDATE_SECONDS;
 
 export async function generateMetadata({
   params
@@ -22,12 +26,16 @@ export async function generateMetadata({
   const loc = LOCATIONS[id];
   const name = loc?.name ?? 'Marina';
   const homeMarina = loc ? getFreedomClubMarinaForLocation(id) : null;
+  const primaryMarina = loc ? getPrimaryMarinaForLocation(id) : null;
+  const area = primaryMarina ? areaHubForPlace(primaryMarina) : { name: 'Pacific Northwest', slug: 'pacific-northwest' };
+  const seoSnapshot = loc ? await getLocationSeoSummary(id).catch(() => null) : null;
+  const isTidalLocation = loc?.waterType !== 'lake' && loc?.waterType !== 'river';
   const title = homeMarina
-    ? `Boating from ${name} - Conditions, Tides & Day Trips`
-    : `${name} Marine Forecast, Tides & Boating Conditions`;
+    ? `Boating from ${name} - Conditions${isTidalLocation ? ', Tides' : ''} & Trip Planning`
+    : `${name} Marine Forecast${isTidalLocation ? ', Tides' : ''} & Boating Conditions`;
   const description = homeMarina
-    ? `Heading out from ${name}? Today's conditions score, wind, tides, and day-trip destinations within reach. Plan before you book.`
-    : `Today's boating conditions for ${name}: wind, tides, marine warnings and a 0-100 score. Plan your trip with Fair Tide.`;
+    ? `Heading out from ${name}? Today: ${seoSnapshot?.scoreText ?? 'live conditions updating'}. See wind${isTidalLocation ? ', tides,' : ''} and marine advisories before you book. Plan your trip with Fair Tide.`
+    : `Today's boating conditions for ${name}${area ? `, ${area.name}` : ''}: ${seoSnapshot?.scoreText ? `${seoSnapshot.scoreText}, ` : ''}${seoSnapshot?.windText ? `${seoSnapshot.windText}. ` : ''}Live marine forecast and trip planning.`;
 
   return {
     title,
@@ -133,7 +141,8 @@ export default async function LocationPage({
   const plannerScore = isPlannerEmbed ? parsePlannerScore(searchParams?.plannerScore) : null;
   const plannerDayIndex = isPlannerEmbed ? parsePlannerDayIndex(searchParams?.plannerDay) : 0;
   const homeMarina = getFreedomClubMarinaForLocation(id);
-  const area = homeMarina ? areaHubForPlace(homeMarina) : null;
+  const primaryMarina = getPrimaryMarinaForLocation(id);
+  const area = primaryMarina ? areaHubForPlace(primaryMarina) : null;
   const todayOutlook = weeklyOutlook[0] ?? null;
   const displayedTodayScore = plannerScore != null && plannerDayIndex === 0 ? plannerScore : todayOutlook?.score;
   const answerFirstVerdict = buildAnswerFirstVerdict({
@@ -146,7 +155,10 @@ export default async function LocationPage({
     nextTide,
     isTidalLocation
   });
-  const reachableDestinations = homeMarina ? buildWithinReachDestinations(homeMarina, 20, 5) : [];
+  const severeAdvisory = getSevereAdvisory(marine?.items ?? []);
+  const beforeBookWarning = homeMarina ? getBeforeBookWarning(displayedTodayScore, severeAdvisory) : null;
+  const lakeContext = homeMarina ? lakeOrSaltContext(loc, homeMarina) : null;
+  const planLinkLabel = `Plan a trip from ${loc.name}`;
 
   return (
     <main className="container">
@@ -155,7 +167,7 @@ export default async function LocationPage({
         <div className="headerBrand">
           <div className="locationHeroTitle">
             <span>Conditions</span>
-            <h1>{loc.name} Boating Conditions</h1>
+            <h1>{homeMarina ? `Boating from ${loc.name}` : `${loc.name} Boating Conditions`}</h1>
           </div>
         </div>
         <a className="planMapButton" href={mapHref} aria-label={`Open ${loc.name} on trip map`}>
@@ -196,10 +208,29 @@ export default async function LocationPage({
           ) : null}
           <p>{answerFirstVerdict}</p>
           {homeMarina ? (
-            <p className="fbcDisclosure">
-              Fair Tide is independent and not affiliated with Freedom Boat Club.
-            </p>
+            <div className="beforeBookStrip" aria-label={`Before you book ${loc.name}`}>
+              <div>
+                <span>Best window today</span>
+                <strong>{launchWindow.label}</strong>
+                <em>{launchWindow.detail}</em>
+              </div>
+              <div>
+                <span>Daylight</span>
+                <strong>{now?.sun?.sunrise ? formatAsOf(now.sun.sunrise) : 'Updating'} · {now?.sun?.sunset ? formatAsOf(now.sun.sunset) : 'Updating'}</strong>
+                <em>local marina time</em>
+              </div>
+              <div>
+                <span>Advisories</span>
+                <strong>{advisoryText.label}</strong>
+                <em>{advisoryText.detail}</em>
+              </div>
+            </div>
           ) : null}
+          {beforeBookWarning ? <p className="bookingWarning">{beforeBookWarning}</p> : null}
+          {lakeContext ? <p className="lakeContext">{lakeContext}</p> : null}
+          <a className="seoButton seoButtonPrimary locationPlanLink" href={mapHref} aria-label={planLinkLabel}>
+            {planLinkLabel}
+          </a>
         </section>
       ) : null}
 
@@ -367,28 +398,6 @@ export default async function LocationPage({
           </div>
         </Card>
 
-        {homeMarina && !isPlannerEmbed ? (
-          <Card
-            className="withinReachCard"
-            title="Within reach today"
-            icon={<span style={{ fontWeight: 900, fontSize: 16, filter: 'grayscale(1)', opacity: 0.92 }}>⚓</span>}
-            right={<span>day-use trip ideas</span>}
-          >
-            <p className="miniNote">
-              From {loc.name}, these destinations are roughly within an out-and-back day window at typical club fleet speeds. Check the live score and daylight before booking.
-            </p>
-            <div className="withinReachList">
-              {reachableDestinations.map((destination) => (
-                <a key={destination.slug} href={marinaPath(destination)}>
-                  <strong>{destination.name}</strong>
-                  <span>{destination.distanceNm} nm each way · {destination.area}</span>
-                </a>
-              ))}
-            </div>
-            <p className="miniNote">{lakeOrSaltContext(loc, homeMarina)}</p>
-          </Card>
-        ) : null}
-
         <Card className="desktopIconDrop2 liveLookCard" title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
             className="liveLookGrid"
@@ -396,73 +405,38 @@ export default async function LocationPage({
               {
                 label: 'Map',
                 value: (
-                  <div
-                    style={{
-                      borderRadius: 12,
-                      overflow: 'hidden',
-                      border: '1px solid rgba(11,18,32,0.10)',
-                      height: 185
-                    }}
-                  >
-                    <iframe
+                  <LazyFrame
+                    className="liveFrame"
+                    iframeClassName="liveFrameIframe liveFrameMap"
                       title={`${loc.name} mini map`}
-                      width="100%"
-                      height="240"
-                      style={{ border: 0, display: 'block', transform: 'translateY(-22px)' }}
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
                       src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
                         `${loc.lon - 0.015},${loc.lat - 0.01},${loc.lon + 0.015},${loc.lat + 0.01}`
                       )}&layer=mapnik&marker=${encodeURIComponent(`${loc.lat},${loc.lon}`)}`}
+                    placeholder={<div className="liveFramePlaceholder">Map loads when this section is in view.</div>}
                     />
-                  </div>
                 )
               },
               {
                 label: 'Webcam',
                 value: (
-                  <div
-                    style={{
-                      borderRadius: 12,
-                      overflow: 'hidden',
-                      border: '1px solid rgba(11,18,32,0.10)',
-                      height: 185,
-                      position: 'relative'
-                    }}
-                  >
+                  <div className="liveFrame">
                     {webcam.videoId ? (
-                      <iframe
+                      <LazyFrame
                         title={`${loc.name} YouTube webcam`}
                         src={`https://www.youtube.com/embed/${webcam.videoId}?autoplay=1&mute=1&playsinline=1&controls=0&modestbranding=1&iv_load_policy=3&rel=0`}
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          width: '100%',
-                          height: '100%',
-                          border: 0,
-                          transform: 'scale(1.8)',
-                          transformOrigin: 'center center'
-                        }}
-                        loading="lazy"
+                        className="liveFrameFill"
+                        iframeClassName="liveFrameIframe liveFrameVideo"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
+                        placeholder={<WebcamPoster videoId={webcam.videoId} label={webcam.label ?? `${loc.name} live webcam`} />}
                       />
                     ) : webcam.embedUrl ? (
-                      <iframe
+                      <LazyFrame
                         title={`${loc.name} live webcam`}
                         src={webcam.embedUrl}
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          width: '100%',
-                          height: '100%',
-                          border: 0
-                        }}
-                        loading="lazy"
+                        className="liveFrameFill"
+                        iframeClassName="liveFrameIframe"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
+                        placeholder={<div className="liveFramePlaceholder">Webcam loads when this section is in view.</div>}
                       />
                     ) : webcam.url ? (
                       <a
@@ -594,6 +568,11 @@ export default async function LocationPage({
       </div>
 
       <footer className="siteFooter">
+        {homeMarina && !isPlannerEmbed ? (
+          <p className="independenceDisclosure">
+            Fair Tide is an independent planning tool and is not affiliated with or endorsed by Freedom Boat Club or any marina operator.
+          </p>
+        ) : null}
         <section className="sourceLegend" aria-label="Data sources">
           <div className="sourceLegendTitle">Data sources</div>
           <ul className="sourceLegendList">
@@ -626,11 +605,22 @@ export default async function LocationPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(breadcrumbJsonLd([
-              ['Home', '/'],
-              [area.name, `/area/${area.slug}`],
-              [loc.name, `/location/${id}`]
-            ]))
+            __html: JSON.stringify([
+              breadcrumbJsonLd([
+                ['Home', '/'],
+                [area.name, `/area/${area.slug}`],
+                [loc.name, `/location/${id}`]
+              ]),
+              placeJsonLd({
+                name: loc.name,
+                address: loc.address,
+                lat: loc.lat,
+                lon: loc.lon,
+                path: `/location/${id}`,
+                regionName: area.name,
+                commercial: Boolean(homeMarina)
+              })
+            ])
           }}
         />
       ) : null}
@@ -655,8 +645,40 @@ function SunBadge({ sunrise, sunset }: { sunrise?: string; sunset?: string }) {
   );
 }
 
+function WebcamPoster({ videoId, label }: { videoId: string; label: string }) {
+  return (
+    <div
+      className="webcamPoster"
+      style={{ backgroundImage: `linear-gradient(rgba(4, 18, 31, 0.22), rgba(4, 18, 31, 0.44)), url(https://img.youtube.com/vi/${videoId}/hqdefault.jpg)` }}
+    >
+      <span className="webcamPlay" aria-hidden="true">▶</span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+async function getLocationSeoSummary(locationId: LocationId) {
+  const snapshot = await getLocationWeatherSnapshot(locationId);
+  const forecast = snapshot
+    ? buildWeeklyOutlook(snapshot.forecast.slice(0, 120), snapshot.sunByDay, 1)[0] ?? null
+    : null;
+  const scoreText = forecast ? `${forecast.score}/100 ${scoreBand(forecast.score).label}` : null;
+  const wind = snapshot?.now?.wind;
+  const windText = wind?.speedKts != null
+    ? `wind ${round(wind.speedKts, 0)} kt${wind.directionDeg != null ? ` ${degToCardinal(wind.directionDeg) ?? ''}` : ''}`
+    : null;
+
+  return { scoreText, windText };
+}
+
 function getFreedomClubMarinaForLocation(locationId: LocationId) {
   return SEO_MARINAS.find((marina) => marina.locationId === locationId && marina.freedomClub) ?? null;
+}
+
+function getPrimaryMarinaForLocation(locationId: LocationId) {
+  return getFreedomClubMarinaForLocation(locationId)
+    ?? SEO_MARINAS.find((marina) => marina.locationId === locationId)
+    ?? null;
 }
 
 function buildAnswerFirstVerdict({
@@ -686,42 +708,30 @@ function buildAnswerFirstVerdict({
     : 'Wind forecast updating';
   const tideText = isTidalLocation
     ? nextTide
-      ? `next ${nextTide.kindLabel.toLowerCase()} tide ${nextTide.etaLabel} at ${isoToLocalTime(nextTide.t)}`
+      ? `Next ${nextTide.kindLabel.toLowerCase()} tide ${isoToLocalTime(nextTide.t)}${nextTide.heightM != null ? ` (${round(nextTide.heightM, 2)} m)` : ''}.`
       : 'next tide updating'
-    : 'no tide planning needed for this lake/river location';
+    : null;
   const warningText = advisoryLabel === 'No advisory' ? 'no active marine advisory' : advisoryLabel.toLowerCase();
 
-  return `Boating conditions at ${placeName} today: ${scoreText}. ${windText}; ${warningText}; ${tideText}.`;
+  return `Boating conditions at ${placeName} today: ${scoreText}. ${windText}; ${warningText}.${tideText ? ` ${tideText}` : ''}`;
 }
 
-function buildWithinReachDestinations(homeMarina: SeoMarina, maxNm: number, limit: number) {
-  return SEO_MARINAS
-    .filter((marina) => marina.slug !== homeMarina.slug && marina.waterType === homeMarina.waterType)
-    .map((marina) => ({
-      ...marina,
-      distanceNm: Math.round(kmToNm(haversineKm(homeMarina.lat, homeMarina.lon, marina.lat, marina.lon)))
-    }))
-    .filter((marina) => marina.distanceNm > 0 && marina.distanceNm <= maxNm)
-    .sort((a, b) => a.distanceNm - b.distanceNm || a.name.localeCompare(b.name))
-    .slice(0, limit);
+function getSevereAdvisory(items: Array<{ title?: string; severity?: string }>) {
+  return items.find((item) => String(item.severity || '').toLowerCase() === 'warning') ?? null;
 }
 
-function kmToNm(km: number) {
-  return km / 1.852;
-}
-
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const radius = 6371;
-  const toRad = (value: number) => value * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  return 2 * radius * Math.asin(Math.sqrt(a));
+function getBeforeBookWarning(score: number | undefined, advisory: { title?: string } | null) {
+  if (advisory?.title) return `Conditions are under a ${advisory.title} - check the forecast before booking.`;
+  if (typeof score === 'number' && score < POOR_SCORE_THRESHOLD) return 'Conditions are Poor today - check the forecast before booking.';
+  return null;
 }
 
 function lakeOrSaltContext(loc: { waterType?: 'tidal' | 'lake' | 'river'; name: string }, marina: SeoMarina) {
   if (loc.waterType === 'lake') {
-    return `${loc.name} is a lake boating page, so Fair Tide focuses on wind, daylight, rain, and launch windows instead of tides.`;
+    if (/coeur|hayden/i.test(`${loc.name} ${marina.area}`)) {
+      return `${loc.name} has no tide planning layer. Fair Tide still shows wind, gusts, daylight, rain, and 5-day boating scores so lake trips do not look like broken salt-water pages.`;
+    }
+    return `${loc.name} is a lake boating page. Fair Tide focuses on wind, daylight, rain, and launch windows; Lake Washington and Lake Union trips to Puget Sound may also involve the Ballard Locks and summer congestion.`;
   }
   if (loc.waterType === 'river') {
     return `${loc.name} is a river boating page, so Fair Tide emphasizes wind, daylight, rain, and local river exposure rather than coastal tide timing.`;
@@ -820,7 +830,7 @@ function getNextTideSummary({
 
   const kind = n.kind === 'high' ? 'High' : 'Low';
   const etaMs = Math.max(0, n.ms - nowMs);
-  return { kindLabel: kind, etaLabel: formatEta(etaMs), t: n.t };
+  return { kindLabel: kind, etaLabel: formatEta(etaMs), t: n.t, heightM: n.heightM };
 }
 
 function getTidePhaseSummary({

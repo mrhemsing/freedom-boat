@@ -1,0 +1,2 @@
+export const POOR_SCORE_THRESHOLD = 41;
+export const ISR_REVALIDATE_SECONDS = 1800;

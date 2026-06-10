@@ -4,7 +4,7 @@ import { canonicalUrl, marinaPath } from '../../lib/seo-slugs';
 import GlobalHeader from '../GlobalHeader';
 import TripMap from './TripMap';
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: 'Salish Sea Boating Trip Planner',
   description:
     'Plan Pacific Northwest boating trips with destination distances, live wind, tides, daylight, marine warnings, and Fair Tide day scores.',
@@ -12,6 +12,18 @@ export const metadata: Metadata = {
     canonical: canonicalUrl('/plan-my-trip')
   }
 };
+
+export function generateMetadata({
+  searchParams
+}: {
+  searchParams?: { marina?: string; overview?: string; plan?: string; route?: string };
+}): Metadata {
+  const hasTripState = Boolean(searchParams?.marina || searchParams?.overview || searchParams?.plan || searchParams?.route);
+  return {
+    ...baseMetadata,
+    robots: hasTripState ? { index: false, follow: true } : undefined
+  };
+}
 
 export default function PlanMyTripPage() {
   const freedomMarinas = [...TRIP_MARINAS, ...FBC_PNW_MARINAS]

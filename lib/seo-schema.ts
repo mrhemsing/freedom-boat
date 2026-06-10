@@ -1,5 +1,68 @@
 import { type BoatLaunch, type Marina, MARINA_ACCESS_INFO } from './marinas';
-import { areaHubForPlace, canonicalUrl, marinaPath, seoSlugForLaunch } from './seo-slugs';
+import { SITE_URL, areaHubForPlace, canonicalUrl, marinaPath, seoSlugForLaunch } from './seo-slugs';
+
+export function siteJsonLd() {
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      '@id': `${SITE_URL}#organization`,
+      name: 'Fair Tide',
+      url: SITE_URL,
+      logo: canonicalUrl('/fb-logo.svg'),
+      parentOrganization: {
+        '@type': 'Organization',
+        name: 'B Average',
+        url: 'https://www.b-average.com/'
+      }
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}#website`,
+      name: 'Fair Tide',
+      url: SITE_URL,
+      publisher: {
+        '@id': `${SITE_URL}#organization`
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${SITE_URL}/browse?q={search_term_string}`,
+        'query-input': 'required name=search_term_string'
+      }
+    }
+  ];
+}
+
+export function placeJsonLd(place: {
+  name: string;
+  address?: string;
+  lat: number;
+  lon: number;
+  path: string;
+  regionName?: string;
+  commercial?: boolean;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': place.commercial ? 'LocalBusiness' : 'Place',
+    '@id': `${canonicalUrl(place.path)}#place`,
+    name: place.name,
+    url: canonicalUrl(place.path),
+    address: place.address,
+    containedInPlace: place.regionName
+      ? {
+          '@type': 'Place',
+          name: place.regionName
+        }
+      : undefined,
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: place.lat,
+      longitude: place.lon
+    }
+  };
+}
 
 export function marinaJsonLd(marina: Marina) {
   const access = marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
@@ -29,20 +92,6 @@ export function marinaJsonLd(marina: Marina) {
       ['Home', '/plan-my-trip'],
       [area.name, `/area/${area.slug}`],
       [marina.name, path]
-    ]),
-    faqJsonLd([
-      {
-        q: `What are the tide times at ${marina.name} today?`,
-        a: `${marina.name} tide times are shown with the nearest Canadian Hydrographic Service tide station and refreshed through Fair Tide.`
-      },
-      {
-        q: `Does ${marina.name} have guest moorage?`,
-        a: access ? transientAnswer(access.transient, marina.name) : `Guest moorage at ${marina.name} should be confirmed directly before relying on it.`
-      },
-      {
-        q: `Is there fuel at ${marina.name}?`,
-        a: access?.fuel === 'Y' ? `${marina.name} is listed with fuel available.` : access?.fuel === 'N' ? `${marina.name} is not listed with fuel.` : `Fuel availability at ${marina.name} should be verified before departure.`
-      }
     ])
   ];
 }
@@ -72,16 +121,6 @@ export function launchJsonLd(launch: BoatLaunch) {
       ['Home', '/plan-my-trip'],
       [area.name, `/area/${area.slug}`],
       [launch.name, `/launch/${seoSlugForLaunch(launch)}`]
-    ]),
-    faqJsonLd([
-      {
-        q: `Is ${launch.name} a public boat launch?`,
-        a: `${launch.name} is listed as a public ${launch.type.toLowerCase()} launch in ${launch.area}.`
-      },
-      {
-        q: `What tide is needed at ${launch.name}?`,
-        a: `Use ${launch.name} around ${((launch.minTide ?? (launch.type.toLowerCase().includes('hand') ? 0.8 : 1.2))).toFixed(1)} m tide or higher, then verify locally before launching.`
-      }
     ])
   ];
 }
@@ -99,31 +138,10 @@ export function breadcrumbJsonLd(items: Array<[string, string]>) {
   };
 }
 
-export function faqJsonLd(items: Array<{ q: string; a: string }>) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: items.map((item) => ({
-      '@type': 'Question',
-      name: item.q,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: item.a
-      }
-    }))
-  };
-}
-
 function feature(name: string, value: boolean) {
   return {
     '@type': 'LocationFeatureSpecification',
     name,
     value
   };
-}
-
-function transientAnswer(value: 'Y' | 'Limited' | 'N', name: string) {
-  if (value === 'Y') return `${name} is listed with guest or transient moorage.`;
-  if (value === 'Limited') return `${name} is listed with limited guest moorage.`;
-  return `${name} is not listed with transient moorage.`;
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import 'leaflet/dist/leaflet.css';
 import './globals.css';
 import { SITE_URL } from '../lib/seo-slugs';
+import { siteJsonLd } from '../lib/seo-schema';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -48,6 +49,10 @@ export default function RootLayout({
 })();
 `
           }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd()) }}
         />
         {children}
       </body>
