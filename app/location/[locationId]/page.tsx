@@ -163,8 +163,8 @@ export default async function LocationPage({
       <header className="topbar">
         <div className="headerBrand">
           <div className="locationHeroTitle">
-            <span>Conditions</span>
-            <h1>{homeMarina ? `Boating from ${loc.name}` : `${loc.name} Boating Conditions`}</h1>
+            <span>Boating Conditions</span>
+            <h1>{homeMarina ? loc.name : `${loc.name} Boating Conditions`}</h1>
           </div>
         </div>
         <a className="planMapButton" href={mapHref} aria-label={`Open ${loc.name} on trip map`}>
