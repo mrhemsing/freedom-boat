@@ -11,6 +11,17 @@ export async function GET(
   if (!loc) {
     return NextResponse.json({ error: 'unknown location' }, { status: 404 });
   }
+  if (loc.waterType === 'lake' || loc.waterType === 'river') {
+    return NextResponse.json({
+      locationId: id,
+      anchor: { lat: loc.lat, lon: loc.lon },
+      station: null,
+      from: null,
+      to: null,
+      events: [],
+      nonTidal: true
+    });
+  }
 
   const { searchParams } = new URL(req.url);
   const days = Math.min(Math.max(Number(searchParams.get('days') ?? '2'), 1), 7);

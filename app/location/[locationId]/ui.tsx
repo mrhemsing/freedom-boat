@@ -323,7 +323,7 @@ function AlertTimeBar({
   }
 
   return (
-    <div className="alertTimeBar" aria-label={`Window ${formatLocalTimeLabel(window.start)} to ${formatLocalTimeLabel(endIso)}`}>
+    <div className="alertTimeBar" aria-label={`Window ${formatWindowTimeLabel(window.start)} to ${formatWindowTimeLabel(endIso)}`}>
       <div className="alertTimeTrack">
         <div className="alertTimeFill" style={{ left: `${left}%`, width: `${width}%` }} />
         {showPeak && peakLeft != null ? <div className="alertTimePeak" style={{ left: `${peakLeft}%` }} /> : null}
@@ -347,8 +347,8 @@ function AlertTimeBar({
         </div>
         <div className="alertTimeWindowLabels">
           <span className={`alertTimeRangeLabel ${rangeAnchorClass}`} style={rangeAnchorStyle}>
-            {formatLocalTimeLabel(window.start)}-{formatLocalTimeLabel(endIso)}
-            {showPeakText && window.peak ? <em>peak {formatLocalTimeLabel(window.peak)}</em> : null}
+            {formatWindowTimeLabel(window.start)}-{formatLocalTimeLabel(endIso)}
+            {showPeakText && window.peak ? <em>peak {formatWindowTimeLabel(window.peak)}</em> : null}
           </span>
         </div>
       </div>
@@ -389,6 +389,15 @@ function formatLocalTimeLabel(iso?: string) {
   hh = hh % 12;
   if (hh === 0) hh = 12;
   return `${hh}:${mm} ${ampm}`;
+}
+
+function formatWindowTimeLabel(iso?: string) {
+  const day = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})T/)?.slice(1, 4);
+  const time = formatLocalTimeLabel(iso);
+  if (!day) return time;
+  const dt = new Date(Date.UTC(Number(day[0]), Number(day[1]) - 1, Number(day[2]), 12));
+  const label = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'short' }).format(dt);
+  return `${label} ${time}`;
 }
 
 function clampPercent(value: number) {

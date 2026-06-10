@@ -37,10 +37,11 @@ export default async function LocationPage({
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
   if (!loc) return notFound();
+  const isTidalLocation = loc.waterType !== 'lake' && loc.waterType !== 'river';
 
   const [weatherSnapshot, tidesRes, marineRes] = await Promise.all([
     getLocationWeatherSnapshot(id).catch(() => null),
-    fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' }),
+    isTidalLocation ? fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' }) : Promise.resolve(null),
     fetch(`${baseUrl()}/api/${params.locationId}/marine-warnings`, { cache: 'no-store' })
   ]);
 
@@ -53,15 +54,15 @@ export default async function LocationPage({
         provider: weatherSnapshot.provider
       }
     : null;
-  const tides = tidesRes.ok ? await tidesRes.json() : null;
+  const tides = tidesRes?.ok ? await tidesRes.json() : null;
   const marine = marineRes.ok ? await marineRes.json() : null;
 
   const windSpeed = now?.wind?.speedKts;
   const gust = now?.wind?.gustKts;
   const dir = now?.wind?.directionDeg;
   const webcam = getLocationWebcam(id);
-  const nextTide = getNextTideSummary({ events: tides?.events ?? [] });
-  const tidePhase = getTidePhaseSummary({ events: tides?.events ?? [] });
+  const nextTide = isTidalLocation ? getNextTideSummary({ events: tides?.events ?? [] }) : null;
+  const tidePhase = isTidalLocation ? getTidePhaseSummary({ events: tides?.events ?? [] }) : null;
   const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
   const boatingAlertDaylight = getDaylightWindow({
     now,
@@ -82,10 +83,11 @@ export default async function LocationPage({
     sunsetIso: now?.sun?.sunset,
     sunByDay: forecast?.sunByDay ?? []
   });
-  const slackTide = getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
-  const windTideRisk = getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] });
+  const slackTide = isTidalLocation ? getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] }) : null;
+  const windTideRisk = isTidalLocation ? getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] }) : null;
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
-  const weeklyOutlook = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5);
+  const weeklyStartDay = extractLocalDay(boatingAlertDaylight?.start) ?? extractLocalDay(boatingAlertNowIso ?? undefined);
+  const weeklyOutlook = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5, weeklyStartDay);
   const marineAuthority = typeof marine?.authority === 'string' ? marine.authority : warningAuthorityForLocation(loc);
   const marineWarningStatus = marine?.status === 'unavailable' ? 'unavailable' : 'available';
   const boatingAlerts = buildBoatingAlerts({
@@ -96,7 +98,8 @@ export default async function LocationPage({
     visibility,
     daylight: boatingAlertDaylight,
     nowIso: boatingAlertNowIso,
-    warningAuthority: marineAuthority
+    warningAuthority: marineAuthority,
+    includeTide: isTidalLocation
   });
   const boatingAlertDayLabel = formatDayLabel(boatingAlertDaylight?.start ?? now?.asOf ?? forecast?.forecast?.[0]?.t);
   const marinaJumpGroups = buildMarinaJumpGroups();
@@ -277,16 +280,20 @@ export default async function LocationPage({
               <div className="quickValue">{launchWindow.label}</div>
               <div className="miniNote">{launchWindow.detail}</div>
             </div>
-            <div className="quickItem">
-              <div className="quickLabel">Slack tide</div>
-              <div className="quickValue">{slackTide.label}</div>
-              <div className="miniNote">{slackTide.detail}</div>
-            </div>
-            <div className="quickItem">
-              <div className="quickLabel">Wind × tide risk</div>
-              <div className="quickValue">{windTideRisk.label}</div>
-              <div className="miniNote">{windTideRisk.detail}</div>
-            </div>
+            {slackTide ? (
+              <div className="quickItem">
+                <div className="quickLabel">Slack tide</div>
+                <div className="quickValue">{slackTide.label}</div>
+                <div className="miniNote">{slackTide.detail}</div>
+              </div>
+            ) : null}
+            {windTideRisk ? (
+              <div className="quickItem">
+                <div className="quickLabel">Wind × tide risk</div>
+                <div className="quickValue">{windTideRisk.label}</div>
+                <div className="miniNote">{windTideRisk.detail}</div>
+              </div>
+            ) : null}
             <div className="quickItem">
               <div className="quickLabel">Visibility / fog</div>
               <div className="quickValue">{visibility.label}</div>
@@ -436,9 +443,11 @@ export default async function LocationPage({
                     <span className="conditionsDetailLine">
                       Precip: {now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'} mm/hr
                     </span>
-                    <span className="conditionsDetailLine">
-                      Tide: {nextTide ? `${nextTide.kindLabel} ${nextTide.etaLabel}` : '—'}
-                    </span>
+                    {isTidalLocation ? (
+                      <span className="conditionsDetailLine">
+                        Tide: {nextTide ? `${nextTide.kindLabel} ${nextTide.etaLabel}` : '—'}
+                      </span>
+                    ) : null}
                     {tidePhase ? (
                       <div className="tidePhaseRow" style={{ marginTop: 2 }}>
                         <div
@@ -471,33 +480,35 @@ export default async function LocationPage({
           <ForecastStrip forecast={forecast?.forecast ?? []} />
         </Card>
 
-        <Card
-          className="desktopIconDrop2 tidesCard"
-          title="Tides"
-          icon={<IconTide />}
-          right={(() => {
-            const next = getNextTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
-            if (next && tides?.station?.name) {
-              return (
-                <span>
-                  Next: {next.kindLabel} {next.etaLabel}{tides.station.name ? ` · ${tides.station.name}` : ''}
-                </span>
-              );
-            }
-            if (tides?.station?.name) {
-              return (
-                <span>
-                  {tides.station.name} · {Math.round(tides.station.distanceKm)} km
-                </span>
-              );
-            }
-            return '—';
-          })()}
-        >
-          <TideMiniChart events={tides?.events ?? []} />
-          <hr className="soft" />
-          <TideList events={tides?.events ?? []} />
-        </Card>
+        {isTidalLocation ? (
+          <Card
+            className="desktopIconDrop2 tidesCard"
+            title="Tides"
+            icon={<IconTide />}
+            right={(() => {
+              const next = getNextTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] });
+              if (next && tides?.station?.name) {
+                return (
+                  <span>
+                    Next: {next.kindLabel} {next.etaLabel}{tides.station.name ? ` · ${tides.station.name}` : ''}
+                  </span>
+                );
+              }
+              if (tides?.station?.name) {
+                return (
+                  <span>
+                    {tides.station.name} · {Math.round(tides.station.distanceKm)} km
+                  </span>
+                );
+              }
+              return '—';
+            })()}
+          >
+            <TideMiniChart events={tides?.events ?? []} />
+            <hr className="soft" />
+            <TideList events={tides?.events ?? []} />
+          </Card>
+        ) : null}
       </div>
 
       <footer className="siteFooter">
@@ -516,10 +527,12 @@ export default async function LocationPage({
                 <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>
               )}
             </li>
-            <li>
-              <span>Tides + water levels</span>
-              <a href="https://api-iwls.dfo-mpo.gc.ca/" target="_blank" rel="noreferrer">DFO / Canadian Hydrographic Service IWLS</a>
-            </li>
+            {isTidalLocation ? (
+              <li>
+                <span>Tides + water levels</span>
+                <a href="https://api-iwls.dfo-mpo.gc.ca/" target="_blank" rel="noreferrer">DFO / Canadian Hydrographic Service IWLS</a>
+              </li>
+            ) : null}
           </ul>
         </section>
         <div className="footerBrandRow">
@@ -941,7 +954,8 @@ function buildBoatingAlerts({
   visibility,
   daylight,
   nowIso,
-  warningAuthority
+  warningAuthority,
+  includeTide = true
 }: {
   now: any;
   forecast: ForecastAlertHour[];
@@ -951,6 +965,7 @@ function buildBoatingAlerts({
   daylight?: DaylightWindow;
   nowIso?: string | null;
   warningAuthority: string;
+  includeTide?: boolean;
 }): BoatingAlert[] {
   const hasMarineWarning = marineItems.length > 0;
   const rows: BoatingAlert[] = [];
@@ -986,7 +1001,7 @@ function buildBoatingAlerts({
         tier: 'watch',
         category: 'wind',
         icon: 'wind',
-        title: windWatchTitle({ window, peakIso: peak.t }),
+        title: windWatchTitle({ window, peakIso: peak.t, nowIso }),
         detail: windWatchDetail({ window, peakIso: peak.t, maxGust: maxGust.value, nowIso }),
         window
       });
@@ -1027,7 +1042,7 @@ function buildBoatingAlerts({
     }
   }
 
-  const tideRange = daylight ? getDaylightTideRange(tideEvents, daylight) : null;
+  const tideRange = includeTide && daylight ? getDaylightTideRange(tideEvents, daylight) : null;
   if (tideRange && tideRange.rangeM >= 3.5) {
     const window = buildWatchWindow({ start: tideRange.start, peak: tideRange.peak, end: tideRange.end, daylight, nowIso });
     if (window) {
@@ -1254,19 +1269,21 @@ function windWatchDetail({
     return `${capitalizeSentence(gustText)}.`;
   }
   if (isWindowInProgress(window, nowIso)) {
-    return `Breezy now through ${alertLocalTime(window.end ?? peakIso)}, peaking up to ${round(maxGust, 0)} kt near ${alertLocalTime(window.peak ?? peakIso)}.`;
+    return `Breezy now through ${alertLocalTime(window.end ?? peakIso, nowIso)}, peaking up to ${round(maxGust, 0)} kt near ${alertLocalTime(window.peak ?? peakIso, nowIso)}.`;
   }
-  return `Plan for chop: gusts build from ${alertLocalTime(window.start)}, peaking up to ${round(maxGust, 0)} kt near ${alertLocalTime(window.peak ?? peakIso)}. Easing by ${alertLocalTime(window.end ?? window.start)}.`;
+  return `Plan for chop: gusts build from ${alertLocalTime(window.start, nowIso)}, peaking up to ${round(maxGust, 0)} kt near ${alertLocalTime(window.peak ?? peakIso, nowIso)}. Easing by ${alertLocalTime(window.end ?? window.start, nowIso)}.`;
 }
 
 function windWatchTitle({
   window,
-  peakIso
+  peakIso,
+  nowIso
 }: {
   window: NonNullable<BoatingAlert['window']>;
   peakIso: string;
+  nowIso?: string | null;
 }) {
-  if (window.confidence === 'soft') return `Breezy around ${alertLocalTime(peakIso)}`;
+  if (window.confidence === 'soft') return `Breezy around ${alertLocalTime(peakIso, nowIso)}`;
   return 'Breezy daylight window';
 }
 
@@ -1283,9 +1300,9 @@ function rainWatchDetail({
 }) {
   if (window.confidence === 'soft') return 'Reduced visibility likely through the afternoon as rain moves in.';
   if (isWindowInProgress(window, nowIso)) {
-    return `Rain continues through ${alertLocalTime(window.end ?? peakIso)}, peaking up to ${round(peakMm, 1)} mm/hr near ${alertLocalTime(window.peak ?? peakIso)}.`;
+    return `Rain continues through ${alertLocalTime(window.end ?? peakIso, nowIso)}, peaking up to ${round(peakMm, 1)} mm/hr near ${alertLocalTime(window.peak ?? peakIso, nowIso)}.`;
   }
-  return `Rain builds from ${alertLocalTime(window.start)}, peaking up to ${round(peakMm, 1)} mm/hr near ${alertLocalTime(window.peak ?? peakIso)}. Easing by ${alertLocalTime(window.end ?? window.start)}.`;
+  return `Rain builds from ${alertLocalTime(window.start, nowIso)}, peaking up to ${round(peakMm, 1)} mm/hr near ${alertLocalTime(window.peak ?? peakIso, nowIso)}. Easing by ${alertLocalTime(window.end ?? window.start, nowIso)}.`;
 }
 
 function visibilityDetail({
@@ -1300,14 +1317,14 @@ function visibilityDetail({
     return 'May linger as rain moves through.';
   }
   if (isWindowInProgress(window, nowIso)) {
-    return `Possible now through ${alertLocalTime(window.end ?? window.start)}.`;
+    return `Possible now through ${alertLocalTime(window.end ?? window.start, nowIso)}.`;
   }
   if (nowIso && compareLocalIso(window.start, nowIso) <= 0) {
-    return `Possible through ${alertLocalTime(window.end ?? window.start)}.`;
+    return `Possible through ${alertLocalTime(window.end ?? window.start, nowIso)}.`;
   }
-  const peakText = alertLocalTime(window.peak ?? window.start);
+  const peakText = alertLocalTime(window.peak ?? window.start, nowIso);
   const endText = window.end && compareLocalIso(window.end, window.peak ?? window.start) > 0
-    ? `, eases after ${alertLocalTime(window.end)}`
+    ? `, eases after ${alertLocalTime(window.end, nowIso)}`
     : '';
   return `Likely as rain peaks near ${peakText}${endText}.`;
 }
@@ -1327,15 +1344,29 @@ function tideWatchDetail({
 }) {
   if (window.confidence === 'sharp') {
     if (isWindowInProgress(window, nowIso)) {
-      return `${round(rangeM, 1)} m tide swing continues through ${alertLocalTime(window.end ?? window.start)}. Stronger current near the turns.`;
+      return `${round(rangeM, 1)} m tide swing continues through ${alertLocalTime(window.end ?? window.start, nowIso)}. Stronger current near the turns.`;
     }
-    return `${round(rangeM, 1)} m daylight range from ${alertLocalTime(window.start)} to ${alertLocalTime(window.end ?? window.start)}. Stronger current near the turns.`;
+    return `${round(rangeM, 1)} m daylight range from ${alertLocalTime(window.start, nowIso)} to ${alertLocalTime(window.end ?? window.start, nowIso)}. Stronger current near the turns.`;
   }
   return `${round(rangeM, 1)} m range in daylight. Expect stronger current near the turns.`;
 }
 
-function alertLocalTime(iso: string) {
-  return formatAsOf(iso);
+function alertLocalTime(iso: string, nowIso?: string | null) {
+  const clock = formatAsOf(iso);
+  const day = extractLocalDay(iso);
+  const nowDay = extractLocalDay(nowIso ?? undefined);
+  if (!day || !nowDay) return `${formatDayLabel(iso)} ~${clock}`;
+
+  const minute = extractLocalMinuteOfDay(iso);
+  const clockWithApprox = `~${clock}`;
+  if (day === nowDay) {
+    if (minute != null && minute < 12 * 60) return `this morning (${clockWithApprox})`;
+    if (minute != null && minute >= 18 * 60) return `tonight ${clockWithApprox}`;
+    return `today ${clockWithApprox}`;
+  }
+
+  if (compareLocalDays(day, nowDay) === 1) return `tomorrow ${clockWithApprox}`;
+  return `${formatShortDayLabel(iso)} ${clockWithApprox}`;
 }
 
 function getDaylightTideRange(events: Array<{ t: string; heightM?: number }>, daylight: DaylightWindow) {
@@ -1523,6 +1554,17 @@ function formatDayLabel(iso?: string) {
   }
   if (!iso) return 'Today';
   return formatAsOfWithDay(iso).split(' ')[0] ?? 'Today';
+}
+
+function formatShortDayLabel(iso?: string) {
+  return formatDayLabel(iso);
+}
+
+function compareLocalDays(a: string, b: string) {
+  const left = Date.parse(`${a}T00:00:00Z`);
+  const right = Date.parse(`${b}T00:00:00Z`);
+  if (!Number.isFinite(left) || !Number.isFinite(right)) return 0;
+  return Math.round((left - right) / 86_400_000);
 }
 
 function formatAsOf(iso: string) {

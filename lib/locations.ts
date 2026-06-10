@@ -4,6 +4,7 @@ export type LocationProfile = {
   id: LocationId;
   name: string;
   address?: string;
+  waterType?: 'tidal' | 'lake' | 'river';
   // Anchor point used for forecast queries (can be refined later)
   lat: number;
   lon: number;
@@ -169,6 +170,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'portland-tomahawk-bay-marina',
     name: 'Portland Tomahawk Bay Marina',
     address: 'Tomahawk Bay Marina, Portland, OR',
+    waterType: 'river',
     lat: 45.6074,
     lon: -122.6606
   },
@@ -176,6 +178,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'port-of-camas',
     name: 'Port of Camas',
     address: "Parker's Landing Marina, Camas/Washougal, WA",
+    waterType: 'river',
     lat: 45.5782,
     lon: -122.3811
   },
@@ -183,6 +186,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'lake-coeur-dalene',
     name: "Lake Coeur d'Alene",
     address: "Lakeside Marina, Coeur d'Alene, ID",
+    waterType: 'lake',
     lat: 47.6732,
     lon: -116.7859
   },
@@ -190,6 +194,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'hayden-lake-marina',
     name: 'Hayden Lake Marina',
     address: 'Hayden Lake Marina, Hayden Lake, ID',
+    waterType: 'lake',
     lat: 47.7665,
     lon: -116.7563
   }

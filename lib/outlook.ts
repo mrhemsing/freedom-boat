@@ -60,7 +60,8 @@ function extractHour(isoLike?: string) {
 export function buildWeeklyOutlook(
   forecast: ForecastHour[],
   sunByDay: SunDay[] = [],
-  days = 5
+  days = 5,
+  startDay?: string | null
 ): DailyOutlook[] {
   const daylightHoursByDay = new Map<string, { sunriseHour: number; sunsetHour: number }>();
   for (const s of sunByDay || []) {
@@ -86,7 +87,10 @@ export function buildWeeklyOutlook(
     byDay.set(day, arr);
   }
 
-  const daysSorted = [...byDay.keys()].sort().slice(0, days);
+  const daysSorted = [...byDay.keys()]
+    .filter((day) => !startDay || day >= startDay)
+    .sort()
+    .slice(0, days);
   const out: DailyOutlook[] = [];
 
   for (const day of daysSorted) {
