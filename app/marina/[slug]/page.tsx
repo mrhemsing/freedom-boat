@@ -68,6 +68,7 @@ export default async function MarinaSeoPage({
   const access = marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
   const area = areaHubForPlace(marina);
   const title = marinaPageTitle(marina);
+  const hasTideInfo = marina.waterType !== 'lake' && marina.waterType !== 'river';
   const plannerScore = isPlannerEmbed ? parsePlannerScore(searchParams?.plannerScore) : null;
   const displayedScore = plannerScore ?? snapshot.score;
 
@@ -105,11 +106,19 @@ export default async function MarinaSeoPage({
           <strong>{snapshot.windKts != null ? `${snapshot.windKts} kt` : '--'}</strong>
           <p>{snapshot.gustKts != null ? `gusting ${snapshot.gustKts} kt` : snapshot.forecastLabel}</p>
         </div>
-        <div className="seoCard">
-          <span>Tide station</span>
-          <strong>{snapshot.stationName ?? 'Nearest CHS station'}</strong>
-          <p>{snapshot.nextTide ?? 'Live tide event unavailable'}</p>
-        </div>
+        {hasTideInfo ? (
+          <div className="seoCard">
+            <span>Tide station</span>
+            <strong>{snapshot.stationName ?? 'Nearest CHS station'}</strong>
+            <p>{snapshot.nextTide ?? 'Live tide event unavailable'}</p>
+          </div>
+        ) : (
+          <div className="seoCard">
+            <span>Water type</span>
+            <strong>{marina.waterType === 'lake' ? 'Freshwater lake' : 'River marina'}</strong>
+            <p>Fair Tide focuses on wind, gusts, daylight, rain, and the boating score here; tide timing is omitted for this location.</p>
+          </div>
+        )}
       </section>
 
       <section className="seoContent">
