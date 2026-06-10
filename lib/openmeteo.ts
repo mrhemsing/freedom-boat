@@ -72,14 +72,16 @@ export async function fetchOpenMeteo({
   lat,
   lon,
   hours,
+  timeZone = 'America/Vancouver',
   force = false
 }: {
   lat: number;
   lon: number;
   hours: number;
+  timeZone?: string;
   force?: boolean;
 }) {
-  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)},${timeZone}`;
   const now = Date.now();
   const cached = weatherCache.get(cacheKey);
   if (!force && cached && now - cached.fetchedAt < WEATHER_CACHE_TTL_MS) {
@@ -91,15 +93,15 @@ export async function fetchOpenMeteo({
     return inflight;
   }
 
-  const request = fetchOpenMeteoFresh({ lat, lon, hours: 168 })
+  const request = fetchOpenMeteoFresh({ lat, lon, hours: 168, timeZone })
     .catch(async (error) => {
       if (cached && Date.now() - cached.fetchedAt < WEATHER_STALE_TTL_MS) {
         return cached.data;
       }
 
       const fallback =
-        await fetchMetNoFallback({ lat, lon, hours: 168 }) ??
-        await fetchWttrFallback({ lat, lon, hours: 168 });
+        await fetchMetNoFallback({ lat, lon, hours: 168, timeZone }) ??
+        await fetchWttrFallback({ lat, lon, hours: 168, timeZone });
       if (fallback) {
         weatherCache.set(cacheKey, { data: fallback, fetchedAt: Date.now() });
         return fallback;
@@ -118,16 +120,18 @@ export async function fetchOpenMeteo({
 async function fetchOpenMeteoFresh({
   lat,
   lon,
-  hours
+  hours,
+  timeZone
 }: {
   lat: number;
   lon: number;
   hours: number;
+  timeZone: string;
 }) {
   const url = new URL('https://api.open-meteo.com/v1/forecast');
   url.searchParams.set('latitude', String(lat));
   url.searchParams.set('longitude', String(lon));
-  url.searchParams.set('timezone', 'America/Vancouver');
+  url.searchParams.set('timezone', timeZone);
   url.searchParams.set(
     'current',
     [
@@ -164,7 +168,7 @@ async function fetchOpenMeteoFresh({
 
   const json = await res.json();
   const parsed = OpenMeteoResponse.parse(json);
-  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+  const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)},${timeZone}`;
   weatherCache.set(cacheKey, { data: parsed, fetchedAt: Date.now() });
   return parsed;
 }
@@ -305,11 +309,13 @@ const MetNoResponse = z.object({
 async function fetchMetNoFallback({
   lat,
   lon,
-  hours
+  hours,
+  timeZone
 }: {
   lat: number;
   lon: number;
   hours: number;
+  timeZone: string;
 }): Promise<z.infer<typeof OpenMeteoResponse> | null> {
   try {
     const url = new URL('https://api.met.no/weatherapi/locationforecast/2.0/compact');
@@ -328,7 +334,7 @@ async function fetchMetNoFallback({
     const now = Date.now();
     const rows = parsed.properties.timeseries
       .map((row) => ({
-        t: localIsoFromDate(new Date(row.time)),
+        t: localIsoFromDate(new Date(row.time), timeZone),
         ms: Date.parse(row.time),
         row
       }))
@@ -344,7 +350,7 @@ async function fetchMetNoFallback({
     return {
       latitude: lat,
       longitude: lon,
-      timezone: 'America/Vancouver',
+      timezone: timeZone,
       source: 'met-no-fallback',
       current: {
         time: rows[0].t,
@@ -377,11 +383,13 @@ async function fetchMetNoFallback({
 async function fetchWttrFallback({
   lat,
   lon,
-  hours
+  hours,
+  timeZone
 }: {
   lat: number;
   lon: number;
   hours: number;
+  timeZone: string;
 }): Promise<z.infer<typeof OpenMeteoResponse> | null> {
   try {
     const url = `https://wttr.in/${lat.toFixed(4)},${lon.toFixed(4)}?format=j1`;
@@ -412,7 +420,7 @@ async function fetchWttrFallback({
     if (!current && !forecastRows.length) return null;
 
     const first = forecastRows[0]?.hour;
-    const currentTime = forecastRows[0]?.t ?? localIsoFromDate(now);
+    const currentTime = forecastRows[0]?.t ?? localIsoFromDate(now, timeZone);
     const daily = {
       time: weather.map((day) => day.date),
       sunrise: weather.map((day) => wttrClockToIso(day.date, day.astronomy?.[0]?.sunrise) ?? `${day.date}T05:30`),
@@ -422,7 +430,7 @@ async function fetchWttrFallback({
     return {
       latitude: lat,
       longitude: lon,
-      timezone: 'America/Vancouver',
+      timezone: timeZone,
       source: 'wttr-fallback',
       current: {
         time: currentTime,
@@ -474,9 +482,9 @@ function wttrClockToIso(day: string, clock: string | undefined) {
   return `${day}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
-function localIsoFromDate(date: Date) {
+function localIsoFromDate(date: Date, timeZone = 'America/Vancouver') {
   const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Vancouver',
+    timeZone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

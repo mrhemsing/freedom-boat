@@ -4,6 +4,7 @@ import { fetchOpenMeteo, normalizeForecast, normalizeNow, type ConditionsNow, ty
 export type WeatherSnapshot = {
   locationId: LocationId;
   fetchedAt: string;
+  timeZone: string;
   provider: 'open-meteo' | 'met-no-fallback' | 'wttr-fallback';
   raw: OpenMeteoData;
   now: ConditionsNow;
@@ -104,6 +105,7 @@ async function fetchLocationWeatherSnapshot(
     lat: location.lat,
     lon: location.lon,
     hours: 168,
+    timeZone: location.timeZone,
     force: options.force
   });
   const now = normalizeNow(location.id, raw);
@@ -116,6 +118,7 @@ async function fetchLocationWeatherSnapshot(
   const snapshot: WeatherSnapshot = {
     locationId: location.id,
     fetchedAt: new Date().toISOString(),
+    timeZone: location.timeZone ?? 'America/Vancouver',
     provider: raw.source ?? (raw.timezone === 'America/Vancouver' && raw.generationtime_ms == null ? 'wttr-fallback' : 'open-meteo'),
     raw,
     now,

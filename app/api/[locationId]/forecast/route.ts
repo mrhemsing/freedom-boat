@@ -20,6 +20,7 @@ export async function GET(
     locationId: id,
     hours,
     fetchedAt: snapshot.fetchedAt,
+    timeZone: snapshot.timeZone,
     provider: snapshot.provider,
     forecast: snapshot.forecast.slice(0, hours),
     sunByDay: snapshot.sunByDay

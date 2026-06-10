@@ -5,6 +5,7 @@ export type LocationProfile = {
   name: string;
   address?: string;
   waterType?: 'tidal' | 'lake' | 'river';
+  timeZone?: string;
   // Anchor point used for forecast queries (can be refined later)
   lat: number;
   lon: number;
@@ -187,6 +188,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     name: "Lake Coeur d'Alene",
     address: "Lakeside Marina, Coeur d'Alene, ID",
     waterType: 'lake',
+    timeZone: 'America/Boise',
     lat: 47.6732,
     lon: -116.7859
   },
@@ -195,6 +197,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     name: 'Hayden Lake Marina',
     address: 'Hayden Lake Marina, Hayden Lake, ID',
     waterType: 'lake',
+    timeZone: 'America/Boise',
     lat: 47.7665,
     lon: -116.7563
   }

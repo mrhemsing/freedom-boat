@@ -16,6 +16,7 @@ export async function GET(
   return NextResponse.json({
     ...snapshot.now,
     fetchedAt: snapshot.fetchedAt,
+    timeZone: snapshot.timeZone,
     provider: snapshot.provider
   }, {
     headers: {

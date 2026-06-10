@@ -38,6 +38,7 @@ export default async function LocationPage({
   const loc = LOCATIONS[id];
   if (!loc) return notFound();
   const isTidalLocation = loc.waterType !== 'lake' && loc.waterType !== 'river';
+  const timeZone = loc.timeZone ?? 'America/Vancouver';
 
   const [weatherSnapshot, tidesRes, marineRes] = await Promise.all([
     getLocationWeatherSnapshot(id).catch(() => null),
@@ -67,18 +68,21 @@ export default async function LocationPage({
   const boatingAlertDaylight = getDaylightWindow({
     now,
     fetchedAt: forecast?.fetchedAt,
+    timeZone,
     sunByDay: forecast?.sunByDay ?? [],
     forecast: forecast?.forecast ?? []
   });
   const boatingAlertNowIso = getAlertNowIso({
     nowIso: now?.asOf,
     fetchedAt: forecast?.fetchedAt,
-    daylight: boatingAlertDaylight
+    daylight: boatingAlertDaylight,
+    timeZone
   });
   const rainEta = getRainEtaSummary(forecast?.forecast ?? [], boatingAlertDaylight);
   const advisoryText = getAdvisorySummary(marine?.items ?? []);
   const launchWindow = getBestLaunchWindowSummary({
     forecast: forecast?.forecast ?? [],
+    nowIso: now?.asOf,
     sunriseIso: now?.sun?.sunrise,
     sunsetIso: now?.sun?.sunset,
     sunByDay: forecast?.sunByDay ?? []
@@ -869,11 +873,13 @@ function getVisibilityWatchWindow(forecast: ForecastAlertHour[], daylight?: Dayl
 
 function getBestLaunchWindowSummary({
   forecast,
+  nowIso,
   sunriseIso,
   sunsetIso,
   sunByDay = []
 }: {
   forecast: Array<{ t: string; windSpeedKts?: number; windGustKts?: number; precipProbPct?: number }>;
+  nowIso?: string | null;
   sunriseIso?: string;
   sunsetIso?: string;
   sunByDay?: Array<{ day: string; sunrise?: string; sunset?: string }>;
@@ -908,30 +914,56 @@ function getBestLaunchWindowSummary({
     return { ...h, day, minute, score };
   });
 
-  let bestStart = -1;
-  let bestAvg = -1;
-  for (let i = 0; i <= scored.length - 3; i += 1) {
-    const window = scored.slice(i, i + 3);
-    const [start, mid, end] = window;
-    if (!start.day || start.minute == null || mid.minute == null || end.minute == null) continue;
-    if (mid.day !== start.day || end.day !== start.day) continue;
-    if (mid.minute !== start.minute + 60 || end.minute !== start.minute + 120) continue;
+  const findBestStart = (afterDay?: string) => {
+    let bestStart = -1;
+    let bestAvg = -1;
+    for (let i = 0; i <= scored.length - 3; i += 1) {
+      const window = scored.slice(i, i + 3);
+      const [start, mid, end] = window;
+      if (!start.day || start.minute == null || mid.minute == null || end.minute == null) continue;
+      if (afterDay && start.day <= afterDay) continue;
+      if (mid.day !== start.day || end.day !== start.day) continue;
+      if (mid.minute !== start.minute + 60 || end.minute !== start.minute + 120) continue;
 
-    const daylight = daylightByDay.get(start.day) ?? { sunriseMinute: 6 * 60, sunsetMinute: 18 * 60 };
-    if (start.minute < daylight.sunriseMinute || start.minute + 180 > daylight.sunsetMinute) continue;
+      const daylight = daylightByDay.get(start.day) ?? { sunriseMinute: 6 * 60, sunsetMinute: 18 * 60 };
+      if (start.minute < daylight.sunriseMinute || start.minute + 180 > daylight.sunsetMinute) continue;
 
-    const avg = window.reduce((a, b) => a + b.score, 0) / window.length;
-    if (avg > bestAvg) {
-      bestAvg = avg;
-      bestStart = i;
+      const avg = window.reduce((a, b) => a + b.score, 0) / window.length;
+      if (avg > bestAvg) {
+        bestAvg = avg;
+        bestStart = i;
+      }
     }
+    return bestStart;
+  };
+
+  const nowDay = extractLocalDay(nowIso ?? undefined);
+  const nowMinute = extractLocalMinuteOfDay(nowIso ?? undefined);
+  const todayDaylight = nowDay ? daylightByDay.get(nowDay) : null;
+  if (
+    nowDay
+    && nowMinute != null
+    && todayDaylight
+    && todayDaylight.sunsetMinute - nowMinute < 2 * 60
+  ) {
+    const tomorrowStart = findBestStart(nowDay);
+    if (tomorrowStart >= 0) {
+      const start = scored[tomorrowStart];
+      return {
+        label: 'Done for today',
+        detail: `Tomorrow's window: ${formatAsOf(start.t)}-${formatLocalMinuteOfDay((start.minute ?? 0) + 180)}`
+      };
+    }
+    return { label: 'Done for today', detail: "Check tomorrow's launch window after the forecast refreshes" };
   }
 
+  const bestStart = findBestStart();
   if (bestStart < 0) return { label: '—', detail: 'No suitable window found' };
 
   const start = scored[bestStart];
+  const labelPrefix = nowDay && start.day && compareLocalDays(start.day, nowDay) === 1 ? 'Tomorrow ' : '';
   return {
-    label: `${formatAsOf(start.t)}–${formatLocalMinuteOfDay((start.minute ?? 0) + 180)}`,
+    label: `${labelPrefix}${formatAsOf(start.t)}-${formatLocalMinuteOfDay((start.minute ?? 0) + 180)}`,
     detail: 'Best 3-hour window between sunrise and sunset'
   };
 }
@@ -1073,15 +1105,32 @@ function compareBoatingAlerts(a: BoatingAlert, b: BoatingAlert) {
 function getDaylightWindow({
   now,
   fetchedAt,
+  timeZone = 'America/Vancouver',
   sunByDay,
   forecast
 }: {
   now: any;
   fetchedAt?: string;
+  timeZone?: string;
   sunByDay: Array<{ day: string; sunrise?: string; sunset?: string }>;
   forecast: ForecastAlertHour[];
 }): DaylightWindow | undefined {
-  const day = extractLocalDay(fetchedAt) ?? extractLocalDay(now?.asOf) ?? extractLocalDay(forecast[0]?.t);
+  const fetchedLocal = fetchedAt ? isoToLocationLocalIso(fetchedAt, timeZone) : null;
+  const localNowIso = now?.asOf ?? fetchedLocal ?? forecast[0]?.t;
+  const localNowDay = extractLocalDay(localNowIso);
+  const localNowMinute = extractLocalMinuteOfDay(localNowIso);
+  const fallbackDay = extractLocalDay(forecast[0]?.t);
+  const todaySun = sunByDay.find((entry) => entry.day === localNowDay);
+  const todaySunsetMinute = extractLocalMinuteOfDay(todaySun?.sunset);
+  const shouldUseTomorrow = Boolean(
+    localNowDay
+    && localNowMinute != null
+    && todaySunsetMinute != null
+    && localNowMinute >= todaySunsetMinute
+  );
+  const day = shouldUseTomorrow && localNowDay
+    ? nextSunDay(localNowDay, sunByDay) ?? nextForecastDay(localNowDay, forecast) ?? localNowDay
+    : localNowDay ?? fallbackDay;
   const sun = sunByDay.find((entry) => entry.day === day);
   const nowSunDay = extractLocalDay(now?.sun?.sunrise);
   const useNowSun = nowSunDay === day;
@@ -1094,25 +1143,27 @@ function getDaylightWindow({
 function getAlertNowIso({
   nowIso,
   fetchedAt,
-  daylight
+  daylight,
+  timeZone = 'America/Vancouver'
 }: {
   nowIso?: string | null;
   fetchedAt?: string;
   daylight?: DaylightWindow;
+  timeZone?: string;
 }) {
   const day = extractLocalDay(daylight?.start);
   if (nowIso && (!day || extractLocalDay(nowIso) === day)) return nowIso;
-  const fetchedLocal = fetchedAt ? isoToVancouverLocalIso(fetchedAt) : null;
+  const fetchedLocal = fetchedAt ? isoToLocationLocalIso(fetchedAt, timeZone) : null;
   if (fetchedLocal && (!day || extractLocalDay(fetchedLocal) === day)) return fetchedLocal;
   return nowIso ?? fetchedLocal ?? null;
 }
 
-function isoToVancouverLocalIso(iso: string) {
+function isoToLocationLocalIso(iso: string, timeZone: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
 
   const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Vancouver',
+    timeZone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -1128,6 +1179,19 @@ function isoToVancouverLocalIso(iso: string) {
   const minute = value('minute');
   if (!year || !month || !day || !hour || !minute) return null;
   return `${year}-${month}-${day}T${hour}:${minute}`;
+}
+
+function nextSunDay(day: string, sunByDay: Array<{ day: string }>) {
+  return sunByDay
+    .map((entry) => entry.day)
+    .filter((candidate) => candidate > day)
+    .sort()[0] ?? null;
+}
+
+function nextForecastDay(day: string, forecast: ForecastAlertHour[]) {
+  return [...new Set((forecast || []).map((hour) => extractLocalDay(hour.t)).filter(Boolean) as string[])]
+    .filter((candidate) => candidate > day)
+    .sort()[0] ?? null;
 }
 
 function getRainWindow(forecast: ForecastAlertHour[], daylight?: DaylightWindow) {
