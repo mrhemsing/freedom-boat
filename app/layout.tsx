@@ -5,8 +5,22 @@ import { SITE_URL } from '../lib/seo-slugs';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'Fair Tide Boat Planner',
-  description: 'Hyper-local boating conditions for Port Moody, West Vancouver, and North Saanich.'
+  title: {
+    default: 'Fair Tide - Salish Sea Boat Planner: Marine Forecasts, Tides & Trip Planning',
+    template: '%s | Fair Tide'
+  },
+  description:
+    'Plan boating trips across the Salish Sea and Pacific Northwest. Live marine forecasts, tides, wind and a 0-100 conditions score for marinas and anchorages across BC and Washington.',
+  alternates: {
+    canonical: '/'
+  },
+  openGraph: {
+    title: 'Fair Tide - Salish Sea Boat Planner',
+    description:
+      'Live marine forecasts, tides, wind and a 0-100 boating conditions score for Salish Sea and Pacific Northwest destinations.',
+    url: SITE_URL,
+    type: 'website'
+  }
 };
 
 export default function RootLayout({

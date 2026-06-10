@@ -3,8 +3,12 @@ import LocationPage from './location/[locationId]/page';
 import HomeMarinaRedirect from './HomeMarinaRedirect';
 
 export const metadata: Metadata = {
-  title: 'Fair Tide Boat Planner - Port Moody',
-  description: 'Hyper-local boating conditions for Port Moody.'
+  title: 'Salish Sea Boat Planner: Marine Forecasts, Tides & Trip Planning',
+  description:
+    'Plan boating trips across the Salish Sea and Pacific Northwest with live wind, tides, marine warnings, daylight and a 0-100 boating conditions score.',
+  alternates: {
+    canonical: '/'
+  }
 };
 
 export default async function HomePage() {

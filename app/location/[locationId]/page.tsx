@@ -4,7 +4,8 @@ import { headers } from 'next/headers';
 import { LOCATIONS, type LocationId } from '../../../lib/locations';
 import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../../lib/outlook';
-import { marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
+import { areaHubForPlace, canonicalUrl, marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
+import { breadcrumbJsonLd } from '../../../lib/seo-schema';
 import { getLocationWeatherSnapshot } from '../../../lib/weather-snapshots';
 import { BoatingAlertsModule, Card, ForecastStrip, KpiRow, TideList, WindArrow, type BoatingAlert } from './ui';
 import { TideMiniChart, WindChart } from './charts';
@@ -20,11 +21,31 @@ export async function generateMetadata({
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
   const name = loc?.name ?? 'Marina';
+  const homeMarina = loc ? getFreedomClubMarinaForLocation(id) : null;
+  const title = homeMarina
+    ? `Boating from ${name} - Conditions, Tides & Day Trips`
+    : `${name} Marine Forecast, Tides & Boating Conditions`;
+  const description = homeMarina
+    ? `Heading out from ${name}? Today's conditions score, wind, tides, and day-trip destinations within reach. Plan before you book.`
+    : `Today's boating conditions for ${name}: wind, tides, marine warnings and a 0-100 score. Plan your trip with Fair Tide.`;
 
   return {
-    title: `Fair Tide Boat Planner - ${name}`,
-    description: `Hyper-local boating conditions for ${name}.`
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl(`/location/${id}`)
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl(`/location/${id}`),
+      type: 'website'
+    }
   };
+}
+
+export function generateStaticParams() {
+  return Object.keys(LOCATIONS).map((locationId) => ({ locationId }));
 }
 
 export default async function LocationPage({
@@ -111,6 +132,21 @@ export default async function LocationPage({
   const isPlannerEmbed = searchParams?.embed === 'planner';
   const plannerScore = isPlannerEmbed ? parsePlannerScore(searchParams?.plannerScore) : null;
   const plannerDayIndex = isPlannerEmbed ? parsePlannerDayIndex(searchParams?.plannerDay) : 0;
+  const homeMarina = getFreedomClubMarinaForLocation(id);
+  const area = homeMarina ? areaHubForPlace(homeMarina) : null;
+  const todayOutlook = weeklyOutlook[0] ?? null;
+  const displayedTodayScore = plannerScore != null && plannerDayIndex === 0 ? plannerScore : todayOutlook?.score;
+  const answerFirstVerdict = buildAnswerFirstVerdict({
+    placeName: loc.name,
+    score: displayedTodayScore,
+    windSpeed,
+    gust,
+    directionDeg: dir,
+    advisoryLabel: advisoryText.label,
+    nextTide,
+    isTidalLocation
+  });
+  const reachableDestinations = homeMarina ? buildWithinReachDestinations(homeMarina, 20, 5) : [];
 
   return (
     <main className="container">
@@ -119,7 +155,7 @@ export default async function LocationPage({
         <div className="headerBrand">
           <div className="locationHeroTitle">
             <span>Conditions</span>
-            <h1>{loc.name}</h1>
+            <h1>{loc.name} Boating Conditions</h1>
           </div>
         </div>
         <a className="planMapButton" href={mapHref} aria-label={`Open ${loc.name} on trip map`}>
@@ -146,6 +182,26 @@ export default async function LocationPage({
           <SunBadge sunrise={now?.sun?.sunrise} sunset={now?.sun?.sunset} />
         </div>
       </header>
+
+      {!isPlannerEmbed ? (
+        <section className="answerFirstPanel" aria-label={`${loc.name} boating conditions summary`}>
+          {area ? (
+            <nav className="seoBreadcrumb locationBreadcrumb" aria-label="Breadcrumb">
+              <a href="/">Home</a>
+              <span>/</span>
+              <a href={`/area/${area.slug}`}>{area.name}</a>
+              <span>/</span>
+              <span>{loc.name}</span>
+            </nav>
+          ) : null}
+          <p>{answerFirstVerdict}</p>
+          {homeMarina ? (
+            <p className="fbcDisclosure">
+              Fair Tide is independent and not affiliated with Freedom Boat Club.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       <div className="grid" style={{ marginTop: 24 }}>
         {boatingAlerts.length ? (
@@ -310,6 +366,28 @@ export default async function LocationPage({
             </div>
           </div>
         </Card>
+
+        {homeMarina && !isPlannerEmbed ? (
+          <Card
+            className="withinReachCard"
+            title="Within reach today"
+            icon={<span style={{ fontWeight: 900, fontSize: 16, filter: 'grayscale(1)', opacity: 0.92 }}>⚓</span>}
+            right={<span>day-use trip ideas</span>}
+          >
+            <p className="miniNote">
+              From {loc.name}, these destinations are roughly within an out-and-back day window at typical club fleet speeds. Check the live score and daylight before booking.
+            </p>
+            <div className="withinReachList">
+              {reachableDestinations.map((destination) => (
+                <a key={destination.slug} href={marinaPath(destination)}>
+                  <strong>{destination.name}</strong>
+                  <span>{destination.distanceNm} nm each way · {destination.area}</span>
+                </a>
+              ))}
+            </div>
+            <p className="miniNote">{lakeOrSaltContext(loc, homeMarina)}</p>
+          </Card>
+        ) : null}
 
         <Card className="desktopIconDrop2 liveLookCard" title="Live look" icon={<IconWind />} right={<span>Wind · Temp · Rain</span>}>
           <KpiRow
@@ -544,6 +622,18 @@ export default async function LocationPage({
           <a className="baBadge baBadgeWhite" href="https://www.b-average.com/" target="_blank" rel="noreferrer">B AVERAGE</a>
         </div>
       </footer>
+      {!isPlannerEmbed && area ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(breadcrumbJsonLd([
+              ['Home', '/'],
+              [area.name, `/area/${area.slug}`],
+              [loc.name, `/location/${id}`]
+            ]))
+          }}
+        />
+      ) : null}
     </main>
   );
 }
@@ -563,6 +653,83 @@ function SunBadge({ sunrise, sunset }: { sunrise?: string; sunset?: string }) {
       </span>
     </span>
   );
+}
+
+function getFreedomClubMarinaForLocation(locationId: LocationId) {
+  return SEO_MARINAS.find((marina) => marina.locationId === locationId && marina.freedomClub) ?? null;
+}
+
+function buildAnswerFirstVerdict({
+  placeName,
+  score,
+  windSpeed,
+  gust,
+  directionDeg,
+  advisoryLabel,
+  nextTide,
+  isTidalLocation
+}: {
+  placeName: string;
+  score?: number;
+  windSpeed?: number;
+  gust?: number;
+  directionDeg?: number;
+  advisoryLabel: string;
+  nextTide: ReturnType<typeof getNextTideSummary>;
+  isTidalLocation: boolean;
+}) {
+  const scoreText = typeof score === 'number'
+    ? `${Math.round(score)}/100 ${scoreBand(score).label}`
+    : 'forecast score updating';
+  const windText = typeof windSpeed === 'number'
+    ? `Winds ${round(windSpeed, 0)} kt${typeof directionDeg === 'number' ? ` ${degToCardinal(directionDeg) ?? ''}` : ''}${typeof gust === 'number' ? `, gusting ${round(gust, 0)} kt` : ''}`
+    : 'Wind forecast updating';
+  const tideText = isTidalLocation
+    ? nextTide
+      ? `next ${nextTide.kindLabel.toLowerCase()} tide ${nextTide.etaLabel} at ${isoToLocalTime(nextTide.t)}`
+      : 'next tide updating'
+    : 'no tide planning needed for this lake/river location';
+  const warningText = advisoryLabel === 'No advisory' ? 'no active marine advisory' : advisoryLabel.toLowerCase();
+
+  return `Boating conditions at ${placeName} today: ${scoreText}. ${windText}; ${warningText}; ${tideText}.`;
+}
+
+function buildWithinReachDestinations(homeMarina: SeoMarina, maxNm: number, limit: number) {
+  return SEO_MARINAS
+    .filter((marina) => marina.slug !== homeMarina.slug && marina.waterType === homeMarina.waterType)
+    .map((marina) => ({
+      ...marina,
+      distanceNm: Math.round(kmToNm(haversineKm(homeMarina.lat, homeMarina.lon, marina.lat, marina.lon)))
+    }))
+    .filter((marina) => marina.distanceNm > 0 && marina.distanceNm <= maxNm)
+    .sort((a, b) => a.distanceNm - b.distanceNm || a.name.localeCompare(b.name))
+    .slice(0, limit);
+}
+
+function kmToNm(km: number) {
+  return km / 1.852;
+}
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const radius = 6371;
+  const toRad = (value: number) => value * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * radius * Math.asin(Math.sqrt(a));
+}
+
+function lakeOrSaltContext(loc: { waterType?: 'tidal' | 'lake' | 'river'; name: string }, marina: SeoMarina) {
+  if (loc.waterType === 'lake') {
+    return `${loc.name} is a lake boating page, so Fair Tide focuses on wind, daylight, rain, and launch windows instead of tides.`;
+  }
+  if (loc.waterType === 'river') {
+    return `${loc.name} is a river boating page, so Fair Tide emphasizes wind, daylight, rain, and local river exposure rather than coastal tide timing.`;
+  }
+  if (/lake washington|lake union|leschi|yarrow bay|agc/i.test(`${marina.name} ${marina.area}`)) {
+    return 'Lake Washington and Lake Union trips may involve locks or bridges when crossing to Puget Sound; use this page as a pre-booking weather and daylight check.';
+  }
+  return 'Salt-water trips can change quickly with wind, tide, current, and marine advisories; use this page before booking and again before departure.';
 }
 
 const BC_LOCATION_ORDER = new Map([

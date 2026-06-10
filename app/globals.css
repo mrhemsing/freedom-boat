@@ -530,6 +530,67 @@ a:hover {
   overflow-wrap: anywhere;
 }
 
+.answerFirstPanel {
+  display: grid;
+  gap: 9px;
+  margin-top: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: rgba(4, 18, 31, 0.55);
+  color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+}
+
+.answerFirstPanel p {
+  margin: 0;
+  max-width: 980px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.answerFirstPanel .locationBreadcrumb {
+  font-size: 13px;
+}
+
+.answerFirstPanel .fbcDisclosure {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.withinReachList {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.withinReachList a {
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(14, 165, 164, 0.08);
+  color: inherit;
+  text-decoration: none;
+}
+
+.withinReachList a:hover {
+  background: rgba(14, 165, 164, 0.13);
+}
+
+.withinReachList strong {
+  color: rgba(11, 18, 32, 0.9);
+  font-size: 14px;
+}
+
+.withinReachList span {
+  color: rgba(15, 23, 42, 0.58);
+  font-size: 12px;
+  font-weight: 760;
+}
+
 .footerBrandRow {
   display: inline-flex;
   align-items: center;

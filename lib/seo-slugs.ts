@@ -41,6 +41,12 @@ export const AREA_HUBS: AreaHub[] = [
     match: (place) => /victoria|esquimalt|maple bay|cowichan|comox|courtenay|french creek|nanoose|nanaimo|newcastle|ladysmith/i.test(place.area)
   },
   {
+    slug: 'lake-washington-lake-union',
+    name: 'Lake Washington & Lake Union',
+    description: 'Lake Washington and Lake Union boating conditions, day-trip ideas, and Freedom Club marina pages for Seattle and Kirkland.',
+    match: (place) => /lake union|lake washington|leschi|yarrow bay|kirkland|agc marina/i.test(place.area)
+  },
+  {
     slug: 'puget-sound',
     name: 'Puget Sound',
     description: 'Freedom Club locations, boating conditions, marina access, and forecast windows around Puget Sound.',

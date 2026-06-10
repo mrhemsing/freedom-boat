@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
 import { FBC_PNW_MARINAS, PLANNER_MARINAS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
-import { marinaPath } from '../../lib/seo-slugs';
+import { canonicalUrl, marinaPath } from '../../lib/seo-slugs';
 import GlobalHeader from '../GlobalHeader';
 import TripMap from './TripMap';
 
 export const metadata: Metadata = {
-  title: 'Fair Tide Boat Planner',
-  description: 'Map-based marina trip planner with forecasted boating conditions.'
+  title: 'Salish Sea Boating Trip Planner',
+  description:
+    'Plan Pacific Northwest boating trips with destination distances, live wind, tides, daylight, marine warnings, and Fair Tide day scores.',
+  alternates: {
+    canonical: canonicalUrl('/plan-my-trip')
+  }
 };
 
 export default function PlanMyTripPage() {
