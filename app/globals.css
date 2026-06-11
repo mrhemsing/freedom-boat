@@ -2160,7 +2160,7 @@ hr.soft {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     min-height: 0;
-    padding: 16px;
+    padding: 16px 10px;
     transition: padding 160ms ease, gap 160ms ease;
   }
 
