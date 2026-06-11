@@ -212,24 +212,7 @@ export function BoatingAlertsModule({
   const activeCount = items.length;
 
   if (!activeCount) {
-    return (
-      <div className="boatingAlertsModule boatingAlertsModuleCalm">
-        <div className={`marineWarningStrip marineWarningStripCalm ${warningStatus === 'unavailable' ? 'marineWarningStripUnavailable' : ''}`.trim()}>
-          <span
-            className={`marineWarningCheck ${warningStatus === 'unavailable' ? '' : 'marineWarningCheckOk'}`.trim()}
-            aria-hidden="true"
-          >
-            {warningStatus === 'unavailable' ? '!' : ''}
-          </span>
-          <span>
-            <strong className="marineWarningStatusLine">
-              {warningStatus === 'unavailable' ? 'Marine warnings unavailable' : 'No active warnings or watches.'}
-            </strong>
-            <small>{warningAuthority}</small>
-          </span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -241,25 +224,6 @@ export function BoatingAlertsModule({
         </div>
         <div className="boatingAlertsMeta">{activeCount} active · {dayLabel}</div>
       </div>
-
-      {!hasWarning ? (
-        <div className={`marineWarningStrip ${warningStatus === 'unavailable' ? 'marineWarningStripUnavailable' : ''}`.trim()}>
-          <span
-            className={`marineWarningCheck ${warningStatus === 'unavailable' ? '' : 'marineWarningCheckOk'}`.trim()}
-            aria-hidden="true"
-          >
-            {warningStatus === 'unavailable' ? '!' : ''}
-          </span>
-          <span>
-            <strong className="marineWarningStatusLine">
-              {warningStatus === 'unavailable'
-                ? 'Marine warnings unavailable'
-                : 'No active marine warnings'}
-            </strong>
-            <small>{warningAuthority}</small>
-          </span>
-        </div>
-      ) : null}
 
       {activeCount ? (
         <div className="boatingAlertRows">
