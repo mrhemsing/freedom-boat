@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+.env
+.tmp-*/
+next-*.log
+next-*.out.log
+next-*.err.log
+tsconfig.tsbuildinfo
+pnpm-lock.yaml

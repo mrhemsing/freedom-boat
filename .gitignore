@@ -9,3 +9,5 @@ data/ramps.raw.json
 data/marinas.enriched.json
 .tmp-*/
 next-*.log
+
+.vercel
