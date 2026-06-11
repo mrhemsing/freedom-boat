@@ -37,7 +37,10 @@ export default function RootLayout({
             __html: `
 (() => {
   const setScrollbarWidth = () => {
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const measuredScrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const pageHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+    const pageIsScrollable = pageHeight > window.innerHeight + 1;
+    const scrollbarWidth = measuredScrollbarWidth || (pageIsScrollable ? 15 : 0);
     document.documentElement.style.setProperty('--scrollbar-width', scrollbarWidth + 'px');
     document.documentElement.style.setProperty('--scrollbar-half-width', (scrollbarWidth / 2) + 'px');
   };
