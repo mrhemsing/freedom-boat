@@ -1127,7 +1127,7 @@ function getBestLaunchWindowSummary({
   if (bestStart < 0) return { label: '—', detail: 'No suitable window found' };
 
   const start = scored[bestStart];
-  const labelPrefix = nowDay && start.day && compareLocalDays(start.day, nowDay) === 1 ? 'Tmrw ' : '';
+  const labelPrefix = nowDay && start.day && compareLocalDays(start.day, nowDay) === 1 ? 'Tomorrow ' : '';
   return {
     label: `${labelPrefix}${formatLaunchWindowRange(start.minute ?? 0)}`,
     detail: 'Best 3-hour window between sunrise and sunset'
