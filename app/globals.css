@@ -4421,8 +4421,9 @@ hr.soft {
 }
 
 .plannerName {
-  display: block;
+  display: grid;
   gap: 6px;
+  align-items: start;
   min-width: 0;
   overflow: visible;
   color: var(--planner-navy);
@@ -4433,9 +4434,7 @@ hr.soft {
 }
 
 .plannerName em {
-  display: inline-block;
-  margin-left: 6px;
-  vertical-align: 2px;
+  width: fit-content;
   border-radius: 999px;
   padding: 3px 6px;
   background: rgba(20, 86, 160, 0.12);
@@ -6029,13 +6028,7 @@ hr.soft {
   }
 
   .plannerName {
-    display: grid;
-    align-items: start;
     gap: 4px;
-  }
-
-  .plannerName em {
-    width: fit-content;
   }
 
   .plannerRight {
