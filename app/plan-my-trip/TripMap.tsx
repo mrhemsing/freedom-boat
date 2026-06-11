@@ -1595,7 +1595,7 @@ function MarinaDetail({
   const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
   const warning = vesselWarning(conditions, vessel);
   const info = accessInfoFor(marina);
-  const tide = marina.waterType === 'lake' || marina.waterType === 'river'
+  const tide = marina.waterType === 'lake' || marina.waterType === 'river' || marina.tidal === false
     ? null
     : tideState(marina, plannerTimeForDay(dayIndex), liveTide);
 
@@ -2949,7 +2949,7 @@ function buildTripLegs(
     stopIndex += 1;
     const arrivalDayIndex = dayIndexForArrival(depart, cursor, dayIndex);
     const conditions = conditionsFor(node.marina, arrivalDayIndex, weeklyOutlooks);
-    const tide = node.marina.waterType === 'lake' || node.marina.waterType === 'river'
+    const tide = node.marina.waterType === 'lake' || node.marina.waterType === 'river' || node.marina.tidal === false
       ? null
       : tideState(node.marina, cursor, liveTides[node.marina.id]);
     const daylight = daylightArrival(node.marina, cursor);
@@ -3237,6 +3237,7 @@ function toRadians(value: number) {
 }
 
 async function loadCHSTides(marinas: Marina[]) {
+  const tidalMarinas = marinas.filter((marina) => marina.waterType !== 'lake' && marina.waterType !== 'river' && marina.tidal !== false);
   const stations = await fetchIwlsStations('wlp');
   const out: Record<number, LiveTide> = {};
   const from = new Date();
@@ -3246,7 +3247,7 @@ async function loadCHSTides(marinas: Marina[]) {
 
   const stationByMarina = new Map<number, IwlsStation>();
   const uniqueStations = new Map<string, IwlsStation>();
-  marinas.forEach((marina) => {
+  tidalMarinas.forEach((marina) => {
     const station = nearestIwlsStation(marina, stations);
     if (!station) return;
     stationByMarina.set(marina.id, station);
@@ -3267,7 +3268,7 @@ async function loadCHSTides(marinas: Marina[]) {
   });
 
   await Promise.allSettled(tasks);
-  marinas.forEach((marina) => {
+  tidalMarinas.forEach((marina) => {
     const station = stationByMarina.get(marina.id);
     const data = station ? stationData.get(station.id) : null;
     if (!station || !data) return;

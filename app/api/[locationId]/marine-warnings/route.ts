@@ -234,6 +234,15 @@ export async function GET(_req: Request, { params }: { params: { locationId: str
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
   if (!loc) return NextResponse.json({ error: 'unknown location' }, { status: 404 });
+  if (loc.waterType === 'lake') {
+    return NextResponse.json({
+      locationId: id,
+      authority: 'Inland lake forecast',
+      status: 'unavailable',
+      items: [],
+      nonMarine: true
+    });
+  }
 
   const routing = warningAuthority(loc);
   if (routing.country === 'US') {

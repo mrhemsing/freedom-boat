@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
-import { LOCATIONS, type LocationId } from '../../../lib/locations';
+import { LOCATIONS, isTidalLocation, type LocationId } from '../../../lib/locations';
 import { degToCardinal, isoToLocalDay, isoToLocalTime, round } from '../../../lib/format';
 import { buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../../lib/outlook';
 import { areaHubForPlace, canonicalUrl, marinaPath, SEO_MARINAS, seoSlugForMarina, type SeoMarina } from '../../../lib/seo-slugs';
@@ -29,12 +29,12 @@ export async function generateMetadata({
   const primaryMarina = loc ? getPrimaryMarinaForLocation(id) : null;
   const area = primaryMarina ? areaHubForPlace(primaryMarina) : { name: 'Pacific Northwest', slug: 'pacific-northwest' };
   const seoSnapshot = loc ? await getLocationSeoSummary(id).catch(() => null) : null;
-  const isTidalLocation = loc?.waterType !== 'lake' && loc?.waterType !== 'river';
+  const isTidal = loc ? isTidalLocation(loc) : true;
   const title = homeMarina
-    ? `Boating from ${name} - Conditions${isTidalLocation ? ', Tides' : ''} & Trip Planning`
-    : `${name} Marine Forecast${isTidalLocation ? ', Tides' : ''} & Boating Conditions`;
+    ? `Boating from ${name} - Conditions${isTidal ? ', Tides' : ''} & Trip Planning`
+    : `${name} Marine Forecast${isTidal ? ', Tides' : ''} & Boating Conditions`;
   const description = homeMarina
-    ? `Heading out from ${name}? Today: ${seoSnapshot?.scoreText ?? 'live conditions updating'}. See wind${isTidalLocation ? ', tides,' : ''} and marine advisories before you book. Plan your trip with Fair Tide.`
+    ? `Heading out from ${name}? Today: ${seoSnapshot?.scoreText ?? 'live conditions updating'}. See wind${isTidal ? ', tides,' : ''} and marine advisories before you book. Plan your trip with Fair Tide.`
     : `Today's boating conditions for ${name}${area ? `, ${area.name}` : ''}: ${seoSnapshot?.scoreText ? `${seoSnapshot.scoreText}, ` : ''}${seoSnapshot?.windText ? `${seoSnapshot.windText}. ` : ''}Live marine forecast and trip planning.`;
 
   return {
@@ -66,13 +66,14 @@ export default async function LocationPage({
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
   if (!loc) return notFound();
-  const isTidalLocation = loc.waterType !== 'lake' && loc.waterType !== 'river';
+  const isTidal = isTidalLocation(loc);
+  const includeMarineAdvisories = loc.waterType !== 'lake';
   const timeZone = loc.timeZone ?? 'America/Vancouver';
 
   const [weatherSnapshot, tidesRes, marineRes] = await Promise.all([
     getLocationWeatherSnapshot(id).catch(() => null),
-    isTidalLocation ? fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' }) : Promise.resolve(null),
-    fetch(`${baseUrl()}/api/${params.locationId}/marine-warnings`, { cache: 'no-store' })
+    isTidal ? fetch(`${baseUrl()}/api/${params.locationId}/tides?days=2`, { cache: 'no-store' }) : Promise.resolve(null),
+    includeMarineAdvisories ? fetch(`${baseUrl()}/api/${params.locationId}/marine-warnings`, { cache: 'no-store' }) : Promise.resolve(null)
   ]);
 
   const now = weatherSnapshot?.now ?? null;
@@ -85,14 +86,14 @@ export default async function LocationPage({
       }
     : null;
   const tides = tidesRes?.ok ? await tidesRes.json() : null;
-  const marine = marineRes.ok ? await marineRes.json() : null;
+  const marine = marineRes?.ok ? await marineRes.json() : null;
 
   const windSpeed = now?.wind?.speedKts;
   const gust = now?.wind?.gustKts;
   const dir = now?.wind?.directionDeg;
   const webcam = getLocationWebcam(id);
-  const nextTide = isTidalLocation ? getNextTideSummary({ events: tides?.events ?? [] }) : null;
-  const tidePhase = isTidalLocation ? getTidePhaseSummary({ events: tides?.events ?? [] }) : null;
+  const nextTide = isTidal ? getNextTideSummary({ events: tides?.events ?? [] }) : null;
+  const tidePhase = isTidal ? getTidePhaseSummary({ events: tides?.events ?? [] }) : null;
   const windTrend = getWindTrendSummary(forecast?.forecast ?? []);
   const boatingAlertDaylight = getDaylightWindow({
     now,
@@ -108,7 +109,9 @@ export default async function LocationPage({
     timeZone
   });
   const rainEta = getRainEtaSummary(forecast?.forecast ?? [], boatingAlertDaylight);
-  const advisoryText = getAdvisorySummary(marine?.items ?? []);
+  const advisoryText = includeMarineAdvisories
+    ? getAdvisorySummary(marine?.items ?? [])
+    : { label: 'Not used', detail: 'Marine advisories are hidden for inland lake locations' };
   const launchWindow = getBestLaunchWindowSummary({
     forecast: forecast?.forecast ?? [],
     nowIso: now?.asOf,
@@ -116,13 +119,18 @@ export default async function LocationPage({
     sunsetIso: now?.sun?.sunset,
     sunByDay: forecast?.sunByDay ?? []
   });
-  const slackTide = isTidalLocation ? getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] }) : null;
-  const windTideRisk = isTidalLocation ? getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] }) : null;
+  const slackTide = isTidal ? getSlackTideSummary({ nowIso: now?.asOf, events: tides?.events ?? [] }) : null;
+  const windTideRisk = isTidal ? getWindTideRiskSummary({ now, tidePhase, forecast: forecast?.forecast ?? [] }) : null;
+  const windRisk = isTidal ? null : getWindRiskSummary({ now, forecast: forecast?.forecast ?? [] });
   const visibility = getVisibilityRiskSummary({ now, forecast: forecast?.forecast ?? [], marineItems: marine?.items ?? [] });
   const weeklyStartDay = extractLocalDay(boatingAlertDaylight?.start) ?? extractLocalDay(boatingAlertNowIso ?? undefined);
   const weeklyOutlook = buildWeeklyOutlook(forecast?.forecast ?? [], forecast?.sunByDay ?? [], 5, weeklyStartDay);
-  const marineAuthority = typeof marine?.authority === 'string' ? marine.authority : warningAuthorityForLocation(loc);
-  const marineWarningStatus = marine?.status === 'unavailable' ? 'unavailable' : 'available';
+  const marineAuthority = includeMarineAdvisories
+    ? (typeof marine?.authority === 'string' ? marine.authority : warningAuthorityForLocation(loc))
+    : 'Inland lake forecast';
+  const marineWarningStatus = includeMarineAdvisories
+    ? (marine?.status === 'unavailable' ? 'unavailable' : 'available')
+    : 'available';
   const boatingAlerts = buildBoatingAlerts({
     now,
     forecast: forecast?.forecast ?? [],
@@ -132,7 +140,7 @@ export default async function LocationPage({
     daylight: boatingAlertDaylight,
     nowIso: boatingAlertNowIso,
     warningAuthority: marineAuthority,
-    includeTide: isTidalLocation
+    includeTide: isTidal
   });
   const boatingAlertDayLabel = formatDayLabel(boatingAlertDaylight?.start ?? now?.asOf ?? forecast?.forecast?.[0]?.t);
   const marinaJumpGroups = buildMarinaJumpGroups();
@@ -153,7 +161,7 @@ export default async function LocationPage({
     directionDeg: dir,
     advisoryLabel: advisoryText.label,
     nextTide,
-    isTidalLocation
+    isTidalLocation: isTidal
   });
   const planLinkLabel = `Plan a trip to ${loc.name}`;
 
@@ -361,6 +369,13 @@ export default async function LocationPage({
                 <div className="miniNote">{windTideRisk.detail}</div>
               </div>
             ) : null}
+            {windRisk ? (
+              <div className="quickItem">
+                <div className="quickLabel">Wind risk</div>
+                <div className="quickValue">{windRisk.label}</div>
+                <div className="miniNote">{windRisk.detail}</div>
+              </div>
+            ) : null}
             <div className="quickItem">
               <div className="quickLabel">Visibility / fog</div>
               <div className="quickValue">{visibility.label}</div>
@@ -475,7 +490,7 @@ export default async function LocationPage({
                     <span className="conditionsDetailLine">
                       Precip: {now?.precipMmHr != null ? String(round(now?.precipMmHr, 1)) : '—'} mm/hr
                     </span>
-                    {isTidalLocation ? (
+                    {isTidal ? (
                       <span className="conditionsDetailLine">
                         Tide: {nextTide ? `${nextTide.kindLabel} ${nextTide.etaLabel}` : '—'}
                       </span>
@@ -512,7 +527,7 @@ export default async function LocationPage({
           <ForecastStrip forecast={forecast?.forecast ?? []} />
         </Card>
 
-        {isTidalLocation ? (
+        {isTidal ? (
           <Card
             className="desktopIconDrop2 tidesCard"
             title="Tides"
@@ -556,15 +571,17 @@ export default async function LocationPage({
               <span>Conditions + forecast</span>
               <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo Forecast API</a>
             </li>
-            <li>
-              <span>Marine advisories</span>
-              {marineAuthority === 'National Weather Service' ? (
-                <a href="https://api.weather.gov/alerts/active" target="_blank" rel="noreferrer">National Weather Service active alerts</a>
-              ) : (
-                <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>
-              )}
-            </li>
-            {isTidalLocation ? (
+            {includeMarineAdvisories ? (
+              <li>
+                <span>Marine advisories</span>
+                {marineAuthority === 'National Weather Service' ? (
+                  <a href="https://api.weather.gov/alerts/active" target="_blank" rel="noreferrer">National Weather Service active alerts</a>
+                ) : (
+                  <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>
+                )}
+              </li>
+            ) : null}
+            {isTidal ? (
               <li>
                 <span>Tides + water levels</span>
                 <a href="https://api-iwls.dfo-mpo.gc.ca/" target="_blank" rel="noreferrer">DFO / Canadian Hydrographic Service IWLS</a>
@@ -939,6 +956,28 @@ function getWindTideRiskSummary({
     return { label: 'Moderate', detail: 'Expect some chop where current is strongest' };
   }
   return { label: 'Low', detail: 'Limited wind/current interaction signal' };
+}
+
+function getWindRiskSummary({
+  now,
+  forecast
+}: {
+  now: any;
+  forecast: Array<{ windSpeedKts?: number; windGustKts?: number }>;
+}) {
+  const windNow = Number(now?.wind?.speedKts ?? 0);
+  const gustNow = Number(now?.wind?.gustKts ?? windNow);
+  const next6 = (forecast || []).slice(0, 6);
+  const maxWind6 = Math.max(...next6.map((h) => Number(h.windSpeedKts ?? 0)), windNow);
+  const maxGust6 = Math.max(...next6.map((h) => Number(h.windGustKts ?? h.windSpeedKts ?? 0)), gustNow);
+
+  if (maxWind6 >= 22 || maxGust6 >= 30) {
+    return { label: 'High', detail: 'Strong wind signal for this inland location' };
+  }
+  if (maxWind6 >= 16 || maxGust6 >= 22) {
+    return { label: 'Moderate', detail: 'Watch wind and gusts before leaving the dock' };
+  }
+  return { label: 'Low', detail: 'Limited wind signal' };
 }
 
 const VISIBILITY_RAIN_THRESHOLD_MM = 3;

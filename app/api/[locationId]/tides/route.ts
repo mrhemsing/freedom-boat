@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { LOCATIONS, type LocationId } from '../../../../lib/locations';
+import { LOCATIONS, isTidalLocation, type LocationId } from '../../../../lib/locations';
 import { fetchTideHiLo, findNearestStation, normalizeTideEvents } from '../../../../lib/iwls';
 
 export async function GET(
@@ -11,7 +11,7 @@ export async function GET(
   if (!loc) {
     return NextResponse.json({ error: 'unknown location' }, { status: 404 });
   }
-  if (loc.waterType === 'lake' || loc.waterType === 'river') {
+  if (!isTidalLocation(loc)) {
     return NextResponse.json({
       locationId: id,
       anchor: { lat: loc.lat, lon: loc.lon },

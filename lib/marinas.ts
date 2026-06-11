@@ -15,6 +15,7 @@ export type Marina = {
   accessInfo?: MarinaAccessInfo;
   operator?: string;
   sourceUrl?: string;
+  tidal?: boolean;
   waterType?: 'tidal' | 'lake' | 'river';
 };
 
@@ -710,7 +711,9 @@ export const FBC_PNW_MARINAS: Marina[] = [
     locationId: 'agc-marina',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/agc-marina',
-    accessInfo: FREEDOM_CLUB_ACCESS
+    accessInfo: FREEDOM_CLUB_ACCESS,
+    tidal: false,
+    waterType: 'lake'
   },
   {
     id: 42,
@@ -724,7 +727,9 @@ export const FBC_PNW_MARINAS: Marina[] = [
     locationId: 'yarrow-bay-marina',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/yarrow-bay-marina',
-    accessInfo: FREEDOM_CLUB_ACCESS
+    accessInfo: FREEDOM_CLUB_ACCESS,
+    tidal: false,
+    waterType: 'lake'
   },
   {
     id: 43,
@@ -738,7 +743,9 @@ export const FBC_PNW_MARINAS: Marina[] = [
     locationId: 'leschi-marina',
     operator: 'FBC Seattle and Greater Puget Sound',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/victory-marine-llc/leschi-marina',
-    accessInfo: FREEDOM_CLUB_ACCESS
+    accessInfo: FREEDOM_CLUB_ACCESS,
+    tidal: false,
+    waterType: 'lake'
   },
   {
     id: 44,
@@ -795,6 +802,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     operator: 'FBC of Portland OR',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/columbia-boat-club-inc/portland-oregon',
     accessInfo: FREEDOM_CLUB_ACCESS,
+    tidal: false,
     waterType: 'river'
   },
   {
@@ -810,6 +818,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     operator: 'FBC of Portland OR',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/columbia-boat-club-inc/port-of-camas',
     accessInfo: FREEDOM_CLUB_ACCESS,
+    tidal: false,
     waterType: 'river'
   },
   {
@@ -825,6 +834,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     operator: 'FBC of Northern ID',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/coeur-dalene/cda',
     accessInfo: FREEDOM_CLUB_ACCESS,
+    tidal: false,
     waterType: 'lake'
   },
   {
@@ -840,6 +850,7 @@ export const FBC_PNW_MARINAS: Marina[] = [
     operator: 'FBC of Northern ID',
     sourceUrl: 'https://www.freedomboatclub.com/franchises/coeur-dalene/hayden-lake-marina.html',
     accessInfo: FREEDOM_CLUB_ACCESS,
+    tidal: false,
     waterType: 'lake'
   }
 ];

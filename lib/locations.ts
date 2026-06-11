@@ -4,6 +4,7 @@ export type LocationProfile = {
   id: LocationId;
   name: string;
   address?: string;
+  tidal: boolean;
   waterType?: 'tidal' | 'lake' | 'river';
   timeZone?: string;
   // Anchor point used for forecast queries (can be refined later)
@@ -20,6 +21,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'port-moody',
     name: 'Port Moody',
     address: '850 Barnet Hwy, Port Moody, BC',
+    tidal: true,
     // Marina anchor (Burrard Inlet)
     lat: 49.291406,
     lon: -122.884611,
@@ -34,6 +36,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'north-saanich',
     name: 'North Saanich',
     address: '2300 Canoe Cove Rd, North Saanich, BC',
+    tidal: true,
     lat: 48.65,
     lon: -123.43,
     marineAreas: [
@@ -47,6 +50,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'oak-bay',
     name: 'Oak Bay',
     address: 'Oak Bay Marina, Victoria, BC',
+    tidal: true,
     lat: 48.4249,
     lon: -123.3025,
     marineAreas: [
@@ -60,6 +64,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'west-vancouver',
     name: 'West Vancouver',
     address: '34 Sunset Beach, West Vancouver, BC, V7W 2T7',
+    tidal: true,
     lat: 49.3293,
     lon: -123.1566,
     marineAreas: [
@@ -73,6 +78,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'richmond',
     name: 'Richmond',
     address: '8031 River Rd, Richmond, BC',
+    tidal: true,
     lat: 49.188,
     lon: -123.126,
     marineAreas: [
@@ -85,6 +91,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'bellingham',
     name: 'Bellingham',
     address: 'Squalicum Harbor Marina, Bellingham, WA',
+    tidal: true,
     lat: 48.7531,
     lon: -122.5014,
     marineAreas: ['Strait of Georgia']
@@ -93,6 +100,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'anacortes',
     name: 'Anacortes',
     address: 'Anacortes, WA',
+    tidal: true,
     lat: 48.5126,
     lon: -122.6127,
     marineAreas: ['Juan de Fuca Strait', 'Haro Strait']
@@ -101,6 +109,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'everett',
     name: 'Everett',
     address: 'Port of Everett Marina, Everett, WA',
+    tidal: true,
     lat: 47.9972,
     lon: -122.2227
   },
@@ -108,6 +117,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'port-of-edmonds',
     name: 'Port of Edmonds',
     address: 'Port of Edmonds Marina, Edmonds, WA',
+    tidal: true,
     lat: 47.8112,
     lon: -122.3857
   },
@@ -115,6 +125,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'port-of-poulsbo',
     name: 'Port of Poulsbo',
     address: 'Poulsbo Marina, Poulsbo, WA',
+    tidal: true,
     lat: 47.7359,
     lon: -122.6477
   },
@@ -122,6 +133,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'elliott-bay-marina',
     name: 'Elliott Bay Marina',
     address: 'Elliott Bay Marina, Seattle, WA',
+    tidal: true,
     lat: 47.6309,
     lon: -122.3912
   },
@@ -129,6 +141,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'agc-marina',
     name: 'AGC Marina',
     address: 'AGC Marina, Lake Union, Seattle, WA',
+    tidal: false,
+    waterType: 'lake',
     lat: 47.6268,
     lon: -122.3354
   },
@@ -136,6 +150,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'yarrow-bay-marina',
     name: 'Yarrow Bay Marina',
     address: 'Yarrow Bay Marina, Kirkland, WA',
+    tidal: false,
+    waterType: 'lake',
     lat: 47.6433,
     lon: -122.2086
   },
@@ -143,6 +159,8 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'leschi-marina',
     name: 'Leschi Marina',
     address: 'Leschi Marina, Seattle, WA',
+    tidal: false,
+    waterType: 'lake',
     lat: 47.6021,
     lon: -122.2861
   },
@@ -150,6 +168,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'port-orchard',
     name: 'Port Orchard',
     address: 'Port Orchard Marina, Port Orchard, WA',
+    tidal: true,
     lat: 47.5432,
     lon: -122.6367
   },
@@ -157,6 +176,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'tacoma',
     name: 'Tacoma',
     address: 'Foss Harbor Marina, Tacoma, WA',
+    tidal: true,
     lat: 47.2531,
     lon: -122.4345
   },
@@ -164,6 +184,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'olympia',
     name: 'Olympia',
     address: 'Swantown Marina, Olympia, WA',
+    tidal: true,
     lat: 47.0554,
     lon: -122.9004
   },
@@ -171,6 +192,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'portland-tomahawk-bay-marina',
     name: 'Portland Tomahawk Bay Marina',
     address: 'Tomahawk Bay Marina, Portland, OR',
+    tidal: false,
     waterType: 'river',
     lat: 45.6074,
     lon: -122.6606
@@ -179,6 +201,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'port-of-camas',
     name: 'Port of Camas',
     address: "Parker's Landing Marina, Camas/Washougal, WA",
+    tidal: false,
     waterType: 'river',
     lat: 45.5782,
     lon: -122.3811
@@ -187,6 +210,7 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'lake-coeur-dalene',
     name: "Lake Coeur d'Alene",
     address: "Lakeside Marina, Coeur d'Alene, ID",
+    tidal: false,
     waterType: 'lake',
     timeZone: 'America/Boise',
     lat: 47.6732,
@@ -196,9 +220,14 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     id: 'hayden-lake-marina',
     name: 'Hayden Lake Marina',
     address: 'Hayden Lake Marina, Hayden Lake, ID',
+    tidal: false,
     waterType: 'lake',
     timeZone: 'America/Boise',
     lat: 47.7665,
     lon: -116.7563
   }
 };
+
+export function isTidalLocation(loc: Pick<LocationProfile, 'tidal' | 'waterType'>) {
+  return loc.tidal && loc.waterType !== 'lake' && loc.waterType !== 'river';
+}
