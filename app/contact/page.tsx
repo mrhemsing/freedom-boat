@@ -54,7 +54,7 @@ export default function ContactPage({
             <span>Message</span>
             <textarea name="message" rows={7} required />
           </label>
-          <button className="seoButton seoButtonPrimary" type="submit">Send message</button>
+          <button className="seoButton seoButtonPrimary" type="submit">Send it our way</button>
         </form>
       </section>
     </main>

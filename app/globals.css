@@ -816,6 +816,7 @@ a:hover {
 
 .contactForm button {
   justify-self: start;
+  margin-top: 15px;
 }
 
 .contactStatus {
