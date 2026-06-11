@@ -21,6 +21,7 @@ export default function MarinaJump({
   groups: MarinaJumpGroup[];
 }) {
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   const [homeMarina, setHomeMarina] = useState<LocationId>(DEFAULT_HOME_MARINA_ID);
   const currentPath = value ? `/location/${value}` : '';
   const currentLabel =
@@ -63,8 +64,15 @@ export default function MarinaJump({
     window.dispatchEvent(new CustomEvent(HOME_MARINA_CHANGE_EVENT, { detail: { id: nextHome } }));
   }
 
+  function onToggle() {
+    if (!detailsRef.current?.open) return;
+    window.requestAnimationFrame(() => {
+      if (panelRef.current) panelRef.current.scrollTop = 0;
+    });
+  }
+
   return (
-    <details ref={detailsRef} className="marinaJumpMenu">
+    <details ref={detailsRef} className="marinaJumpMenu" onToggle={onToggle}>
       <summary aria-label="Open marina menu">
         <span className="marinaJumpSummaryText">
           <span>Marina</span>
@@ -76,7 +84,7 @@ export default function MarinaJump({
           <span />
         </span>
       </summary>
-      <div className="marinaJumpPanel" aria-label="Marina pages">
+      <div ref={panelRef} className="marinaJumpPanel" aria-label="Marina pages">
         <div className="marinaJumpNetworkLabel" style={{ color: 'rgba(34, 197, 94, 0.65)' }}>
           Freedom Boat Club Network
         </div>
