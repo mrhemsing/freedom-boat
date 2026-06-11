@@ -26,8 +26,8 @@ export default function ContactPage({
           <span>/</span>
           <span>Contact</span>
         </nav>
-        <h1>Contact Fair Tide</h1>
-        <p>Send marina corrections, forecast issues, partnership notes, or anything else that would make the planner more useful.</p>
+        <h1>Drop us a line</h1>
+        <p>Spotted a marina that's moved, a forecast that felt off, or a destination we're missing? Tell us. Fair Tide gets better every time a local boater points something out.</p>
       </header>
 
       <section className="contactPanel" aria-label="Contact form">
