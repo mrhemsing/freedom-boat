@@ -76,7 +76,7 @@ export default function BrowsePage({
                 Fair Tide turns wind, tide, daylight, rain, and marine advisories into a live 0-100 boating conditions score for marinas, anchorages, launches, and home-marina trip planning.
               </p>
               <div className="homeHeroActions">
-                <a className="seoButton seoButtonPrimary" href="/plan-my-trip">Open trip planner</a>
+                <a className="seoButton seoButtonPrimary" href="/plan-my-trip?overview=all">Open trip planner</a>
                 <a className="seoButton" href="/browse?type=areas">Browse regions</a>
               </div>
             </div>

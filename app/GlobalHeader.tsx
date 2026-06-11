@@ -25,7 +25,7 @@ export default function GlobalHeader({ active, showDaySlot = false }: GlobalHead
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const homeMarinaName = homeMarinaLabel(homeMarina);
   const homeHref = homeMarinaHref(homeMarina);
-  const mapHref = active === 'home' || active === 'conditions' ? '/plan-my-trip?overview=all' : '/plan-my-trip';
+  const mapHref = active === 'map' ? '/plan-my-trip' : '/plan-my-trip?overview=all';
 
   useEffect(() => {
     function updateScrolledState() {
