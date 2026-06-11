@@ -16,6 +16,7 @@ export default function ContactPage({
   searchParams?: { sent?: string };
 }) {
   const isSent = searchParams?.sent === '1';
+  const hasError = searchParams?.sent === '0';
 
   return (
     <main className="container seoPage contactPage">
@@ -37,11 +38,13 @@ export default function ContactPage({
             <span>Thanks for reaching out. We will review it soon.</span>
           </div>
         ) : null}
-        <form className="contactForm" action="https://formsubmit.co/contact@fairtide.app" method="post">
-          <input type="hidden" name="_subject" value="Fair Tide contact form" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_template" value="table" />
-          <input type="hidden" name="_next" value="https://fairtide.app/contact?sent=1" />
+        {hasError ? (
+          <div className="contactStatus error" role="alert">
+            <strong>Message did not send.</strong>
+            <span>Please try again in a moment.</span>
+          </div>
+        ) : null}
+        <form className="contactForm" action="/api/contact" method="post">
           <label>
             <span>Name</span>
             <input name="name" type="text" autoComplete="name" required />
