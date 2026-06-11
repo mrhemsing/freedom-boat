@@ -563,7 +563,6 @@ export default async function LocationPage({
         <SiteFooter
           showIndependenceDisclosure={Boolean(homeMarina)}
           includeMarineAdvisories={includeMarineAdvisories}
-          marineAuthority={marineAuthority}
           includeTides={isTidal}
         />
       ) : null}

@@ -1,16 +1,12 @@
-type MarineAuthority = 'Environment Canada' | 'National Weather Service' | 'both' | string;
-
 type SiteFooterProps = {
   showIndependenceDisclosure?: boolean;
   includeMarineAdvisories?: boolean;
-  marineAuthority?: MarineAuthority;
   includeTides?: boolean;
 };
 
 export default function SiteFooter({
   showIndependenceDisclosure = false,
   includeMarineAdvisories = true,
-  marineAuthority = 'both',
   includeTides = true
 }: SiteFooterProps) {
   return (
@@ -34,7 +30,7 @@ export default function SiteFooter({
           {includeMarineAdvisories ? (
             <li>
               <span>Marine advisories</span>
-              <MarineAdvisorySources authority={marineAuthority} />
+              <MarineAdvisorySources />
             </li>
           ) : null}
           {includeTides ? (
@@ -58,15 +54,7 @@ export default function SiteFooter({
   );
 }
 
-function MarineAdvisorySources({ authority }: { authority: MarineAuthority }) {
-  if (authority === 'Environment Canada') {
-    return <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>;
-  }
-
-  if (authority === 'National Weather Service') {
-    return <a href="https://api.weather.gov/alerts/active" target="_blank" rel="noreferrer">National Weather Service active alerts</a>;
-  }
-
+function MarineAdvisorySources() {
   return (
     <span className="sourceLegendLinks">
       <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>
