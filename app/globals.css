@@ -1,6 +1,8 @@
 /* Global layout + PNW ocean theme */
 
 :root {
+  scrollbar-gutter: stable;
+
   --bg0: #061826;
   --bg1: #0b2c3b;
   --sun: #ff8a1f;
@@ -79,12 +81,23 @@ a:hover {
 
 .container > .globalHeader {
   position: relative;
-  left: calc(50% + 1px - var(--scrollbar-half-width, 0px));
-  width: calc(100vw - var(--scrollbar-width, 0px) - 36px);
-  margin-left: 0;
+  left: auto;
+  width: calc(100vw - 36px);
+  margin-left: calc(50% - 50vw + 18px);
   margin-right: 0;
   margin-bottom: 20px;
-  transform: translateX(-50%);
+  transform: none;
+}
+
+@media (min-width: 721px) {
+  .container > .globalHeader {
+    width: calc(100vw - 21px);
+    margin-left: calc(50% - 50vw + 25px);
+  }
+
+  :root[data-page-scrollable="true"] .container > .globalHeader {
+    margin-left: calc(50% - 50vw + 33px);
+  }
 }
 
 .globalBrand {
@@ -2158,8 +2171,8 @@ hr.soft {
   }
 
   .container > .globalHeader {
-    left: calc(50% - var(--scrollbar-half-width, 0px));
-    width: calc(100vw - var(--scrollbar-width, 0px) - 36px);
+    left: auto;
+    width: calc(100vw - 36px);
     margin-bottom: 16px;
   }
 
