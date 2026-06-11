@@ -77,6 +77,7 @@ export default function MarinaJump({
         </span>
       </summary>
       <div className="marinaJumpPanel" aria-label="Marina pages">
+        <div className="marinaJumpNetworkLabel">Freedom Boat Club Network</div>
         {groups.map((group) => (
           <div key={group.label}>
             <div className="marinaJumpDivider">{group.label}</div>
