@@ -85,7 +85,7 @@ export default function MarinaJump({
         </span>
       </summary>
       <div ref={panelRef} className="marinaJumpPanel" aria-label="Marina pages">
-        <div className="marinaJumpNetworkLabel" style={{ color: 'rgba(34, 197, 94, 0.65)' }}>
+        <div className="marinaJumpNetworkLabel" style={{ color: 'aqua', opacity: 0.6, fontSize: '12px' }}>
           Freedom Boat Club Network
         </div>
         {groups.map((group) => (

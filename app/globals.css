@@ -1041,8 +1041,9 @@ a:hover {
   margin: -8px -8px 0;
   padding: 8px 10px 4px;
   background: rgba(12, 58, 76, 0.97);
-  color: rgba(34, 197, 94, 0.65);
-  font-size: 11px;
+  color: aqua;
+  opacity: .6;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0;
   text-transform: uppercase;
