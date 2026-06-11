@@ -21,27 +21,24 @@ export default function ContactPage() {
           <span>Contact</span>
         </nav>
         <h1>Contact Fair Tide</h1>
-        <p>Contact delivery is being set up. The form is staged here so it is ready to wire to an inbox.</p>
+        <p>Send marina corrections, forecast issues, partnership notes, or anything else that would make the planner more useful.</p>
       </header>
 
       <section className="contactPanel" aria-label="Contact form">
-        <form className="contactForm" aria-describedby="contactStatus">
-          <fieldset disabled>
-            <label>
-              <span>Name</span>
-              <input name="name" type="text" autoComplete="name" />
-            </label>
-            <label>
-              <span>Email</span>
-              <input name="email" type="email" autoComplete="email" />
-            </label>
-            <label>
-              <span>Message</span>
-              <textarea name="message" rows={7} />
-            </label>
-            <button className="seoButton seoButtonPrimary" type="submit">Email setup pending</button>
-          </fieldset>
-          <p id="contactStatus" className="contactStatus">This form is not connected to email yet.</p>
+        <form className="contactForm" action="mailto:contact@fairtide.app" method="post" encType="text/plain">
+          <label>
+            <span>Name</span>
+            <input name="name" type="text" autoComplete="name" required />
+          </label>
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autoComplete="email" required />
+          </label>
+          <label>
+            <span>Message</span>
+            <textarea name="message" rows={7} required />
+          </label>
+          <button className="seoButton seoButtonPrimary" type="submit">Send message</button>
         </form>
       </section>
     </main>
