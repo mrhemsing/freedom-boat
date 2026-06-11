@@ -595,8 +595,8 @@ export default async function LocationPage({
         </section>
         <div className="footerBrandRow">
           <span>© {new Date().getFullYear()}</span>
-          <a className="footerLink" href="/contact">Contact</a>
           <a className="baBadge baBadgeWhite" href="https://www.b-average.com/" target="_blank" rel="noreferrer">B AVERAGE</a>
+          <a className="footerLink" href="/contact">Contact</a>
         </div>
       </footer>
       {!isPlannerEmbed && area ? (
