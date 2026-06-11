@@ -2252,8 +2252,8 @@ hr.soft {
     position: absolute;
     z-index: 4200;
     top: calc(100% + 8px);
-    right: 0;
-    width: min(260px, calc(100vw - 24px));
+    right: max(0px, var(--scrollbar-width, 0px));
+    width: min(260px, calc(100vw - var(--scrollbar-width, 0px) - 24px));
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 12px;
