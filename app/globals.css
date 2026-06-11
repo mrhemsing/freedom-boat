@@ -1039,7 +1039,7 @@ a:hover {
   z-index: 1;
   top: -8px;
   margin: -8px -8px 0;
-  padding: 8px 10px 4px;
+  padding: 8px 10px 4px 18px;
   background: rgba(12, 58, 76, 0.97);
   color: aqua;
   opacity: .6;
