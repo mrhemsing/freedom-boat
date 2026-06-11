@@ -13,7 +13,7 @@ import {
 import type { LocationId } from '../lib/locations';
 
 type GlobalHeaderProps = {
-  active: 'home' | 'map' | 'browse' | 'conditions' | 'area';
+  active: 'home' | 'map' | 'browse' | 'conditions' | 'area' | 'contact';
   contextLabel?: string;
   showDaySlot?: boolean;
 };
