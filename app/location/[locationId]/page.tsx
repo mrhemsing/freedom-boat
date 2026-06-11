@@ -1080,7 +1080,17 @@ function getBestLaunchWindowSummary({
     return { ...h, day, minute, score };
   });
 
-  const findBestStart = (afterDay?: string) => {
+  const findBestStart = ({
+    day,
+    afterDay,
+    nowDay,
+    nowMinute
+  }: {
+    day?: string;
+    afterDay?: string;
+    nowDay?: string | null;
+    nowMinute?: number | null;
+  } = {}) => {
     let bestStart = -1;
     let bestAvg = -1;
     for (let i = 0; i <= scored.length - 3; i += 1) {
@@ -1088,8 +1098,10 @@ function getBestLaunchWindowSummary({
       const [start, mid, end] = window;
       if (!start.day || start.minute == null || mid.minute == null || end.minute == null) continue;
       if (afterDay && start.day <= afterDay) continue;
+      if (day && start.day !== day) continue;
       if (mid.day !== start.day || end.day !== start.day) continue;
       if (mid.minute !== start.minute + 60 || end.minute !== start.minute + 120) continue;
+      if (start.day === nowDay && nowMinute != null && start.minute + 180 <= nowMinute) continue;
 
       const daylight = daylightByDay.get(start.day) ?? { sunriseMinute: 6 * 60, sunsetMinute: 18 * 60 };
       if (start.minute < daylight.sunriseMinute || start.minute + 180 > daylight.sunsetMinute) continue;
@@ -1112,7 +1124,7 @@ function getBestLaunchWindowSummary({
     && todayDaylight
     && todayDaylight.sunsetMinute - nowMinute < 2 * 60
   ) {
-    const tomorrowStart = findBestStart(nowDay);
+    const tomorrowStart = findBestStart({ afterDay: nowDay });
     if (tomorrowStart >= 0) {
       const start = scored[tomorrowStart];
       return {
@@ -1123,13 +1135,19 @@ function getBestLaunchWindowSummary({
     return { label: 'Done for today', detail: "Check tomorrow's launch window after the forecast refreshes" };
   }
 
-  const bestStart = findBestStart();
+  let bestStart = findBestStart({ day: nowDay ?? undefined, nowDay, nowMinute });
+  if (bestStart < 0 && nowDay) {
+    bestStart = findBestStart({ afterDay: nowDay });
+  }
   if (bestStart < 0) return { label: '—', detail: 'No suitable window found' };
 
   const start = scored[bestStart];
   const labelPrefix = nowDay && start.day && compareLocalDays(start.day, nowDay) === 1 ? 'Tomorrow ' : '';
+  const labelRange = start.day === nowDay && nowMinute != null && (start.minute ?? 0) < nowMinute
+    ? `Now-${formatLaunchWindowTime((start.minute ?? 0) + 180, true)}`
+    : formatLaunchWindowRange(start.minute ?? 0);
   return {
-    label: `${labelPrefix}${formatLaunchWindowRange(start.minute ?? 0)}`,
+    label: `${labelPrefix}${labelRange}`,
     detail: 'Best 3-hour window between sunrise and sunset'
   };
 }
