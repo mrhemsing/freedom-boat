@@ -93,8 +93,11 @@ a:hover {
 
 @media (min-width: 721px) {
   .container > .globalHeader {
-    width: calc(100vw - var(--scrollbar-width, 0px) - 36px);
     margin-left: calc(50% - 50vw + var(--scrollbar-half-width, 0px) + 18px);
+  }
+
+  html[data-page-scrollable="true"] .container > .globalHeader {
+    margin-left: calc(50% - 50vw + var(--scrollbar-width, 0px) + 18px);
   }
 }
 
