@@ -1148,7 +1148,7 @@ function getBestLaunchWindowSummary({
   const start = scored[bestStart];
   const labelPrefix = nowDay && start.day && compareLocalDays(start.day, nowDay) === 1 ? 'Tomorrow ' : '';
   const labelRange = start.day === nowDay && nowMinute != null && (start.minute ?? 0) < nowMinute
-    ? `Now-${formatLaunchWindowTime((start.minute ?? 0) + 180, true)}`
+    ? `Now until ${formatLaunchWindowTime((start.minute ?? 0) + 180, true)}`
     : formatLaunchWindowRange(start.minute ?? 0);
   return {
     label: `${labelPrefix}${labelRange}`,
