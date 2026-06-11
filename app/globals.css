@@ -1,8 +1,6 @@
 /* Global layout + PNW ocean theme */
 
 :root {
-  scrollbar-gutter: stable;
-
   --bg0: #061826;
   --bg1: #0b2c3b;
   --sun: #ff8a1f;
@@ -91,12 +89,8 @@ a:hover {
 
 @media (min-width: 721px) {
   .container > .globalHeader {
-    width: calc(100vw - 21px);
-    margin-left: calc(50% - 50vw + 25px);
-  }
-
-  :root[data-page-scrollable="true"] .container > .globalHeader {
-    margin-left: calc(50% - 50vw + 33px);
+    width: calc(100vw - var(--scrollbar-width, 0px) - 36px);
+    margin-left: calc(50% - 50vw + 18px);
   }
 }
 
