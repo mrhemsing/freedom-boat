@@ -19,10 +19,6 @@
   --shadow: 0 10px 25px rgba(2, 12, 27, 0.22);
 }
 
-html {
-  overflow-y: scroll;
-}
-
 html,
 body {
   height: 100%;
