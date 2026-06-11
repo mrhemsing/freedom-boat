@@ -561,7 +561,11 @@ export default async function LocationPage({
       <footer className="siteFooter">
         {homeMarina && !isPlannerEmbed ? (
           <p className="independenceDisclosure">
-            Fair Tide is an independent planning tool and is not affiliated with or endorsed by Freedom Boat Club or any marina operator.
+            Fair Tide is an independent planning tool and is not affiliated with or endorsed by{' '}
+            <a href="https://www.freedomboatclub.com/" target="_blank" rel="noreferrer">
+              Freedom Boat Club
+            </a>{' '}
+            or any marina operator.
           </p>
         ) : null}
         <section className="sourceLegend" aria-label="Data sources">

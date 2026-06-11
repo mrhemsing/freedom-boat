@@ -634,6 +634,13 @@ a:hover {
   line-height: 1.4;
 }
 
+.independenceDisclosure a {
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .liveFrame {
   position: relative;
   height: 185px;
