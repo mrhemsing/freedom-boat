@@ -549,6 +549,10 @@ a:hover {
   overflow-wrap: anywhere;
 }
 
+.sourceLegendMobileBreak {
+  display: none;
+}
+
 .sourceLegendList a {
   font-size: 13px;
   font-weight: 750;
@@ -2696,6 +2700,14 @@ hr.soft {
   .sourceLegendList {
     grid-template-columns: 1fr;
     gap: 9px;
+  }
+
+  .sourceLegendDesktopSpace {
+    display: none;
+  }
+
+  .sourceLegendMobileBreak {
+    display: block;
   }
 
   .brandTitle{

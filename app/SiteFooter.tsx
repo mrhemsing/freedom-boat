@@ -42,7 +42,8 @@ export default function SiteFooter({
               <span>Tides, currents + water levels</span>
               <span className="sourceLegendLinks">
                 <a href="https://api-iwls.dfo-mpo.gc.ca/" target="_blank" rel="noreferrer">DFO / Canadian Hydrographic Service IWLS</a>
-                <span aria-hidden="true"> · </span>
+                <span className="sourceLegendDesktopSpace" aria-hidden="true"> </span>
+                <span className="sourceLegendMobileBreak" aria-hidden="true" />
                 <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noreferrer">NOAA Tides & Currents</a>
               </span>
             </li>
