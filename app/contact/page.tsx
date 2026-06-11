@@ -10,7 +10,13 @@ export const metadata: Metadata = {
   }
 };
 
-export default function ContactPage() {
+export default function ContactPage({
+  searchParams
+}: {
+  searchParams?: { sent?: string };
+}) {
+  const isSent = searchParams?.sent === '1';
+
   return (
     <main className="container seoPage contactPage">
       <GlobalHeader active="contact" contextLabel="Contact" />
@@ -25,7 +31,17 @@ export default function ContactPage() {
       </header>
 
       <section className="contactPanel" aria-label="Contact form">
-        <form className="contactForm" action="mailto:contact@fairtide.app" method="post" encType="text/plain">
+        {isSent ? (
+          <div className="contactStatus success" role="status">
+            <strong>Message sent.</strong>
+            <span>Thanks for reaching out. We will review it soon.</span>
+          </div>
+        ) : null}
+        <form className="contactForm" action="https://formsubmit.co/contact@fairtide.app" method="post">
+          <input type="hidden" name="_subject" value="Fair Tide contact form" />
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="_template" value="table" />
+          <input type="hidden" name="_next" value="https://fairtide.app/contact?sent=1" />
           <label>
             <span>Name</span>
             <input name="name" type="text" autoComplete="name" required />
