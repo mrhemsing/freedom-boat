@@ -1117,7 +1117,7 @@ function getBestLaunchWindowSummary({
       const start = scored[tomorrowStart];
       return {
         label: 'Done for today',
-        detail: `Tomorrow's window: ${formatAsOf(start.t)}-${formatLocalMinuteOfDay((start.minute ?? 0) + 180)}`
+        detail: `Tomorrow's window: ${formatLaunchWindowRange(start.minute ?? 0)}`
       };
     }
     return { label: 'Done for today', detail: "Check tomorrow's launch window after the forecast refreshes" };
@@ -1127,9 +1127,9 @@ function getBestLaunchWindowSummary({
   if (bestStart < 0) return { label: '—', detail: 'No suitable window found' };
 
   const start = scored[bestStart];
-  const labelPrefix = nowDay && start.day && compareLocalDays(start.day, nowDay) === 1 ? 'Tomorrow ' : '';
+  const labelPrefix = nowDay && start.day && compareLocalDays(start.day, nowDay) === 1 ? 'Tmrw ' : '';
   return {
-    label: `${labelPrefix}${formatAsOf(start.t)}-${formatLocalMinuteOfDay((start.minute ?? 0) + 180)}`,
+    label: `${labelPrefix}${formatLaunchWindowRange(start.minute ?? 0)}`,
     detail: 'Best 3-hour window between sunrise and sunset'
   };
 }
@@ -1736,6 +1736,24 @@ function formatLocalMinuteOfDay(totalMinutes: number) {
   let hh = hhRaw % 12;
   if (hh === 0) hh = 12;
   return `${hh}:${String(mm).padStart(2, '0')} ${ampm}`;
+}
+
+function formatLaunchWindowTime(totalMinutes: number, showPeriod: boolean) {
+  const wrapped = ((totalMinutes % 1440) + 1440) % 1440;
+  const hhRaw = Math.floor(wrapped / 60);
+  const mm = wrapped % 60;
+  const period = hhRaw >= 12 ? 'PM' : 'AM';
+  let hh = hhRaw % 12;
+  if (hh === 0) hh = 12;
+  const minuteText = mm === 0 ? '' : `:${String(mm).padStart(2, '0')}`;
+  return `${hh}${minuteText}${showPeriod ? ` ${period}` : ''}`;
+}
+
+function formatLaunchWindowRange(startMinute: number) {
+  const endMinute = startMinute + 180;
+  const startPeriod = (((startMinute % 1440) + 1440) % 1440) >= 720 ? 'PM' : 'AM';
+  const endPeriod = (((endMinute % 1440) + 1440) % 1440) >= 720 ? 'PM' : 'AM';
+  return `${formatLaunchWindowTime(startMinute, startPeriod !== endPeriod)}-${formatLaunchWindowTime(endMinute, true)}`;
 }
 
 function formatAsOfWithDay(iso: string) {
