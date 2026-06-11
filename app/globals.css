@@ -768,6 +768,12 @@ a:hover {
   padding-bottom: 42px;
 }
 
+@media (min-width: 721px) {
+  .contactPage {
+    min-height: calc(100vh + 3px);
+  }
+}
+
 .contactHero {
   max-width: 780px;
 }
