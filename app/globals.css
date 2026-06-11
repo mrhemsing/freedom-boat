@@ -777,6 +777,14 @@ a:hover {
   gap: 16px;
 }
 
+.contactForm fieldset {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .contactForm label {
   display: grid;
   gap: 8px;
@@ -816,6 +824,22 @@ a:hover {
 
 .contactForm button {
   justify-self: start;
+}
+
+.contactForm fieldset:disabled {
+  opacity: 0.72;
+}
+
+.contactForm fieldset:disabled input,
+.contactForm fieldset:disabled textarea {
+  cursor: not-allowed;
+}
+
+.contactStatus {
+  margin: -4px 0 0;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .baBadge {
