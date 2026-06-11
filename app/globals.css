@@ -2158,8 +2158,8 @@ hr.soft {
   }
 
   .container > .globalHeader {
-    left: 50%;
-    width: calc(100vw - var(--scrollbar-width, 0px) - 24px);
+    left: calc(50% - var(--scrollbar-half-width, 0px));
+    width: calc(100vw - var(--scrollbar-width, 0px) - 36px);
     margin-bottom: 16px;
   }
 
