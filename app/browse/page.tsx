@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AREA_HUBS, canonicalUrl, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../lib/seo-slugs';
 import GlobalHeader from '../GlobalHeader';
+import SiteFooter from '../SiteFooter';
 
 type BrowseType = 'all' | 'areas' | 'marinas' | 'launches';
 
@@ -163,6 +164,7 @@ export default function BrowsePage({
           </>
         ) : null}
       </section>
+      <SiteFooter />
     </main>
   );
 }

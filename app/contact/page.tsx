@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { canonicalUrl } from '../../lib/seo-slugs';
 import GlobalHeader from '../GlobalHeader';
+import SiteFooter from '../SiteFooter';
 
 export const metadata: Metadata = {
   title: 'Contact Fair Tide',
@@ -60,6 +61,7 @@ export default function ContactPage({
           <button className="seoButton seoButtonPrimary" type="submit">Send it our way</button>
         </form>
       </section>
+      <SiteFooter />
     </main>
   );
 }

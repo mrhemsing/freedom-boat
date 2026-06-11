@@ -14,6 +14,7 @@ import { IconMap, IconPartlyCloudy, IconRain, IconSun, IconSunrise, IconSunset, 
 import MarinaJump, { type MarinaJumpGroup } from './MarinaJump';
 import LazyFrame from './LazyFrame';
 import GlobalHeader from '../../GlobalHeader';
+import SiteFooter from '../../SiteFooter';
 
 export const revalidate = ISR_REVALIDATE_SECONDS;
 
@@ -558,47 +559,14 @@ export default async function LocationPage({
         ) : null}
       </div>
 
-      <footer className="siteFooter">
-        {homeMarina && !isPlannerEmbed ? (
-          <p className="independenceDisclosure">
-            Fair Tide is an independent planning tool and is not affiliated with or endorsed by{' '}
-            <a href="https://www.freedomboatclub.com/" target="_blank" rel="noreferrer">
-              Freedom Boat Club
-            </a>{' '}
-            or any marina operator.
-          </p>
-        ) : null}
-        <section className="sourceLegend" aria-label="Data sources">
-          <div className="sourceLegendTitle">Data sources</div>
-          <ul className="sourceLegendList">
-            <li>
-              <span>Conditions + forecast</span>
-              <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo Forecast API</a>
-            </li>
-            {includeMarineAdvisories ? (
-              <li>
-                <span>Marine advisories</span>
-                {marineAuthority === 'National Weather Service' ? (
-                  <a href="https://api.weather.gov/alerts/active" target="_blank" rel="noreferrer">National Weather Service active alerts</a>
-                ) : (
-                  <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>
-                )}
-              </li>
-            ) : null}
-            {isTidal ? (
-              <li>
-                <span>Tides + water levels</span>
-                <a href="https://api-iwls.dfo-mpo.gc.ca/" target="_blank" rel="noreferrer">DFO / Canadian Hydrographic Service IWLS</a>
-              </li>
-            ) : null}
-          </ul>
-        </section>
-        <div className="footerBrandRow">
-          <span>© {new Date().getFullYear()}</span>
-          <a className="baBadge baBadgeWhite" href="https://www.b-average.com/" target="_blank" rel="noreferrer">B AVERAGE</a>
-          <a className="footerLink" href="/contact">Contact</a>
-        </div>
-      </footer>
+      {!isPlannerEmbed ? (
+        <SiteFooter
+          showIndependenceDisclosure={Boolean(homeMarina)}
+          includeMarineAdvisories={includeMarineAdvisories}
+          marineAuthority={marineAuthority}
+          includeTides={isTidal}
+        />
+      ) : null}
       {!isPlannerEmbed && area ? (
         <script
           type="application/ld+json"

@@ -4,6 +4,7 @@ import { getLaunchSeoSnapshot, scorePhrase } from '../../../lib/seo-live';
 import { launchJsonLd } from '../../../lib/seo-schema';
 import { areaHubForPlace, canonicalUrl, getLaunchBySlug, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
 import GlobalHeader from '../../GlobalHeader';
+import SiteFooter from '../../SiteFooter';
 
 export const revalidate = 3600;
 
@@ -106,6 +107,7 @@ export default async function LaunchSeoPage({
         ) : null}
       </section>
 
+      {!isPlannerEmbed ? <SiteFooter /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(launchJsonLd(launch)) }} />
     </main>
   );

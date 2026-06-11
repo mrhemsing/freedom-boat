@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { FBC_PNW_MARINAS, PLANNER_MARINAS, TRIP_MARINAS, type Marina } from '../../lib/marinas';
 import { canonicalUrl, marinaPath } from '../../lib/seo-slugs';
 import GlobalHeader from '../GlobalHeader';
+import SiteFooter from '../SiteFooter';
 import TripMap from './TripMap';
 
 const baseMetadata: Metadata = {
@@ -61,30 +62,7 @@ export default function PlanMyTripPage() {
         <TripMap marinas={PLANNER_MARINAS} />
       </section>
 
-      <footer className="siteFooter">
-        <section className="sourceLegend" aria-label="Data sources">
-          <div className="sourceLegendTitle">Data sources</div>
-          <ul className="sourceLegendList">
-            <li>
-              <span>Conditions + forecast</span>
-              <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo Forecast API</a>
-            </li>
-            <li>
-              <span>Marine advisories</span>
-              <a href="https://weather.gc.ca/rss/warning/bc_e.xml" target="_blank" rel="noreferrer">Environment Canada warnings RSS</a>
-            </li>
-            <li>
-              <span>Tides + water levels</span>
-              <a href="https://api-iwls.dfo-mpo.gc.ca/" target="_blank" rel="noreferrer">DFO / Canadian Hydrographic Service IWLS</a>
-            </li>
-          </ul>
-        </section>
-        <div className="footerBrandRow">
-          <span>© {new Date().getFullYear()}</span>
-          <a className="baBadge baBadgeWhite" href="https://www.b-average.com/" target="_blank" rel="noreferrer">B AVERAGE</a>
-          <a className="footerLink" href="/contact">Contact</a>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

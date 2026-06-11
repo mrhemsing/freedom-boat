@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { breadcrumbJsonLd } from '../../../lib/seo-schema';
 import { AREA_HUBS, canonicalUrl, getAreaHubBySlug, marinaPath, SEO_LAUNCHES, SEO_MARINAS } from '../../../lib/seo-slugs';
 import GlobalHeader from '../../GlobalHeader';
+import SiteFooter from '../../SiteFooter';
 
 export const revalidate = 86400;
 
@@ -69,6 +70,7 @@ export default function AreaHubPage({ params }: { params: { slug: string } }) {
           ))}
         </div>
       </section>
+      <SiteFooter />
 
       <script
         type="application/ld+json"

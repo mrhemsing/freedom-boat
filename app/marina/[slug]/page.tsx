@@ -6,6 +6,7 @@ import { marinaJsonLd } from '../../../lib/seo-schema';
 import { areaHubForPlace, canonicalUrl, getMarinaBySlug, marinaPath, SEO_MARINAS } from '../../../lib/seo-slugs';
 import { MARINA_ACCESS_INFO } from '../../../lib/marinas';
 import GlobalHeader from '../../GlobalHeader';
+import SiteFooter from '../../SiteFooter';
 
 export const revalidate = 3600;
 
@@ -154,6 +155,7 @@ export default async function MarinaSeoPage({
         ) : null}
       </section>
 
+      {!isPlannerEmbed ? <SiteFooter includeTides={hasTideInfo} /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(marinaJsonLd(marina)) }} />
     </main>
   );

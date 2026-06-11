@@ -540,6 +540,15 @@ a:hover {
   color: rgba(255, 255, 255, 0.62);
 }
 
+.sourceLegendList .sourceLegendLinks {
+  display: inline;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 .sourceLegendList a {
   font-size: 13px;
   font-weight: 750;
