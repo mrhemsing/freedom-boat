@@ -2159,7 +2159,7 @@ hr.soft {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     min-height: 0;
-    padding: 16px 10px;
+    padding: 16px;
     transition: padding 160ms ease, gap 160ms ease;
   }
 
@@ -2169,7 +2169,8 @@ hr.soft {
 
   .container > .globalHeader {
     left: auto;
-    width: calc(100vw - 36px);
+    width: calc(100vw - 20px);
+    margin-left: calc(50% - 50vw + 10px);
     margin-bottom: 16px;
   }
 
