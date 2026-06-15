@@ -147,6 +147,9 @@ export interface BoatingAlert {
   icon: string;
   title: string;
   detail: string;
+  moreInfo?: string;
+  link?: string;
+  linkLabel?: string;
   window?: {
     start: string;
     peak?: string;
@@ -227,20 +230,47 @@ export function BoatingAlertsModule({
 
       {activeCount ? (
         <div className="boatingAlertRows">
-          {items.map((item) => (
-            <div key={item.id} className={`boatingAlertRow boatingAlertRow-${item.tier}`}>
-              <div className="boatingAlertIcon" aria-hidden="true">{iconForAlert(item.icon)}</div>
-              <div className="boatingAlertCopy">
-                <div className="boatingAlertTopLine">
-                  <div className="boatingAlertTitle">{item.title}</div>
-                  <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
+          {items.map((item) => {
+            const canExpand = Boolean(item.moreInfo || item.link);
+            const row = (
+              <>
+                <div className="boatingAlertIcon" aria-hidden="true">{iconForAlert(item.icon)}</div>
+                <div className="boatingAlertCopy">
+                  <div className="boatingAlertTopLine">
+                    <div className="boatingAlertTitle">{item.title}</div>
+                    <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
+                  </div>
+                  <div className="boatingAlertDetail">{item.detail}</div>
+                  {item.window?.confidence === 'sharp' ? <AlertTimeBar window={item.window} daylight={daylight} nowIso={nowIso} /> : null}
+                  {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
                 </div>
-                <div className="boatingAlertDetail">{item.detail}</div>
-                {item.window?.confidence === 'sharp' ? <AlertTimeBar window={item.window} daylight={daylight} nowIso={nowIso} /> : null}
-                {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
-              </div>
-            </div>
-          ))}
+              </>
+            );
+
+            if (!canExpand) {
+              return (
+                <div key={item.id} className={`boatingAlertRow boatingAlertRow-${item.tier}`}>
+                  {row}
+                </div>
+              );
+            }
+
+            return (
+              <details key={item.id} className={`boatingAlertDisclosure boatingAlertRow-${item.tier}`}>
+                <summary className="boatingAlertRow">
+                  {row}
+                </summary>
+                <div className="boatingAlertMore">
+                  {item.moreInfo ? <p>{item.moreInfo}</p> : null}
+                  {item.link ? (
+                    <a href={item.link} target="_blank" rel="noreferrer">
+                      {item.linkLabel || `View official alert from ${item.source || warningAuthority}`}
+                    </a>
+                  ) : null}
+                </div>
+              </details>
+            );
+          })}
         </div>
       ) : null}
     </div>

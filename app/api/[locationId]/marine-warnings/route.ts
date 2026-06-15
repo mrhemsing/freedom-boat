@@ -18,11 +18,17 @@ function decodeHtml(s: string) {
     .replaceAll('&lt;', '<')
     .replaceAll('&gt;', '>')
     .replaceAll('&quot;', '"')
+    .replaceAll('&#60;', '<')
+    .replaceAll('&#62;', '>')
     .replaceAll('&#39;', "'");
 }
 
 function stripTags(s: string) {
   return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function normalizeText(s?: string) {
+  return String(s || '').replace(/\s+/g, ' ').trim();
 }
 
 function withPeriod(text: string) {
@@ -61,6 +67,18 @@ function cleanNwsAlertBody(description?: string) {
     .filter((section) => section.label !== 'WHERE')
     .map((section) => withPeriod(section.body))
     .join(' ');
+}
+
+function siteIdFromLink(link?: string) {
+  return String(link || '').match(/[?&]siteID=([^&#]+)/i)?.[1];
+}
+
+function cleanEcForecastBody(description?: string) {
+  const text = normalizeText(description);
+  if (!text) return undefined;
+  return text
+    .replace(/\s*Issued\s+\d{1,2}:\d{2}\s+[AP]M\s+[A-Z]{2,4}\s+\d{1,2}\s+\w+\s+\d{4}\.?$/i, '')
+    .trim();
 }
 
 function extractAtomEntries(xml: string): Array<{ title: string; description?: string; link?: string; pubDate?: string; category?: string }> {
@@ -196,6 +214,19 @@ async function getEcWarnings(
   }
 
   const areas = (loc.marineAreas || []).map((s) => s.toLowerCase());
+  const forecastBySiteId = new Map<string, string>();
+  for (const item of available.flatMap((result) => result.items)) {
+    const category = String(item.category || '').toLowerCase();
+    if (!category.includes('marine forecasts')) continue;
+    if (String(item.title || '').toLowerCase().includes('extended forecast')) continue;
+
+    const siteId = siteIdFromLink(item.link);
+    const body = cleanEcForecastBody(item.description);
+    if (siteId && body && !forecastBySiteId.has(siteId)) {
+      forecastBySiteId.set(siteId, body);
+    }
+  }
+
   const seen = new Set<string>();
   const filtered = available
     .flatMap((result) => result.items)
@@ -212,13 +243,18 @@ async function getEcWarnings(
       return true;
     })
     .slice(0, 6)
-    .map((it) => ({
-      title: toTitleCaseWarning(it.title),
-      body: it.description,
-      link: it.link,
-      severity: severityOf(it.title),
-      pubDate: it.pubDate
-    }));
+    .map((it) => {
+      const siteId = siteIdFromLink(it.link);
+      const forecastBody = siteId ? forecastBySiteId.get(siteId) : undefined;
+      return {
+        title: toTitleCaseWarning(it.title),
+        body: normalizeText(it.description),
+        moreInfo: forecastBody ? `Forecast context: ${forecastBody}` : undefined,
+        link: it.link,
+        severity: severityOf(it.title),
+        pubDate: it.pubDate
+      };
+    });
 
   return NextResponse.json({ locationId: id, authority, status: 'available', items: filtered });
 }

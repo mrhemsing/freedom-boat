@@ -1499,6 +1499,41 @@ summary::-webkit-details-marker {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.boatingAlertDisclosure{
+  border: 1px solid rgba(11, 18, 32, 0.10);
+  border-left-width: 3px;
+  border-radius: 0 8px 8px 0;
+  overflow: hidden;
+}
+
+.boatingAlertDisclosure .boatingAlertRow{
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.boatingAlertDisclosure .boatingAlertRow::-webkit-details-marker{
+  display: none;
+}
+
+.boatingAlertDisclosure .boatingAlertTopLine::after{
+  content: "More";
+  flex: 0 0 auto;
+  align-self: flex-start;
+  color: rgba(11, 18, 32, 0.52);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.boatingAlertDisclosure[open] .boatingAlertTopLine::after{
+  content: "Less";
+}
+
+.boatingAlertDisclosure .boatingAlertBadge{
+  margin-left: auto;
+}
+
 .boatingAlertRow-warning{
   border-left-color: #e24b4a;
   background: #fcebeb;
@@ -1573,6 +1608,29 @@ summary::-webkit-details-marker {
   color: rgba(11, 18, 32, 0.52);
   font-size: 12px;
   font-weight: 500;
+}
+
+.boatingAlertMore{
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 12px 52px;
+  background: rgba(255, 255, 255, 0.58);
+  color: rgba(11, 18, 32, 0.76);
+  font-size: 13px;
+  line-height: 1.42;
+}
+
+.boatingAlertMore p{
+  margin: 0;
+}
+
+.boatingAlertMore a{
+  width: fit-content;
+  color: rgba(12, 68, 124, 0.96);
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .alertTimeBar{

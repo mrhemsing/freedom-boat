@@ -1147,7 +1147,7 @@ function buildBoatingAlerts({
 }: {
   now: any;
   forecast: ForecastAlertHour[];
-  marineItems: Array<{ title?: string; body?: string; pubDate?: string }>;
+  marineItems: Array<{ title?: string; body?: string; moreInfo?: string; link?: string; pubDate?: string }>;
   tideEvents: Array<{ t: string; kind: 'high' | 'low'; heightM?: number }>;
   visibility: { label: string; detail: string };
   daylight?: DaylightWindow;
@@ -1166,6 +1166,9 @@ function buildBoatingAlerts({
       icon: 'alert-triangle',
       title: item.title || 'Marine warning',
       detail: item.body || 'Official marine warning is active for this area.',
+      moreInfo: item.moreInfo,
+      link: item.link,
+      linkLabel: `View official alert from ${warningAuthority}`,
       source: warningAuthority
     });
   }
