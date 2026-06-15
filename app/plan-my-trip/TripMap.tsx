@@ -146,6 +146,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const [tripMode, setTripMode] = useState(false);
   const [showLaunches, setShowLaunches] = useState(false);
   const [showFreedomOnly, setShowFreedomOnly] = useState(false);
+  const [showTransientOnly, setShowTransientOnly] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isRouteEditing, setIsRouteEditing] = useState(false);
   const [vesselKey, setVesselKey] = useState<VesselKey>('cruiser');
@@ -181,8 +182,12 @@ export default function TripMap({ marinas }: TripMapProps) {
     return new Map(activeMarinas.map((marina, index) => [marina.id, index + 1]));
   }, [activeMarinas]);
   const visibleMarinas = useMemo(() => {
-    return showFreedomOnly ? activeMarinas.filter((marina) => marina.freedomClub) : activeMarinas;
-  }, [activeMarinas, showFreedomOnly]);
+    return activeMarinas.filter((marina) => {
+      if (showFreedomOnly && !marina.freedomClub) return false;
+      if (showTransientOnly && !isTransientFriendly(marina)) return false;
+      return true;
+    });
+  }, [activeMarinas, showFreedomOnly, showTransientOnly]);
 
   const filtered = useMemo<PlannerResult[]>(() => {
     const q = query.trim().toLowerCase();
@@ -380,14 +385,14 @@ export default function TripMap({ marinas }: TripMapProps) {
   }, [activeMarinas]);
 
   useEffect(() => {
-    if (!showFreedomOnly || selectedId == null) return;
+    if ((!showFreedomOnly && !showTransientOnly) || selectedId == null) return;
     const selectedMarina = activeMarinas.find((marina) => marina.id === selectedId);
-    if (selectedMarina && !selectedMarina.freedomClub) {
+    if (selectedMarina && ((showFreedomOnly && !selectedMarina.freedomClub) || (showTransientOnly && !isTransientFriendly(selectedMarina)))) {
       setSelectedId(null);
       setForecastFocusMarinaId(null);
       setMobileMarkerModal(false);
     }
-  }, [activeMarinas, selectedId, showFreedomOnly]);
+  }, [activeMarinas, selectedId, showFreedomOnly, showTransientOnly]);
 
   useEffect(() => {
     if (resolvedRouteNodes.filter((node) => node.kind === 'stop').length < 2) {
@@ -1221,6 +1226,25 @@ export default function TripMap({ marinas }: TripMapProps) {
               </button>
             ) : null}
             <button
+              className={`plannerChip ${showTransientOnly ? 'active' : ''}`}
+              type="button"
+              aria-pressed={showTransientOnly}
+              onClick={() => {
+                setShowTransientOnly((value) => !value);
+                setSelectedId(null);
+                setForecastFocusMarinaId(null);
+                setMobileMarkerModal(false);
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4 17h16" />
+                <path d="M6 17v-6a4 4 0 0 1 8 0v6" />
+                <path d="M14 13h3a3 3 0 0 1 3 3v1" />
+                <path d="M8 11h4" />
+              </svg>
+              <span>Transient friendly</span>
+            </button>
+            <button
               className={`plannerChip plannerFullscreenChip ${isFullscreen ? 'active' : ''}`}
               type="button"
               aria-pressed={isFullscreen}
@@ -1450,6 +1474,27 @@ export default function TripMap({ marinas }: TripMapProps) {
                     <path d="M10 11h3" />
                   </svg>
                 </button>
+                <button
+                  className={`plannerIconFilter ${showTransientOnly ? 'active' : ''}`}
+                  type="button"
+                  aria-label="Show transient friendly marinas only"
+                  aria-pressed={showTransientOnly}
+                  title="Transient friendly only"
+                  data-tooltip="Transient friendly only"
+                  onClick={() => {
+                    setShowTransientOnly((value) => !value);
+                    setSelectedId(null);
+                    setForecastFocusMarinaId(null);
+                    setMobileMarkerModal(false);
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M4 17h16" />
+                    <path d="M6 17v-6a4 4 0 0 1 8 0v6" />
+                    <path d="M14 13h3a3 3 0 0 1 3 3v1" />
+                    <path d="M8 11h4" />
+                  </svg>
+                </button>
               </div>
 
               <label className="plannerVesselRow">
@@ -1469,8 +1514,8 @@ export default function TripMap({ marinas }: TripMapProps) {
                 {query
                   ? `Results - ${filtered.length}`
                   : showLaunches
-                    ? `${showFreedomOnly ? 'Freedom Boat Club locations' : 'Destinations'} and launches`
-                    : showFreedomOnly ? 'Freedom Boat Club locations' : 'Destinations'}
+                    ? `${destinationLabel(showFreedomOnly, showTransientOnly)} and launches`
+                    : destinationLabel(showFreedomOnly, showTransientOnly)}
               </div>
 
               <div className="plannerRows">
@@ -3205,6 +3250,17 @@ function hash(value: string) {
 
 function accessInfoFor(marina: Marina) {
   return marina.accessInfo || (marina.osmId ? MARINA_ACCESS_INFO[marina.osmId] : undefined);
+}
+
+function isTransientFriendly(marina: Marina) {
+  return accessInfoFor(marina)?.transient === 'Y';
+}
+
+function destinationLabel(showFreedomOnly: boolean, showTransientOnly: boolean) {
+  if (showFreedomOnly && showTransientOnly) return 'Transient-friendly Freedom locations';
+  if (showFreedomOnly) return 'Freedom Boat Club locations';
+  if (showTransientOnly) return 'Transient-friendly marinas';
+  return 'Destinations';
 }
 
 function transientLabel(value: 'Y' | 'Limited' | 'N') {
