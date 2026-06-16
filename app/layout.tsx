@@ -3,7 +3,6 @@ import 'leaflet/dist/leaflet.css';
 import './globals.css';
 import { SITE_URL } from '../lib/seo-slugs';
 import { siteJsonLd } from '../lib/seo-schema';
-import WaterBackground from './WaterBackground';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -33,7 +32,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' }}>
-        <WaterBackground />
         <script
           dangerouslySetInnerHTML={{
             __html: `
