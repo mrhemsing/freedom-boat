@@ -11,6 +11,7 @@ export function Card({
   right,
   headerStackOnMobile,
   titleNoWrap,
+  id,
   className,
   children
 }: {
@@ -20,11 +21,12 @@ export function Card({
   right?: React.ReactNode;
   headerStackOnMobile?: boolean;
   titleNoWrap?: boolean;
+  id?: string;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className={`card ${className || ''}`.trim()} style={{ minWidth: 0 }}>
+    <section id={id} className={`card ${className || ''}`.trim()} style={{ minWidth: 0 }}>
       {title ? (
         <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
           <div className="cardHeaderLeft">
@@ -164,13 +166,18 @@ const ALERT_TIER_LABELS: Record<AlertTier, string> = {
   watch: 'Watch'
 };
 
-function iconForAlert(name: string) {
-  if (name === 'alert-triangle') return '!';
-  if (name === 'wind') return '≈';
-  if (name === 'cloud-rain') return '☔';
-  if (name === 'eye') return '◉';
-  if (name === 'wave-sine' || name === 'ripple') return '~';
-  return 'i';
+function formatAlertTitle(title: string) {
+  const match = title.match(/^(.*?),\s*(Strait\s+Of\s+Georgia\b.*)$/i);
+  if (!match) return title;
+
+  const area = match[2].replace(/^Strait\s+Of\s+Georgia/i, 'Strait of Georgia');
+  return (
+    <>
+      {match[1]}
+      <br />
+      {area}
+    </>
+  );
 }
 
 function BellIcon() {
@@ -233,18 +240,15 @@ export function BoatingAlertsModule({
           {items.map((item) => {
             const canExpand = Boolean(item.moreInfo || item.link);
             const row = (
-              <>
-                <div className="boatingAlertIcon" aria-hidden="true">{iconForAlert(item.icon)}</div>
-                <div className="boatingAlertCopy">
-                  <div className="boatingAlertTopLine">
-                    <div className="boatingAlertTitle">{item.title}</div>
-                    <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
-                  </div>
-                  <div className="boatingAlertDetail">{item.detail}</div>
-                  {item.window?.confidence === 'sharp' ? <AlertTimeBar window={item.window} daylight={daylight} nowIso={nowIso} /> : null}
-                  {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
+              <div className="boatingAlertCopy">
+                <div className="boatingAlertTopLine">
+                  <div className="boatingAlertTitle">{formatAlertTitle(item.title)}</div>
+                  <div className={`boatingAlertBadge boatingAlertBadge-${item.tier}`}>{ALERT_TIER_LABELS[item.tier]}</div>
                 </div>
-              </>
+                <div className="boatingAlertDetail">{item.detail}</div>
+                {item.window?.confidence === 'sharp' ? <AlertTimeBar window={item.window} daylight={daylight} nowIso={nowIso} /> : null}
+                {item.source ? <div className="boatingAlertSource">{item.source}</div> : null}
+              </div>
             );
 
             if (!canExpand) {

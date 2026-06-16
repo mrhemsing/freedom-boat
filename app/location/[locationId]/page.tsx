@@ -110,9 +110,9 @@ export default async function LocationPage({
     timeZone
   });
   const rainEta = getRainEtaSummary(forecast?.forecast ?? [], boatingAlertDaylight);
-  const advisoryText = includeMarineAdvisories
+  const advisorySummary = includeMarineAdvisories
     ? getAdvisorySummary(marine?.items ?? [])
-    : { label: 'Not used', detail: 'Marine advisories are hidden for inland lake locations' };
+    : null;
   const launchWindow = getBestLaunchWindowSummary({
     forecast: forecast?.forecast ?? [],
     nowIso: now?.asOf,
@@ -160,7 +160,7 @@ export default async function LocationPage({
     windSpeed,
     gust,
     directionDeg: dir,
-    advisoryLabel: advisoryText.label,
+    advisoryLabel: advisorySummary?.active ? advisorySummary.title : 'No advisory',
     nextTide,
     isTidalLocation: isTidal
   });
@@ -221,7 +221,7 @@ export default async function LocationPage({
 
       <div className="grid" style={{ marginTop: 24 }}>
         {boatingAlerts.length ? (
-          <Card className="alertsCard" title={null} icon={null}>
+          <Card id="marine-advisories" className="alertsCard" title={null} icon={null}>
             <BoatingAlertsModule
               items={boatingAlerts}
               dayLabel={boatingAlertDayLabel}
@@ -339,7 +339,7 @@ export default async function LocationPage({
           className="desktopIconDrop2 quickLookCard"
           title="Boating quick look"
           icon={<span style={{ fontWeight: 900, fontSize: 16, filter: 'grayscale(1)', opacity: 0.92 }}>📌</span>}
-          right={<span>at-a-glance guidance</span>}
+          right={<span>at-a-glance</span>}
         >
           <div className="quickLookGrid"><div className="quickItem">
               <div className="quickLabel">Wind trend (3h)</div>
@@ -382,11 +382,15 @@ export default async function LocationPage({
               <div className="quickValue">{visibility.label}</div>
               <div className="miniNote">{visibility.detail}</div>
             </div>
-            <div className="quickItem">
-              <div className="quickLabel">Advisory</div>
-              <div className="quickValue">{advisoryText.label}</div>
-              <div className="miniNote">{advisoryText.detail}</div>
-            </div>
+            {advisorySummary?.active ? (
+              <div className={`quickItem quickAdvisory quickAdvisory-${advisorySummary.tier}`}>
+                <div className="quickLabel">Advisory</div>
+                <div className="quickValue quickAdvisoryValue">
+                  <span className="quickAdvisoryLocation">{advisorySummary.location}</span>
+                </div>
+                <a className="miniNote quickAdvisoryLink" href="#marine-advisories">View advisory ↑</a>
+              </div>
+            ) : null}
           </div>
         </Card>
 
@@ -876,10 +880,43 @@ function getGoNoGoSummary({
   return { label: 'Go', tone: 'toneGood', reason: 'Within calmer operating range' };
 }
 
+type AdvisoryEchoTier = 'advisory' | 'watch' | 'warning' | 'storm' | 'hurricane';
+
 function getAdvisorySummary(items: Array<{ title?: string; severity?: string }>) {
-  if (!items?.length) return { label: 'No advisory', detail: 'No active marine warnings' };
+  if (!items?.length) return null;
   const top = items[0];
-  return { label: top.title || 'Marine advisory', detail: `Severity: ${top.severity || 'info'}` };
+  const tier = getAdvisoryEchoTier(top);
+  return {
+    active: true,
+    tier,
+    title: top.title || 'Marine advisory',
+    location: getAdvisoryEchoLocation(top.title || 'Marine advisory')
+  };
+}
+
+function getAdvisoryEchoTier(item: { title?: string; severity?: string }): AdvisoryEchoTier {
+  const text = `${item.title || ''} ${item.severity || ''}`.toLowerCase();
+  if (text.includes('hurricane')) return 'hurricane';
+  if (text.includes('storm')) return 'storm';
+  if (text.includes('warning') || text.includes('gale') || text.includes('squall')) return 'warning';
+  if (text.includes('watch')) return 'watch';
+  return 'advisory';
+}
+
+function getAdvisoryEchoLocation(title: string) {
+  const normalized = title.replace(/\s+/g, ' ').trim();
+  const commaMatch = normalized.match(/,\s*(.+)$/);
+  if (commaMatch?.[1]) return formatAdvisoryEchoLocation(commaMatch[1]);
+  const forMatch = normalized.match(/\bfor\s+(.+)$/i);
+  if (forMatch?.[1]) return formatAdvisoryEchoLocation(forMatch[1]);
+  return formatAdvisoryEchoLocation(normalized || 'Marine area');
+}
+
+function formatAdvisoryEchoLocation(value: string) {
+  return value
+    .replace(/^Strait\s+Of\s+Georgia/i, 'Strait of Georgia')
+    .replace(/\s+-\s+/g, ' - ')
+    .trim();
 }
 
 function warningAuthorityForLocation(loc: { address?: string }) {
