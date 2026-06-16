@@ -2367,11 +2367,18 @@ body:has(.homeDebox)::before {
   background: rgba(10, 20, 36, 0.72);
 }
 
+.homeDebox .boatingAlertRow.boatingAlertRow-warning,
+.homeDebox .boatingAlertDisclosure.boatingAlertRow-warning > .boatingAlertRow {
+  padding: 13px 16px 13px 18px;
+}
+
 .homeDebox .boatingAlertDisclosure {
   margin: 0;
 }
 
 .homeDebox .boatingAlertDisclosure::after {
+  right: 15px;
+  bottom: 12px;
   color: var(--tw-text-3);
 }
 
