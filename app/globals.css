@@ -39,6 +39,15 @@
   --page-bg: #061826;
   --card-bg: rgba(4, 18, 31, 0.66);
 
+  --chart-wind: #14b8a6;
+  --chart-gust: #7dd3fc;
+  --chart-tide: #34d399;
+  --chart-grid: rgba(15, 23, 42, 0.06);
+  --chart-axis: rgba(100, 116, 139, 0.9);
+  --chart-now: rgba(15, 23, 42, 0.45);
+  --zone-caution: rgba(245, 158, 11, 0.10);
+  --zone-strong: rgba(239, 68, 68, 0.10);
+
   --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
   --t-fast: 120ms;
   --t-med: 200ms;
@@ -143,10 +152,8 @@ summary:focus-visible,
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-bottom-color: transparent;
   border-radius: var(--r-sm);
-  background: rgba(4, 18, 31, 0.72);
+  background: rgba(4, 18, 31, 0.96);
   box-shadow: 0 12px 28px rgba(2, 12, 27, 0.20);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
   color: #fff;
   transition:
     background var(--t-med) var(--ease),
@@ -156,7 +163,7 @@ summary:focus-visible,
 
 .globalHeader.scrolled {
   border-bottom-color: rgba(255, 255, 255, 0.12);
-  background: rgba(4, 18, 31, 0.86);
+  background: rgba(4, 18, 31, 0.98);
   box-shadow: 0 14px 34px rgba(2, 12, 27, 0.28);
 }
 
@@ -2375,11 +2382,41 @@ hr.soft {
   stroke: rgba(15, 23, 42, 0.06);
 }
 .chartAxisLabel {
-  fill: rgba(15, 23, 42, 0.55);
+  fill: var(--chart-axis);
   font-variant-numeric: tabular-nums slashed-zero;
 }
-.chartAreaFill {
-  fill: url(#windGradient);
+.chartNowLine {
+  stroke: var(--chart-now);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.chartNowDot {
+  fill: var(--chart-tide);
+  stroke: #fff;
+  stroke-width: 2;
+}
+.chartZoneCaution {
+  fill: var(--zone-caution);
+}
+.chartZoneStrong {
+  fill: var(--zone-strong);
+}
+.chartLegend {
+  fill: rgba(255, 255, 255, 0.72);
+  stroke: rgba(15, 23, 42, 0.08);
+}
+.chartLegendSwatch {
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.ft-tooltip {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-md);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 .hourlyStrip {
   overflow-x: auto;
