@@ -471,7 +471,6 @@ export default async function LocationPage({
               },
               {
                 label: 'Conditions',
-                icon: <IconWind />,
                 value: (
                   <div className="conditionsWindRow">
                     <span className="conditionsWindSpeed">{round(windSpeed, 0) ?? '—'} kt</span>
