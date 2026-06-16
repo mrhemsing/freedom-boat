@@ -2325,6 +2325,16 @@ body:has(.homeDebox)::before {
   border-bottom: 1px solid var(--tw-line);
 }
 
+.homeDebox .weeklyCard .cardHeader {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.homeDebox .weeklyCard .cardHeaderLeft {
+  align-items: flex-start;
+  width: 100%;
+}
+
 .homeDebox .weeklyCard .cardHeader h2,
 .homeDebox .quickLookCard .cardHeader h2,
 .homeDebox .boatingAlertsTitle {
@@ -2334,6 +2344,12 @@ body:has(.homeDebox)::before {
   letter-spacing: 0.09em;
   line-height: 1.2;
   text-transform: uppercase;
+}
+
+.homeDebox .weeklyCard .cardHeader h2 {
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
 }
 
 .homeDebox .weeklyCard .cardIcon,
