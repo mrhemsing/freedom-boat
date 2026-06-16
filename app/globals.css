@@ -2362,8 +2362,17 @@ body:has(.homeDebox)::before {
   padding: 3px 0 3px 14px;
 }
 
+.homeDebox .boatingAlertRow-warning,
+.homeDebox .boatingAlertDisclosure.boatingAlertRow-warning {
+  background: rgba(10, 20, 36, 0.72);
+}
+
 .homeDebox .boatingAlertDisclosure {
   margin: 0;
+}
+
+.homeDebox .boatingAlertDisclosure::after {
+  color: var(--tw-text-3);
 }
 
 .homeDebox .boatingAlertDisclosure[open] {
