@@ -139,8 +139,6 @@ summary:focus-visible,
 }
 
 .globalHeader {
-  position: sticky;
-  top: 10px;
   z-index: 6000;
   width: 100%;
   display: grid;
@@ -172,8 +170,6 @@ summary:focus-visible,
 }
 
 .container > .globalHeader {
-  position: sticky;
-  top: 10px;
   left: auto;
   width: calc(100vw - 36px);
   margin-left: calc(50% - 50vw + 18px);
@@ -2446,8 +2442,6 @@ hr.soft {
   }
 
   .globalHeader {
-    position: sticky;
-    top: 4px;
     z-index: 3800;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
