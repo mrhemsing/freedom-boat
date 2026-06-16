@@ -62,7 +62,7 @@ function MarineAdvisorySources() {
   return (
     <span className="sourceLegendLinks">
       <a href="https://weather.gc.ca/" target="_blank" rel="noreferrer">Environment Canada warnings</a>
-      <span aria-hidden="true"> · </span>
+      <span className="sourceLegendSourceBreak" aria-hidden="true" />
       <a href="https://api.weather.gov/alerts/active" target="_blank" rel="noreferrer">National Weather Service active alerts</a>
     </span>
   );
