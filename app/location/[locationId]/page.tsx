@@ -167,7 +167,7 @@ export default async function LocationPage({
   const planLinkLabel = `Plan a trip to ${loc.name}`;
 
   return (
-    <main className="container">
+    <main className={`container ${isPlannerEmbed ? '' : 'homeDebox'}`.trim()}>
       {!isPlannerEmbed ? <GlobalHeader active="conditions" contextLabel={loc.name} /> : null}
       <header className="topbar">
         <div className="headerBrand">

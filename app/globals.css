@@ -39,6 +39,28 @@
   --page-bg: #061826;
   --card-bg: rgba(4, 18, 31, 0.66);
 
+  --tw-text: #f3f7fc;
+  --tw-text-2: #8ea2bb;
+  --tw-text-3: #6f86a3;
+  --tw-eyebrow: #7f93ad;
+  --tw-line: rgba(255, 255, 255, 0.10);
+  --tw-line-soft: rgba(255, 255, 255, 0.07);
+  --tw-line-strong: rgba(255, 255, 255, 0.14);
+  --tw-glass: rgba(255, 255, 255, 0.05);
+  --tw-glass-strong: rgba(255, 255, 255, 0.07);
+  --tw-glass-border: rgba(255, 255, 255, 0.12);
+  --tw-blur: blur(10px);
+  --tw-open-scrim: rgba(8, 15, 26, 0.35);
+  --tw-accent: #2dd4bf;
+  --tw-good: #5eead4;
+  --tw-good-bg: rgba(45, 212, 191, 0.16);
+  --tw-warn: #fcd34d;
+  --tw-warn-bg: rgba(251, 191, 36, 0.16);
+  --tw-bad: #fca5a5;
+  --tw-bad-bg: rgba(248, 113, 113, 0.16);
+  --tw-bar-warn: #fbbf24;
+  --tw-bar-bad: #f87171;
+
   --chart-wind: #14b8a6;
   --chart-gust: #7dd3fc;
   --chart-tide: #34d399;
@@ -2238,6 +2260,309 @@ summary::-webkit-details-marker {
 .quickValue.toneGood{ color: #166534; }
 .quickValue.toneWarn{ color: #92400e; }
 .quickValue.toneBad{ color: #991b1b; }
+
+body:has(.homeDebox)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 14, 26, 0.10) 0%,
+      rgba(7, 14, 26, 0.42) 30%,
+      rgba(7, 14, 26, 0.52) 60%,
+      rgba(7, 14, 26, 0.34) 100%
+    );
+}
+
+.homeDebox {
+  position: relative;
+  z-index: 1;
+}
+
+.homeDebox .grid {
+  gap: 28px;
+}
+
+.homeDebox .alertsCard,
+.homeDebox .weeklyCard,
+.homeDebox .quickLookCard {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: var(--tw-text);
+}
+
+.homeDebox .alertsCard .cardBody,
+.homeDebox .weeklyCard .cardBody,
+.homeDebox .quickLookCard .cardBody {
+  padding: 0;
+}
+
+.homeDebox .weeklyCard .cardHeader,
+.homeDebox .quickLookCard .cardHeader {
+  align-items: center;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--tw-line);
+}
+
+.homeDebox .weeklyCard .cardHeader h2,
+.homeDebox .quickLookCard .cardHeader h2,
+.homeDebox .boatingAlertsTitle {
+  color: var(--tw-eyebrow);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.homeDebox .weeklyCard .cardIcon,
+.homeDebox .quickLookCard .cardIcon,
+.homeDebox .boatingAlertsBell {
+  display: none;
+}
+
+.homeDebox .quickLookCard .cardHeader > .miniNote,
+.homeDebox .quickLookCard .cardHeader > span,
+.homeDebox .cardSubtitle,
+.homeDebox .boatingAlertsMeta {
+  color: var(--tw-text-3);
+}
+
+.homeDebox .boatingAlertsModule {
+  padding: 0;
+  background: transparent;
+  gap: 14px;
+}
+
+.homeDebox .boatingAlertsHeader {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--tw-line);
+}
+
+.homeDebox .boatingAlertRows {
+  gap: 0;
+}
+
+.homeDebox .boatingAlertRow,
+.homeDebox .boatingAlertDisclosure {
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left-width: 8px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--tw-text);
+}
+
+.homeDebox .boatingAlertRow {
+  padding: 3px 0 3px 14px;
+}
+
+.homeDebox .boatingAlertDisclosure {
+  margin: 0;
+}
+
+.homeDebox .boatingAlertDisclosure[open] {
+  background: rgba(10, 20, 36, 0.72);
+}
+
+.homeDebox .boatingAlertRows > * + * {
+  border-top: 1px solid var(--tw-line-soft);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.homeDebox .boatingAlertIcon {
+  background: var(--tw-glass);
+  border-color: var(--tw-glass-border);
+  color: var(--tw-text-2);
+}
+
+.homeDebox .boatingAlertTitle {
+  color: var(--tw-text);
+}
+
+.homeDebox .boatingAlertDetail,
+.homeDebox .boatingAlertSource,
+.homeDebox .boatingAlertMore {
+  color: var(--tw-text-2);
+}
+
+.homeDebox .boatingAlertMore {
+  padding: 2px 0 10px 40px;
+  background: transparent;
+}
+
+.homeDebox .boatingAlertMore a {
+  color: var(--tw-accent);
+}
+
+.homeDebox .boatingAlertBadge-warning {
+  background: var(--tw-bad-bg);
+  color: var(--tw-bad);
+}
+
+.homeDebox .boatingAlertBadge-watch {
+  background: var(--tw-warn-bg);
+  color: var(--tw-warn);
+}
+
+.homeDebox .outlookGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  padding-top: 8px;
+}
+
+.homeDebox .dayBox {
+  position: relative;
+  padding: 12px 18px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--tw-text);
+}
+
+.homeDebox .dayBoxAnimate {
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
+
+.homeDebox .dayBox + .dayBox {
+  border-left: 1px solid var(--tw-line);
+}
+
+.homeDebox .dayBest {
+  border: 0;
+  background: transparent;
+}
+
+.homeDebox .dayBest::before {
+  content: "";
+  position: absolute;
+  inset: 6px 8px;
+  z-index: -1;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: var(--r-sm);
+  background: rgba(45, 212, 191, 0.10);
+}
+
+.homeDebox .dayTitle,
+.homeDebox .dayTempTopMobile,
+.homeDebox .dayTempLine,
+.homeDebox .dayMeta {
+  color: var(--tw-text);
+}
+
+.homeDebox .dayMeta,
+.homeDebox .dayIcon {
+  color: var(--tw-text-2);
+}
+
+.homeDebox .dayScorePill-good,
+.homeDebox .dayScorePill-excellent {
+  background: var(--tw-good-bg);
+  color: var(--tw-good);
+}
+
+.homeDebox .dayScorePill-fair {
+  background: var(--tw-warn-bg);
+  color: var(--tw-warn);
+}
+
+.homeDebox .dayScorePill-poor {
+  background: var(--tw-bad-bg);
+  color: var(--tw-bad);
+}
+
+.homeDebox .quickLookGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px 0;
+  padding-top: 8px;
+}
+
+.homeDebox .quickItem {
+  padding: 0 18px;
+  border: 0;
+  border-right: 1px solid var(--tw-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.homeDebox .quickItem:nth-child(4n) {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.homeDebox .quickItem:nth-child(4n + 1) {
+  padding-left: 0;
+}
+
+.homeDebox .quickLabel {
+  color: var(--tw-text-3);
+}
+
+.homeDebox .quickValue {
+  color: var(--tw-text);
+}
+
+.homeDebox .quickValue.toneGood {
+  color: var(--tw-good);
+}
+
+.homeDebox .quickValue.toneWarn {
+  color: var(--tw-warn);
+}
+
+.homeDebox .quickValue.toneBad {
+  color: var(--tw-bad);
+}
+
+.homeDebox .miniNote {
+  color: var(--tw-text-2);
+}
+
+@media (max-width: 900px) {
+  .homeDebox .quickLookGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homeDebox .quickItem,
+  .homeDebox .quickItem:nth-child(4n),
+  .homeDebox .quickItem:nth-child(4n + 1) {
+    padding: 0 16px;
+    border-right: 1px solid var(--tw-line);
+  }
+
+  .homeDebox .quickItem:nth-child(2n) {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .homeDebox .quickItem:nth-child(2n + 1) {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 840px) {
+  .homeDebox .outlookGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .homeDebox .dayBox {
+    padding: 14px 0;
+  }
+
+  .homeDebox .dayBox + .dayBox {
+    border-top: 1px solid var(--tw-line);
+    border-left: 0;
+  }
+}
 
 @media (max-width: 900px){
   .quickLookGrid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
