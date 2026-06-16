@@ -906,20 +906,13 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   function focusLinkedMarina(marina: Marina) {
     const linkedFocusZoom = isMobilePlanner() ? MOBILE_LINKED_MARINA_FOCUS_ZOOM : LINKED_MARINA_FOCUS_ZOOM;
-    if (isMobilePlanner()) {
-      pendingListScrollMarinaIdRef.current = marina.id;
-      setQuery('');
-      setTripMode(false);
-      setShowLaunches(false);
-      setSelectedId(null);
-      setForecastFocusMarinaId(marina.id);
-      setSelectedLaunchId(null);
-      setMobileMarkerModal(false);
-      setSheetState('collapsed');
-      setIsFullscreen(false);
-    } else {
-      revealMarinaInList(marina.id);
-    }
+    setQuery('');
+    setTripMode(false);
+    setShowLaunches(false);
+    setSelectedId(null);
+    setForecastFocusMarinaId(marina.id);
+    setSelectedLaunchId(null);
+    setMobileMarkerModal(false);
     centerMapOnMarina(marina, linkedFocusZoom);
     window.setTimeout(() => centerMapOnMarina(marina, linkedFocusZoom), 700);
     window.setTimeout(() => centerMapOnMarina(marina, linkedFocusZoom), 1400);
