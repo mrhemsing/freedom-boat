@@ -1632,6 +1632,7 @@ summary::-webkit-details-marker {
 }
 
 .boatingAlertDisclosure{
+  position: relative;
   border: var(--border-light);
   border-left-width: 3px;
   border-radius: 0 var(--r-md) var(--r-md) 0;
@@ -1649,19 +1650,20 @@ summary::-webkit-details-marker {
   display: none;
 }
 
-.boatingAlertDisclosure .boatingAlertTopLine::after{
-  content: "More";
-  grid-column: 2;
-  grid-row: 2;
-  justify-self: end;
-  align-self: start;
+.boatingAlertDisclosure::after{
+  content: "v";
+  position: absolute;
+  right: 13px;
+  bottom: 9px;
   color: rgba(11, 18, 32, 0.52);
-  font-size: 11px;
-  font-weight: 850;
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1;
+  pointer-events: none;
 }
 
-.boatingAlertDisclosure[open] .boatingAlertTopLine::after{
-  content: "Less";
+.boatingAlertDisclosure[open]::after{
+  transform: rotate(180deg);
 }
 
 .boatingAlertDisclosure .boatingAlertBadge{
@@ -1740,6 +1742,10 @@ summary::-webkit-details-marker {
   color: rgba(11, 18, 32, 0.72);
   font-size: 13px;
   line-height: 1.38;
+}
+
+.boatingAlertRow-warning .boatingAlertDetail{
+  margin-top: 3px;
 }
 
 .boatingAlertSource{
