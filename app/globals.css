@@ -17,6 +17,31 @@
   --danger: #ef4444;
 
   --shadow: 0 10px 25px rgba(2, 12, 27, 0.22);
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  --border-dark: 1px solid rgba(255, 255, 255, 0.08);
+  --border-dark-strong: 1px solid rgba(255, 255, 255, 0.14);
+  --border-light: 1px solid rgba(15, 23, 42, 0.07);
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 2px 4px rgba(15, 23, 42, 0.04), 0 6px 16px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 4px 8px rgba(15, 23, 42, 0.05), 0 16px 32px rgba(15, 23, 42, 0.10);
+  --inner-top-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --accent: #0ea5a4;
+  --accent-ring: rgba(14, 165, 164, 0.45);
+  --page-bg: #061826;
+  --card-bg: rgba(4, 18, 31, 0.66);
+
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --t-fast: 120ms;
+  --t-med: 200ms;
 }
 
 html,
@@ -34,6 +59,17 @@ body {
   background-position: center, center;
   background-attachment: fixed;
   color: white;
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+p,
+.seoHero p,
+.homeHero p,
+.homeEntry p,
+.seoCard p {
+  font-variant-numeric: normal;
+  font-feature-settings: normal;
 }
 
 * {
@@ -49,6 +85,44 @@ a:hover {
   text-decoration: underline;
 }
 
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+.card-interactive:focus-visible,
+.homeEntry:focus-visible,
+.seoLinkGrid a:focus-visible,
+.seoButton:focus-visible,
+.globalPrimaryNav a:focus-visible,
+.globalPrefs:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(11, 18, 32, 1), 0 0 0 4px var(--accent-ring);
+  border-radius: var(--r-sm);
+}
+
+.eyebrow,
+.homeEyebrow,
+.homeScore span,
+.homeMetrics dt,
+.homeEntry span,
+.sourceLegendTitle,
+.seoCard span,
+.seoFacts dt,
+.quickLabel,
+.kpiLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
 .container {
   max-width: 980px;
   margin: 0 auto;
@@ -56,7 +130,8 @@ a:hover {
 }
 
 .globalHeader {
-  position: relative;
+  position: sticky;
+  top: 10px;
   z-index: 6000;
   width: 100%;
   display: grid;
@@ -66,11 +141,23 @@ a:hover {
   min-height: 58px;
   padding: 12px 14px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
+  border-bottom-color: transparent;
+  border-radius: var(--r-sm);
   background: rgba(4, 18, 31, 0.72);
   box-shadow: 0 12px 28px rgba(2, 12, 27, 0.20);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   color: #fff;
+  transition:
+    background var(--t-med) var(--ease),
+    border-color var(--t-med) var(--ease),
+    box-shadow var(--t-med) var(--ease);
+}
+
+.globalHeader.scrolled {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: rgba(4, 18, 31, 0.86);
+  box-shadow: 0 14px 34px rgba(2, 12, 27, 0.28);
 }
 
 .globalHeader.hasDaySlot {
@@ -78,7 +165,8 @@ a:hover {
 }
 
 .container > .globalHeader {
-  position: relative;
+  position: sticky;
+  top: 10px;
   left: auto;
   width: calc(100vw - 36px);
   margin-left: calc(50% - 50vw + 18px);
@@ -348,14 +436,35 @@ a:hover {
 .homeConditionPanel,
 .homeEntry {
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
+  border-radius: var(--r-lg);
   background: rgba(4, 18, 31, 0.66);
   box-shadow: 0 14px 32px rgba(2, 12, 27, 0.22);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .homeHeroCopy {
+  position: relative;
+  overflow: hidden;
   padding: 30px;
+}
+
+.homeHeroCopy::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(11, 18, 32, 0.04) 0%,
+    rgba(11, 18, 32, 0.12) 70%,
+    rgba(6, 24, 38, 0.28) 100%
+  );
+}
+
+.homeHeroCopy > * {
+  position: relative;
+  z-index: 1;
 }
 
 .homeEyebrow {
@@ -372,6 +481,8 @@ a:hover {
   color: #fff;
   font-size: clamp(32px, 6vw, 58px);
   line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .homeHero h2 {
@@ -380,6 +491,8 @@ a:hover {
   color: #fff;
   font-size: clamp(30px, 5vw, 50px);
   line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .homeHero p {
@@ -469,11 +582,19 @@ a:hover {
   min-height: 170px;
   padding: 20px;
   text-decoration: none;
+  transition:
+    transform var(--t-fast) var(--ease),
+    border-color var(--t-med) var(--ease),
+    background var(--t-fast) var(--ease),
+    box-shadow var(--t-med) var(--ease);
+  will-change: transform;
 }
 
 .homeEntry:hover {
   text-decoration: none;
   background: rgba(4, 18, 31, 0.78);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
 }
 
 .homeEntry strong {
@@ -559,6 +680,14 @@ a:hover {
   line-height: 1.25;
   color: rgba(255, 255, 255, 0.96);
   overflow-wrap: anywhere;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.sourceLegendList a:hover,
+.footerLink:hover,
+.siteFooter a:hover {
+  color: var(--accent);
+  text-underline-offset: 3px;
 }
 
 .answerFirstPanel {
@@ -1277,9 +1406,9 @@ summary::-webkit-details-marker {
 .card {
   background: #eef5ff;
   color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+  border: var(--border-light);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
 }
 
 .cardHeader {
@@ -1350,7 +1479,7 @@ summary::-webkit-details-marker {
 }
 
 .boatingAlertsModuleWarning{
-  background: linear-gradient(180deg, rgba(252, 235, 235, 0.92), rgba(255, 255, 255, 0.78));
+  background: rgba(239, 68, 68, 0.05);
 }
 
 .boatingAlertsHeader{
@@ -1493,16 +1622,16 @@ summary::-webkit-details-marker {
   grid-template-columns: 30px minmax(0, 1fr);
   gap: var(--alert-icon-gap);
   padding: 12px;
-  border: 1px solid rgba(11, 18, 32, 0.10);
+  border: var(--border-light);
   border-left-width: 3px;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 var(--r-md) var(--r-md) 0;
   background: rgba(255, 255, 255, 0.72);
 }
 
 .boatingAlertDisclosure{
-  border: 1px solid rgba(11, 18, 32, 0.10);
+  border: var(--border-light);
   border-left-width: 3px;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 var(--r-md) var(--r-md) 0;
   overflow: hidden;
 }
 
@@ -1537,8 +1666,8 @@ summary::-webkit-details-marker {
 }
 
 .boatingAlertRow-warning{
-  border-left-color: #e24b4a;
-  background: #fcebeb;
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
   color: #a32d2d;
 }
 
@@ -1586,7 +1715,7 @@ summary::-webkit-details-marker {
   grid-row: 1;
   justify-self: end;
   padding: 3px 7px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-size: 10px;
   font-weight: 950;
   letter-spacing: 0.03em;
@@ -1594,8 +1723,8 @@ summary::-webkit-details-marker {
 }
 
 .boatingAlertBadge-warning{
-  background: rgba(226, 75, 74, 0.14);
-  color: #a32d2d;
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
 }
 
 .boatingAlertBadge-watch{
@@ -1800,7 +1929,7 @@ summary::-webkit-details-marker {
 }
 
 .dayBox {
-  border-radius: 14px;
+  border-radius: var(--r-md);
   border: 1px solid rgba(11, 18, 32, 0.10);
   background: rgba(255, 255, 255, 0.70);
   padding: 14px 14px 16px;
@@ -1808,8 +1937,9 @@ summary::-webkit-details-marker {
 }
 
 .dayBest {
-  border-color: rgba(34, 197, 94, 0.65);
-  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.10);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.15), var(--shadow-md);
 }
 
 @media (min-width: 721px) {
@@ -1859,12 +1989,12 @@ summary::-webkit-details-marker {
   justify-content: center;
   gap: 5px;
   margin-top: 8px;
-  padding: 6px 10px;
-  border-radius: 4px; /* square-ish */
-  border: 1px solid currentColor;
-  background: transparent;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
   font-weight: 950;
   letter-spacing: 0.2px;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 
 .dayScorePillLabel {
@@ -1872,19 +2002,25 @@ summary::-webkit-details-marker {
 }
 
 .dayScorePill-excellent {
-  color: #0f766e;
+  border-color: rgba(16, 185, 129, 0.22);
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
 }
 
 .dayScorePill-good {
-  color: #166534;
+  background: rgba(16, 185, 129, 0.10);
+  color: #0d9488;
 }
 
 .dayScorePill-fair {
-  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.22);
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
 }
 
 .dayScorePill-poor {
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
 }
 
 .dayTitleRow{
@@ -2230,6 +2366,42 @@ hr.soft {
 
 .chartScrollX { overflow-x: hidden; }
 .chartSvg { width: 100%; max-width: 100%; }
+.chartLine {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chartGrid line {
+  stroke: rgba(15, 23, 42, 0.06);
+}
+.chartAxisLabel {
+  fill: rgba(15, 23, 42, 0.55);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+.chartAreaFill {
+  fill: url(#windGradient);
+}
+.hourlyStrip {
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+}
+.hourlyStripInner {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(110px, 1fr);
+  gap: 10px;
+}
+.hourlyCard {
+  scroll-snap-align: start;
+  border: 1px solid rgba(11, 18, 32, 0.10);
+  border-radius: var(--r-md);
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.70);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
 
 @media (max-width: 720px) {
   .beforeBookStrip {
@@ -6288,7 +6460,8 @@ hr.soft {
   color: #fff;
   font-size: clamp(34px, 6vw, 58px);
   line-height: 1.02;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .seoHero p {
@@ -6311,24 +6484,42 @@ hr.soft {
   align-items: center;
   justify-content: center;
   min-height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
+  border: var(--border-dark-strong);
+  border-radius: var(--r-sm);
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.10);
   color: #fff;
   font-size: 14px;
   font-weight: 850;
   text-decoration: none;
+  transition:
+    transform var(--t-fast) var(--ease),
+    filter var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease);
 }
 
 .seoButton:hover {
   background: rgba(255, 255, 255, 0.16);
   text-decoration: none;
+  transform: translateY(-1px);
 }
 
 .seoButtonPrimary {
   border-color: rgba(14, 165, 164, 0.75);
-  background: #0ea5a4;
+  background: var(--accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), var(--shadow-sm);
+  color: #04201d;
+  font-weight: 900;
+}
+
+.seoButtonPrimary:hover {
+  filter: brightness(1.05);
+}
+
+.seoButton:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
 }
 
 .seoGrid {
@@ -6340,10 +6531,12 @@ hr.soft {
 
 .seoCard,
 .seoContent {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 8px;
+  border: var(--border-dark);
+  border-radius: var(--r-md);
   background: rgba(4, 18, 31, 0.66);
+  box-shadow: var(--inner-top-highlight);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .seoCard {
@@ -6367,6 +6560,7 @@ hr.soft {
   font-size: 24px;
   font-weight: 950;
   overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 
 .seoCard p {
@@ -6399,10 +6593,10 @@ hr.soft {
 .seoFacts div,
 .seoLinkGrid a {
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.08);
+  border: var(--border-dark);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .seoFacts dt {
@@ -6417,7 +6611,26 @@ hr.soft {
   margin: 5px 0 0;
   color: rgba(255, 255, 255, 0.9);
   font-size: 15px;
-  font-weight: 760;
+  font-weight: 600;
+}
+
+.seoFacts dd.valueStatusYes::before,
+.seoFacts dd.valueStatusNo::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.seoFacts dd.valueStatusYes::before {
+  background: #10b981;
+}
+
+.seoFacts dd.valueStatusNo::before {
+  background: rgba(148, 163, 184, 0.5);
 }
 
 .seoLinkGrid {
@@ -6431,11 +6644,17 @@ hr.soft {
   gap: 4px;
   color: #fff;
   text-decoration: none;
+  transition:
+    background var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
 }
 
 .seoLinkGrid a:hover {
-  background: rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
   text-decoration: none;
+  transform: translateY(-1px);
 }
 
 .seoLinkGrid strong {
@@ -6445,7 +6664,9 @@ hr.soft {
 
 .seoLinkGrid span {
   color: rgba(255, 255, 255, 0.66);
-  font-size: 13px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .plannerSeoLinks {
@@ -6462,6 +6683,19 @@ hr.soft {
 
 .browseFilters .seoButton {
   min-width: 92px;
+  border-radius: var(--r-pill);
+  padding: 6px 14px;
+}
+
+.browseFilters .seoButton[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--accent);
+  color: #04201d;
+  font-weight: 900;
+}
+
+.browseFilters .seoButton:hover:not([aria-pressed="true"]) {
+  border-color: rgba(255, 255, 255, 0.20);
 }
 
 .browseDirectory {
@@ -6470,6 +6704,42 @@ hr.soft {
 
 .browseDirectory .seoLinkGrid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.browseOverview .homeHeroCopy,
+.browseOverview .homeConditionPanel {
+  border: var(--border-dark);
+  border-radius: var(--r-lg);
+  box-shadow: var(--inner-top-highlight);
+}
+
+.browseOverview .homeHeroCopy {
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(14, 165, 164, 0.10), transparent 60%),
+    var(--card-bg);
+}
+
+.browseOverview .homeScore strong {
+  letter-spacing: -0.02em;
+}
+
+.marinaPage .seoHero h1 {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.marinaPage .seoHero p {
+  max-width: 62ch;
+  color: rgba(203, 213, 225, 0.85);
+  line-height: 1.55;
+}
+
+.marinaPage .seoCard {
+  box-shadow: var(--inner-top-highlight);
+}
+
+.marinaPage .seoCardScore strong {
+  color: var(--accent);
 }
 
 @media (max-width: 720px) {

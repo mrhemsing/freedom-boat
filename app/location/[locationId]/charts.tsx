@@ -40,33 +40,39 @@ export function WindChart({ forecast }: { forecast: any[] }) {
   return (
     <div className="chartScrollX">
       <svg className="chartSvg" viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
+        <defs>
+          <linearGradient id="windGradient" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="rgba(56, 189, 248, 0.18)" />
+            <stop offset="100%" stopColor="rgba(56, 189, 248, 0)" />
+          </linearGradient>
+        </defs>
         <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(14, 165, 164, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
 
         {/* grid */}
         {yTicks.map((t) => (
-          <g key={t}>
-            <line x1={pad} x2={w - pad} y1={sy(t)} y2={sy(t)} stroke="rgba(11,18,32,0.10)" />
-            <text x={8} y={sy(t) + 4} fontSize="11" fill="rgba(11,18,32,0.55)">{t} kt</text>
+          <g key={t} className="chartGrid">
+            <line x1={pad} x2={w - pad} y1={sy(t)} y2={sy(t)} />
+            <text className="chartAxisLabel" x={8} y={sy(t) + 4} fontSize="11">{t} kt</text>
           </g>
         ))}
 
         {/* gust area */}
         <path
           d={`${pathFromPoints(ptsGust)} L ${sx(rows.length - 1)} ${h - pad} L ${sx(0)} ${h - pad} Z`}
-          fill="rgba(56, 189, 248, 0.18)"
+          className="chartAreaFill"
         />
 
         {/* gust line */}
-        <path d={pathFromPoints(ptsGust)} fill="none" stroke="rgba(56, 189, 248, 0.95)" strokeWidth="2" />
+        <path className="chartLine" d={pathFromPoints(ptsGust)} fill="none" stroke="rgba(56, 189, 248, 0.95)" />
 
         {/* speed line */}
-        <path d={pathFromPoints(ptsSpeed)} fill="none" stroke="rgba(14, 165, 164, 0.95)" strokeWidth="2" />
+        <path className="chartLine" d={pathFromPoints(ptsSpeed)} fill="none" stroke="rgba(14, 165, 164, 0.95)" />
 
         {/* x labels */}
         {rows.map((r, i) => {
           if (i % 4 !== 0) return null;
           return (
-            <text key={r.t} x={sx(i)} y={h - 8} fontSize="11" textAnchor="middle" fill="rgba(11,18,32,0.55)">
+            <text className="chartAxisLabel" key={r.t} x={sx(i)} y={h - 8} fontSize="11" textAnchor="middle">
               {isoToLocalTime(r.t)}
             </text>
           );
@@ -106,19 +112,19 @@ export function TideMiniChart({ events }: { events: Array<{ t: string; kind: str
     <div className="chartScrollX">
       <svg className="chartSvg" viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
         <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(34, 197, 94, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
-        <path d={pathFromPoints(pts)} fill="none" stroke="rgba(34, 197, 94, 0.95)" strokeWidth="2" />
+        <path className="chartLine" d={pathFromPoints(pts)} fill="none" stroke="rgba(34, 197, 94, 0.95)" />
         {rows.map((r, i) => (
           <g key={r.t}>
             <circle cx={sx(i)} cy={sy(r.heightM as number)} r={3.5} fill="rgba(34, 197, 94, 0.95)" />
             {i % 2 === 0 ? (
-              <text x={sx(i)} y={h - 8} fontSize="11" textAnchor="middle" fill="rgba(11,18,32,0.55)">
+              <text className="chartAxisLabel" x={sx(i)} y={h - 8} fontSize="11" textAnchor="middle">
                 {isoToLocalDayTime(r.t).split(',')[0]}
               </text>
             ) : null}
           </g>
         ))}
-        <text x={8} y={sy(max) + 4} fontSize="11" fill="rgba(11,18,32,0.55)">{round(max, 2)} m</text>
-        <text x={8} y={sy(min) + 4} fontSize="11" fill="rgba(11,18,32,0.55)">{round(min, 2)} m</text>
+        <text className="chartAxisLabel" x={8} y={sy(max) + 4} fontSize="11">{round(max, 2)} m</text>
+        <text className="chartAxisLabel" x={8} y={sy(min) + 4} fontSize="11">{round(min, 2)} m</text>
       </svg>
     </div>
   );

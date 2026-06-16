@@ -110,14 +110,14 @@ export function WindArrow({ deg }: { deg?: number | null }) {
 export function ForecastStrip({ forecast }: { forecast: any[] }) {
   const rows = (forecast || []).slice(0, 12);
   return (
-    <div style={{ overflowX: 'auto', paddingBottom: 12 }}>
-      <div style={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(110px, 1fr)', gap: 10 }}>
+    <div className="hourlyStrip">
+      <div className="hourlyStripInner">
         {rows.map((h) => {
           const ws = round(h.windSpeedKts, 0);
           const wg = h.windGustKts != null ? round(h.windGustKts, 0) : null;
           const pp = h.precipProbPct != null ? round(h.precipProbPct, 0) : null;
           return (
-            <div key={h.t} style={{ border: '1px solid rgba(11,18,32,0.10)', borderRadius: 14, padding: 10, background: 'rgba(255,255,255,0.70)' }}>
+            <div key={h.t} className="hourlyCard">
               <div className="forecastTimeText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{isoToLocalTime(h.t)}</div>
               <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{ws ?? '—'} kt</div>
               <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>

@@ -59,6 +59,7 @@ export default function BrowsePage({
             <a
               key={filter.type}
               className={`seoButton ${activeType === filter.type ? 'seoButtonPrimary' : ''}`}
+              aria-pressed={activeType === filter.type}
               href={filter.type === 'all' ? '/browse' : `/browse?type=${filter.type}`}
             >
               {filter.label}

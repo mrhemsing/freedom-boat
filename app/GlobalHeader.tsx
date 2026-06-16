@@ -29,7 +29,7 @@ export default function GlobalHeader({ active, showDaySlot = false }: GlobalHead
 
   useEffect(() => {
     function updateScrolledState() {
-      setIsScrolled(window.scrollY > 72);
+      setIsScrolled(window.scrollY > 8);
     }
 
     updateScrolledState();

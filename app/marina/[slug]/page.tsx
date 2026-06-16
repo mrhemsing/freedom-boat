@@ -74,7 +74,7 @@ export default async function MarinaSeoPage({
   const displayedScore = plannerScore ?? snapshot.score;
 
   return (
-    <main className="container seoPage">
+    <main className="container seoPage marinaPage">
       {!isPlannerEmbed ? <GlobalHeader active="conditions" contextLabel={marina.area} /> : null}
       <header className="seoHero">
         {!isPlannerEmbed ? (
@@ -88,8 +88,8 @@ export default async function MarinaSeoPage({
             </nav>
           </>
         ) : null}
-        <h1>{title}</h1>
-        <p>{snapshot.summary}</p>
+        <h1 className="marinaTitle">{title}</h1>
+        <p className="marinaIntro">{snapshot.summary}</p>
         <div className="seoActions">
           <a className="seoButton seoButtonPrimary" href={`/plan-my-trip?marina=${marina.slug}`}>Open in interactive map</a>
           <a className="seoButton" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${marina.name} ${marina.address}`)}`} target="_blank" rel="noreferrer">Open in Maps</a>
@@ -97,7 +97,7 @@ export default async function MarinaSeoPage({
       </header>
 
       <section className="seoGrid" aria-label={`${marina.name} current boating snapshot`}>
-        <div className="seoCard">
+        <div className="seoCard seoCardScore">
           <span>Boating score</span>
           <strong>{displayedScore ?? '--'}</strong>
           <p>{scoreCardText(displayedScore, plannerScore != null, searchParams?.plannerVessel)}</p>
@@ -129,9 +129,9 @@ export default async function MarinaSeoPage({
           <div><dt>Address</dt><dd>{marina.address}</dd></div>
           {marina.operator ? <div><dt>Operator</dt><dd>{marina.operator}</dd></div> : null}
           <div><dt>Access</dt><dd>{access?.access ?? 'Verify before arrival'}</dd></div>
-          <div><dt>Guest moorage</dt><dd>{access ? transientLabel(access.transient) : 'Verify before arrival'}</dd></div>
-          <div><dt>Fuel</dt><dd>{access?.fuel ?? 'Verify'}</dd></div>
-          <div><dt>Boat launch</dt><dd>{access?.launch ?? 'Verify'}</dd></div>
+          <div><dt>Guest moorage</dt><dd className={statusValueClass(access?.transient)}>{access ? transientLabel(access.transient) : 'Verify before arrival'}</dd></div>
+          <div><dt>Fuel</dt><dd className={statusValueClass(access?.fuel)}>{access?.fuel ?? 'Verify'}</dd></div>
+          <div><dt>Boat launch</dt><dd className={statusValueClass(access?.launch)}>{access?.launch ?? 'Verify'}</dd></div>
           {marina.sourceUrl ? (
             <div>
               <dt>Source</dt>
@@ -175,6 +175,12 @@ function transientLabel(value: 'Y' | 'Limited' | 'N') {
   if (value === 'Y') return 'Yes';
   if (value === 'N') return 'No';
   return 'Limited';
+}
+
+function statusValueClass(value?: 'Y' | 'Limited' | 'N' | '?') {
+  if (value === 'Y') return 'valueStatusYes';
+  if (value === 'N') return 'valueStatusNo';
+  return undefined;
 }
 
 function marinaPageTitle(marina: { name: string; waterType?: 'tidal' | 'lake' | 'river' }) {
