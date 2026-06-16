@@ -124,6 +124,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const tripStopSetRef = useRef<Set<number>>(new Set());
   const leafletMapRef = useRef<any>(null);
   const initialMapBoundsRef = useRef<any>(null);
+  const pendingMapViewportRef = useRef<{ center: { lat: number; lng: number }; zoom: number } | null>(null);
   const markerRefs = useRef<Record<number, any>>({});
   const launchMarkerRefs = useRef<Record<number, any>>({});
   const userLocationMarkerRef = useRef<any>(null);
@@ -680,12 +681,14 @@ export default function TripMap({ marinas }: TripMapProps) {
           : bounds;
       initialMapBoundsRef.current = loadBounds;
       applyInitialPlannerMapView(map, loadBounds, false, activeMarinas);
+      restorePreservedMapViewport(map);
       setMapReadyTick((tick) => tick + 1);
 
       setTimeout(() => {
         if (!disposed && leafletMapRef.current === map) {
           map.invalidateSize();
           applyInitialPlannerMapView(map, loadBounds, false, activeMarinas);
+          restorePreservedMapViewport(map, true);
         }
       }, 0);
 
@@ -1000,15 +1003,23 @@ export default function TripMap({ marinas }: TripMapProps) {
     if (!map) return;
     const center = map.getCenter();
     const zoom = map.getZoom();
+    pendingMapViewportRef.current = { center, zoom };
     const restore = () => {
       const liveMap = leafletMapRef.current;
       if (!liveMap) return;
-      liveMap.setView(center, zoom, { animate: false });
+      restorePreservedMapViewport(liveMap, true);
     };
     window.requestAnimationFrame(() => {
       window.setTimeout(restore, 0);
       window.setTimeout(restore, 160);
     });
+  }
+
+  function restorePreservedMapViewport(map: any, clear = false) {
+    const viewport = pendingMapViewportRef.current;
+    if (!viewport) return;
+    map.setView(viewport.center, viewport.zoom, { animate: false });
+    if (clear) pendingMapViewportRef.current = null;
   }
 
   function toggleTripStop(marinaId: number, preserveViewport = true) {
@@ -1230,6 +1241,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               type="button"
               aria-pressed={showTransientOnly}
               onClick={() => {
+                preserveMapViewportAfterUpdate();
                 setShowTransientOnly((value) => !value);
                 setSelectedId(null);
                 setForecastFocusMarinaId(null);
@@ -1462,6 +1474,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                   title="Freedom Boat Club only"
                   data-tooltip="Freedom Boat Club only"
                   onClick={() => {
+                    preserveMapViewportAfterUpdate();
                     setShowFreedomOnly((value) => !value);
                     setSelectedLaunchId(null);
                     setMobileMarkerModal(false);
@@ -1482,6 +1495,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                   title="Transient friendly only"
                   data-tooltip="Transient friendly only"
                   onClick={() => {
+                    preserveMapViewportAfterUpdate();
                     setShowTransientOnly((value) => !value);
                     setSelectedId(null);
                     setForecastFocusMarinaId(null);
