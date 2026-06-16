@@ -46,9 +46,13 @@ export default function SiteFooter({
         </ul>
       </section>
       <div className="footerBrandRow">
-        <span>© {new Date().getFullYear()}</span>
-        <a className="baBadge baBadgeWhite" href="https://www.b-average.com/" target="_blank" rel="noreferrer">B AVERAGE</a>
-        <a className="footerLink" href="/contact">Contact</a>
+        <div className="footerLegalBrand">
+          <span>© {new Date().getFullYear()}</span>
+          <a className="baBadge baBadgeWhite" href="https://www.b-average.com/" target="_blank" rel="noreferrer">B AVERAGE</a>
+        </div>
+        <nav className="footerUtilityLinks" aria-label="Footer utility links">
+          <a className="footerLink" href="/contact">Contact</a>
+        </nav>
       </div>
     </footer>
   );

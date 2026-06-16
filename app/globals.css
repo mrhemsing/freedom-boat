@@ -912,20 +912,37 @@ summary:focus-visible,
 }
 
 .footerBrandRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.footerLegalBrand,
+.footerUtilityLinks {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+}
+
+.footerUtilityLinks {
+  justify-content: flex-end;
+  text-align: right;
+  flex: 0 0 auto;
 }
 
 .footerLink {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.66);
   font-size: 13px;
   font-weight: 760;
   text-decoration: none;
+  transition: color var(--t-fast) var(--ease);
 }
 
 .footerLink:hover {
-  color: #fff;
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -2571,7 +2588,18 @@ body:has(.homeDebox)::before {
   }
 
   .homeDebox .dayBox {
-    padding: 14px 0;
+    padding: 18px 0;
+  }
+
+  .homeDebox .dayBest {
+    z-index: 0;
+  }
+
+  .homeDebox .dayBest::before {
+    inset: 0 calc(50% - 50vw);
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
   }
 
   .homeDebox .dayBox + .dayBox {
@@ -2784,6 +2812,32 @@ hr.soft {
 }
 
 @media (max-width: 720px) {
+  .homeDebox .boatingAlertsHeader {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 5px;
+    padding-top: 2px;
+  }
+
+  .homeDebox .boatingAlertsTitle {
+    flex: 1 1 170px;
+    padding-left: 3px;
+    line-height: 1.35;
+    letter-spacing: 0.075em;
+    overflow: visible;
+  }
+
+  .homeDebox .boatingAlertsTitle span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .homeDebox .boatingAlertsMeta {
+    max-width: 44%;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+
   .beforeBookStrip {
     grid-template-columns: 1fr;
   }
@@ -3277,6 +3331,10 @@ hr.soft {
     font-weight: 600;
     color: rgba(11, 18, 32, 0.9);
     line-height: 1;
+  }
+
+  .dayIcons{
+    gap: 8px;
   }
 
   .dayMeta {
@@ -7061,7 +7119,7 @@ hr.soft {
 
 .browseFilters .seoButton {
   min-width: 92px;
-  border-radius: var(--r-pill);
+  border-radius: 8px;
   padding: 6px 14px;
 }
 
@@ -7099,6 +7157,16 @@ hr.soft {
 
 .browseOverview .homeScore strong {
   letter-spacing: -0.02em;
+}
+
+@media (min-width: 721px) {
+  .browsePage .seoHero h1 {
+    font-size: clamp(32px, 4.6vw, 48px);
+  }
+
+  .browseOverview .homeHeroCopy h2 {
+    font-size: clamp(28px, 3.6vw, 40px);
+  }
 }
 
 .marinaPage .seoHero h1 {
@@ -7140,6 +7208,7 @@ hr.soft {
   .browseFilters .seoButton {
     width: 100%;
     min-width: 0;
+    border-radius: 8px;
   }
 
   .browseDirectory .seoLinkGrid {
