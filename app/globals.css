@@ -1626,7 +1626,7 @@ summary::-webkit-details-marker {
   gap: var(--alert-icon-gap);
   padding: 12px;
   border: var(--border-light);
-  border-left-width: 3px;
+  border-left-width: 10px;
   border-radius: 0 var(--r-md) var(--r-md) 0;
   background: rgba(255, 255, 255, 0.72);
 }
@@ -1634,7 +1634,7 @@ summary::-webkit-details-marker {
 .boatingAlertDisclosure{
   position: relative;
   border: var(--border-light);
-  border-left-width: 3px;
+  border-left-width: 10px;
   border-radius: 0 var(--r-md) var(--r-md) 0;
   overflow: hidden;
 }
