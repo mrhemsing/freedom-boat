@@ -3280,6 +3280,10 @@ hr.soft {
     gap: 2px;
   }
 
+  .homeDebox .weeklyCard .cardHeaderStackMobile {
+    align-items: stretch;
+  }
+
   /* Weekly header: keep spacing snug while using shared icon alignment */
   .weeklyCard h2{
     gap: 3px !important;
@@ -3288,6 +3292,17 @@ hr.soft {
 
   .weeklyCard .cardHeaderStackMobile .cardHeaderLeft{
     gap: 3px;
+  }
+
+  .homeDebox .weeklyCard .cardHeaderStackMobile .cardHeaderLeft {
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .homeDebox .weeklyCard .cardHeaderStackMobile h2 {
+    display: block !important;
+    text-align: left !important;
+    width: 100%;
   }
 
   .weeklyCard .cardHeaderStackMobile .cardSubtitle{
