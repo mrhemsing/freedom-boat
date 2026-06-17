@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import { SCORE_BANDS, scoreBand, tierColorVar } from '../../../lib/outlook';
 
 const CX = 130;
@@ -35,36 +35,23 @@ export default function ScoreGauge({ score }: { score: number }) {
   const tier = band.label.toLowerCase();
   const color = tierColorVar(tier);
   const arcRef = useRef<SVGPathElement>(null);
-  const [shown, setShown] = useState(0);
 
   useEffect(() => {
     const arc = arcRef.current;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce || !arc) {
-      setShown(roundedScore);
       return;
     }
 
     const length = arc.getTotalLength();
     arc.style.strokeDasharray = String(length);
     arc.style.strokeDashoffset = String(length);
+    arc.style.transition = 'none';
     requestAnimationFrame(() => {
       arc.style.transition = 'stroke-dashoffset 1100ms cubic-bezier(.22,.9,.25,1)';
       arc.style.strokeDashoffset = '0';
     });
-
-    const start = performance.now();
-    const duration = 1100;
-    let raf = 0;
-    const tick = (time: number) => {
-      const k = Math.min(1, (time - start) / duration);
-      const eased = 1 - Math.pow(1 - k, 3);
-      setShown(Math.round(roundedScore * eased));
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [roundedScore]);
+  }, [normalizedScore]);
 
   const head = pol(ang(normalizedScore));
 
@@ -120,7 +107,7 @@ export default function ScoreGauge({ score }: { score: number }) {
         <circle cx={head.x} cy={head.y} r={6.5} fill="#fff" />
       </svg>
       <div className="gaugeCenter">
-        <span className="gaugeNum">{shown}</span>
+        <span className="gaugeNum">{roundedScore}</span>
         <span className="gaugeWord">{band.label}</span>
         <span className="gaugeOutOf">out of 100</span>
       </div>
