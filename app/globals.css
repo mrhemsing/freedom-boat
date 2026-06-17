@@ -7969,6 +7969,11 @@ hr.soft {
 @media (max-width: 720px) {
   .homeDebox .sectionHead {
     align-items: center;
+    margin-top: 5px;
+  }
+
+  .homeDebox .boatingAlertsHeader {
+    margin-top: 5px;
   }
 
   .homeDebox .sectionLabel,
