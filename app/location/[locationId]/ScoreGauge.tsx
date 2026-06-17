@@ -8,6 +8,7 @@ const CY = 130;
 const R = 96;
 const A0 = 135;
 const SWEEP = 270;
+const ARC_ANIMATION_DELAY_MS = 1000;
 
 type GaugeStyle = CSSProperties & {
   '--tier-color': string;
@@ -47,10 +48,15 @@ export default function ScoreGauge({ score }: { score: number }) {
     arc.style.strokeDasharray = String(length);
     arc.style.strokeDashoffset = String(length);
     arc.style.transition = 'none';
-    requestAnimationFrame(() => {
-      arc.style.transition = 'stroke-dashoffset 1100ms cubic-bezier(.22,.9,.25,1)';
-      arc.style.strokeDashoffset = '0';
-    });
+
+    const timeout = window.setTimeout(() => {
+      requestAnimationFrame(() => {
+        arc.style.transition = 'stroke-dashoffset 1100ms cubic-bezier(.22,.9,.25,1)';
+        arc.style.strokeDashoffset = '0';
+      });
+    }, ARC_ANIMATION_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
   }, [normalizedScore]);
 
   const head = pol(ang(normalizedScore));
@@ -103,6 +109,8 @@ export default function ScoreGauge({ score }: { score: number }) {
           stroke="var(--tier-color)"
           strokeWidth={15}
           strokeLinecap="round"
+          style={{ strokeDasharray: 100, strokeDashoffset: 100 }}
+          pathLength={100}
         />
         <circle cx={head.x} cy={head.y} r={6.5} fill="#fff" />
       </svg>
