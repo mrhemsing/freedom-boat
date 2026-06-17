@@ -3719,6 +3719,10 @@ hr.soft {
     margin-top: 12px;
   }
 
+  .locationHeroTitle span {
+    margin-bottom: 2px;
+  }
+
   .liveLookGrid {
     grid-template-columns: 1fr !important;
     gap: 8px;
@@ -7962,5 +7966,19 @@ hr.soft {
   font-weight: 500;
 }
 
+@media (max-width: 720px) {
+  .homeDebox .sectionHead {
+    align-items: center;
+  }
 
+  .homeDebox .sectionLabel,
+  .homeDebox .boatingAlertsTitle {
+    font-size: 15px !important;
+  }
 
+  .homeDebox .sectionMeta {
+    align-self: center;
+    line-height: 1;
+    margin-top: 0;
+  }
+}
