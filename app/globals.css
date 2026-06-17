@@ -211,7 +211,7 @@ summary:focus-visible,
 @media (min-width: 721px) {
   .container > .globalHeader {
     width: calc(100vw - 39px);
-    margin-left: calc(50% - 50vw + 33px);
+    margin-left: calc(50% - 50vw + 26px);
   }
 }
 
