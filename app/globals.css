@@ -3488,8 +3488,7 @@ hr.soft {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     min-height: 0;
-    padding: 16px;
-    transition: padding 160ms ease, gap 160ms ease;
+    padding: 10px 16px;
   }
 
   .globalHeader.hasDaySlot {
@@ -3510,8 +3509,8 @@ hr.soft {
   }
 
   .globalBrand .fbLogo {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
   }
 
   .globalBrand .brandTitle {
@@ -3657,18 +3656,8 @@ hr.soft {
     display: none;
   }
 
-  .globalHeader.scrolled {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-
   .globalHeader.scrolled .globalPrimaryNav {
     display: none;
-  }
-
-  .globalHeader.scrolled .globalBrand .fbLogo {
-    width: 44px;
-    height: 44px;
   }
 
   .homeHero,
@@ -4668,6 +4657,10 @@ hr.soft {
 }
 
 @media (max-width: 720px) {
+  .tripPlannerPage {
+    gap: 8px;
+  }
+
   .tripPlannerPage > .globalHeader {
     width: calc(100% + 4px);
     margin-top: 2px;
