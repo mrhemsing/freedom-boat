@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { SCORE_BANDS, scoreBand, tierColorVar } from '../../../lib/outlook';
 
 const CX = 130;
@@ -8,7 +8,6 @@ const CY = 130;
 const R = 96;
 const A0 = 135;
 const SWEEP = 270;
-const ARC_ANIMATION_DELAY_MS = 1000;
 
 type GaugeStyle = CSSProperties & {
   '--tier-color': string;
@@ -35,29 +34,6 @@ export default function ScoreGauge({ score }: { score: number }) {
   const band = scoreBand(normalizedScore);
   const tier = band.label.toLowerCase();
   const color = tierColorVar(tier);
-  const arcRef = useRef<SVGPathElement>(null);
-
-  useEffect(() => {
-    const arc = arcRef.current;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || !arc) {
-      return;
-    }
-
-    const length = arc.getTotalLength();
-    arc.style.strokeDasharray = String(length);
-    arc.style.strokeDashoffset = String(length);
-    arc.style.transition = 'none';
-
-    const timeout = window.setTimeout(() => {
-      requestAnimationFrame(() => {
-        arc.style.transition = 'stroke-dashoffset 1100ms cubic-bezier(.22,.9,.25,1)';
-        arc.style.strokeDashoffset = '0';
-      });
-    }, ARC_ANIMATION_DELAY_MS);
-
-    return () => window.clearTimeout(timeout);
-  }, [normalizedScore]);
 
   const head = pol(ang(normalizedScore));
 
@@ -103,14 +79,11 @@ export default function ScoreGauge({ score }: { score: number }) {
           );
         })}
         <path
-          ref={arcRef}
           d={arcPath(0, normalizedScore)}
           fill="none"
           stroke="var(--tier-color)"
           strokeWidth={15}
           strokeLinecap="round"
-          style={{ strokeDasharray: 100, strokeDashoffset: 100 }}
-          pathLength={100}
         />
         <circle cx={head.x} cy={head.y} r={6.5} fill="#fff" />
       </svg>
