@@ -25,6 +25,21 @@ export function IconWind({ size = 18 }: { size?: number }) {
   );
 }
 
+export function IconWindMeter({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 10V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M13.8 13 18 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M10.2 13 6 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="4" r="2" stroke="currentColor" strokeWidth="2" />
+      <circle cx="19" cy="16.8" r="2" stroke="currentColor" strokeWidth="2" />
+      <circle cx="5" cy="16.8" r="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 14v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function IconThermometer({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -73,6 +88,53 @@ export function IconTide({ size = 18 }: { size?: number }) {
       />
       <path d="M8 6h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path d="M12 3v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconClock({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconEye({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M3 12s3.2-5.5 9-5.5S21 12 21 12s-3.2 5.5-9 5.5S3 12 3 12Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="2.5" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+export function IconCompass({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="m15.5 8.5-2.1 5-4.9 2 2.1-5 4.9-2Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function IconCrossCurrent({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M5 6l14 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M19 6L5 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }

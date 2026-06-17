@@ -114,7 +114,7 @@ export function WindChart({ forecast }: { forecast: any[] }) {
   const strongZoneBottom = max > 34 ? sy(34) : null;
 
   return (
-    <div className="chartScrollX">
+    <div className="chartScrollX chart-plot">
       <svg className="chartSvg" viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
         <defs>
           <linearGradient id="windFill" x1="0" y1="0" x2="0" y2="1">
@@ -126,7 +126,7 @@ export function WindChart({ forecast }: { forecast: any[] }) {
             <stop offset="100%" stopColor="var(--chart-gust)" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(14, 165, 164, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
+        <rect className="chartSurface chartSurfaceWind" x="0" y="0" width={w} height={h} rx="14" fill="rgba(14, 165, 164, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
         {cautionZoneTop != null && cautionZoneBottom != null ? (
           <rect className="chartZoneCaution" x={pad} y={cautionZoneTop} width={w - pad * 2} height={Math.max(0, cautionZoneBottom - cautionZoneTop)} />
         ) : null}
@@ -167,9 +167,9 @@ export function WindChart({ forecast }: { forecast: any[] }) {
         <g>
           <rect className="chartLegend" x={w - 190} y={12} width={170} height={50} rx={10} />
           <line className="chartLegendSwatch" x1={w - 175} x2={w - 145} y1={28} y2={28} stroke="var(--chart-wind)" />
-          <text x={w - 135} y={32} fontSize="12" fill="rgba(11,18,32,0.70)">wind</text>
+          <text className="chartLegendLabel" x={w - 135} y={32} fontSize="12" fill="rgba(11,18,32,0.70)">wind</text>
           <line className="chartLegendSwatch" x1={w - 175} x2={w - 145} y1={48} y2={48} stroke="var(--chart-gust)" />
-          <text x={w - 135} y={52} fontSize="12" fill="rgba(11,18,32,0.70)">gust envelope</text>
+          <text className="chartLegendLabel" x={w - 135} y={52} fontSize="12" fill="rgba(11,18,32,0.70)">gust envelope</text>
         </g>
       </svg>
     </div>
@@ -199,7 +199,7 @@ export function TideMiniChart({ events }: { events: Array<{ t: string; kind: str
   const nowY = nowHeight == null ? null : sy(nowHeight);
 
   return (
-    <div className="chartScrollX">
+    <div className="chartScrollX chart-plot">
       <svg className="chartSvg" viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: 'block' }} preserveAspectRatio="xMinYMin meet">
         <defs>
           <linearGradient id="tideWater" x1="0" y1="0" x2="0" y2="1">
@@ -208,7 +208,7 @@ export function TideMiniChart({ events }: { events: Array<{ t: string; kind: str
             <stop offset="100%" stopColor="var(--chart-tide)" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <rect x="0" y="0" width={w} height={h} rx="14" fill="rgba(34, 197, 94, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
+        <rect className="chartSurface chartSurfaceTide" x="0" y="0" width={w} height={h} rx="14" fill="rgba(34, 197, 94, 0.06)" stroke="rgba(11, 18, 32, 0.10)" />
         <path d={areaToBaselinePath(pts, h - pad)} fill="url(#tideWater)" />
         <path className="chartLine" d={smoothStepPath(pts)} fill="none" stroke="var(--chart-tide)" />
         {rows.map((r, i) => (

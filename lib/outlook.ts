@@ -49,6 +49,17 @@ export function scoreBand(score: number): ScoreBand {
   return SCORE_BANDS.find((band) => normalized >= band.min && normalized <= band.max) ?? SCORE_BANDS[0];
 }
 
+export function tierColorVar(tier: string): string {
+  switch (tier) {
+    case 'poor':
+      return 'var(--tw-bad)';
+    case 'fair':
+      return 'var(--tw-warn)';
+    default:
+      return 'var(--tw-good)';
+  }
+}
+
 function extractHour(isoLike?: string) {
   const s = String(isoLike || '');
   const m = s.match(/T(\d{2}):/);

@@ -28,18 +28,18 @@ export function Card({
   return (
     <section id={id} className={`card ${className || ''}`.trim()} style={{ minWidth: 0 }}>
       {title ? (
-        <div className={`cardHeader ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
+        <div className={`cardHeader sectionHead ${headerStackOnMobile ? 'cardHeaderStackMobile' : ''}`.trim()}>
           <div className="cardHeaderLeft">
             <h2
-              className={titleNoWrap ? 'cardTitleNoWrap' : undefined}
+              className={`sectionLabel ${titleNoWrap ? 'cardTitleNoWrap' : ''}`.trim()}
               style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
             >
-              <span className="cardIcon" style={{ color: 'rgba(11,18,32,0.75)' }}>{icon}</span>
+              <span className="cardIcon">{icon}</span>
               {title}
             </h2>
             {subtitle ? <div className="cardSubtitle">{subtitle}</div> : null}
           </div>
-          {right ? <div className="miniNote">{right}</div> : null}
+          {right ? <div className="miniNote sectionMeta">{right}</div> : null}
         </div>
       ) : null}
       <div className="cardBody">{children}</div>
@@ -104,7 +104,7 @@ export function WindArrow({ deg }: { deg?: number | null }) {
           }}
         />
       </span>
-      <span className="windDirNote" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{dir ?? '—'}</span>
+      <span className="windDirNote" style={{ fontSize: 12 }}>{dir ?? '—'}</span>
     </span>
   );
 }
@@ -120,15 +120,15 @@ export function ForecastStrip({ forecast }: { forecast: any[] }) {
           const pp = h.precipProbPct != null ? round(h.precipProbPct, 0) : null;
           return (
             <div key={h.t} className="hourlyCard">
-              <div className="forecastTimeText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)' }}>{isoToLocalTime(h.t)}</div>
+              <div className="forecastTimeText" style={{ fontSize: 12 }}>{isoToLocalTime(h.t)}</div>
               <div style={{ marginTop: 6, fontWeight: 800, fontSize: 18 }}>{ws ?? '—'} kt</div>
-              <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
+              <div className="forecastMetaText" style={{ fontSize: 12, marginTop: 4 }}>
                 <WindArrow deg={h.windDirDeg} />
               </div>
-              <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
+              <div className="forecastMetaText" style={{ fontSize: 12, marginTop: 4 }}>
                 gust {wg ?? '—'}
               </div>
-              <div className="forecastMetaText" style={{ fontSize: 12, color: 'rgba(11,18,32,0.62)', marginTop: 4 }}>
+              <div className="forecastMetaText" style={{ fontSize: 12, marginTop: 4 }}>
                 precip {pp ?? '—'}%
               </div>
             </div>
