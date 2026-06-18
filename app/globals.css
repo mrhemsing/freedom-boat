@@ -2776,6 +2776,10 @@ body:has(.homeDebox)::before {
 }
 
 @media (min-width: 761px) {
+  .homeDebox .gaugeCol .gaugeEyebrow {
+    margin-top: 12px;
+  }
+
   .homeDebox .gaugeCol .scoreGauge {
     --gauge: clamp(184px, 31.4vw, 310px);
     margin: 0 2rem;
