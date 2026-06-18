@@ -355,7 +355,6 @@ export default async function LocationPage({
           <div className="quickLookBand">
             {!isPlannerEmbed ? (
               <div className="gaugeCol">
-                <span className="gaugeEyebrow">Today</span>
                 <ScoreGauge score={displayedTodayScore ?? todayOutlook?.score ?? 0} />
               </div>
             ) : null}
