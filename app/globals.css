@@ -2627,6 +2627,7 @@ body:has(.homeDebox)::before {
 
 .homeDebox .boatingAlertTitle {
   color: var(--tw-text);
+  line-height: 1.38;
 }
 
 .homeDebox .boatingAlertDetail,
