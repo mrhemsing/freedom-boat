@@ -109,6 +109,32 @@ const LINKED_MARINA_FOCUS_ZOOM = DEFAULT_MARINA_FOCUS_ZOOM - 2;
 const MOBILE_LINKED_MARINA_FOCUS_ZOOM = 10;
 const MAX_CLUSTER_ZOOM = 8;
 const CLUSTER_DISTANCE_PX = 46;
+const ISLAND_LABEL_MIN_ZOOM = 9;
+const ISLAND_LABELS = [
+  { name: 'Salt Spring Island', lat: 48.82, lon: -123.50, minZoom: 9 },
+  { name: 'Galiano Island', lat: 48.92, lon: -123.44, minZoom: 9 },
+  { name: 'Mayne Island', lat: 48.85, lon: -123.29, minZoom: 10 },
+  { name: 'North Pender Island', lat: 48.78, lon: -123.29, minZoom: 10 },
+  { name: 'South Pender Island', lat: 48.75, lon: -123.22, minZoom: 10 },
+  { name: 'Saturna Island', lat: 48.78, lon: -123.13, minZoom: 10 },
+  { name: 'Prevost Island', lat: 48.83, lon: -123.38, minZoom: 11 },
+  { name: 'Thetis Island', lat: 49.00, lon: -123.69, minZoom: 10 },
+  { name: 'Gabriola Island', lat: 49.16, lon: -123.78, minZoom: 10 },
+  { name: 'Newcastle Island', lat: 49.18, lon: -123.94, minZoom: 12 },
+  { name: 'Sidney Island', lat: 48.62, lon: -123.32, minZoom: 10 },
+  { name: 'Portland Island', lat: 48.72, lon: -123.37, minZoom: 11 },
+  { name: 'Bowen Island', lat: 49.38, lon: -123.37, minZoom: 10 },
+  { name: 'Keats Island', lat: 49.40, lon: -123.47, minZoom: 11 },
+  { name: 'Gambier Island', lat: 49.49, lon: -123.43, minZoom: 10 },
+  { name: 'Anvil Island', lat: 49.54, lon: -123.28, minZoom: 11 },
+  { name: 'Quadra Island', lat: 50.19, lon: -125.22, minZoom: 10 },
+  { name: 'Cortes Island', lat: 50.10, lon: -124.98, minZoom: 10 },
+  { name: 'Orcas Island', lat: 48.67, lon: -122.94, minZoom: 9 },
+  { name: 'Lopez Island', lat: 48.50, lon: -122.89, minZoom: 10 },
+  { name: 'San Juan Island', lat: 48.55, lon: -123.08, minZoom: 9 },
+  { name: 'Shaw Island', lat: 48.58, lon: -122.93, minZoom: 11 },
+  { name: 'Blakely Island', lat: 48.56, lon: -122.80, minZoom: 11 }
+];
 
 export default function TripMap({ marinas }: TripMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -130,6 +156,8 @@ export default function TripMap({ marinas }: TripMapProps) {
   const userLocationMarkerRef = useRef<any>(null);
   const clusterMarkerRefs = useRef<any[]>([]);
   const clusterRefreshRef = useRef<(() => void) | null>(null);
+  const islandLabelLayerRef = useRef<any>(null);
+  const islandLabelRefreshRef = useRef<(() => void) | null>(null);
   const alwaysVisibleClusterIdsRef = useRef<Set<number>>(new Set());
   const routeLineRef = useRef<any>(null);
   const waypointMarkerRefs = useRef<Record<string, any>>({});
@@ -602,6 +630,13 @@ export default function TripMap({ marinas }: TripMapProps) {
         crossOrigin: true,
         attribution: '&copy; CARTO &copy; OpenStreetMap'
       }).addTo(map);
+      islandLabelLayerRef.current = L.layerGroup().addTo(map);
+      const refreshIslandLabels = () => {
+        updateIslandLabels(L, map, islandLabelLayerRef.current);
+      };
+      islandLabelRefreshRef.current = refreshIslandLabels;
+      map.on('zoomend moveend', refreshIslandLabels);
+      refreshIslandLabels();
 
       const bounds = L.latLngBounds([]);
       const initialBounds = L.latLngBounds([]);
@@ -698,6 +733,9 @@ export default function TripMap({ marinas }: TripMapProps) {
         clusterMarkerRefs.current.forEach((marker) => marker.remove());
         clusterMarkerRefs.current = [];
         clusterRefreshRef.current = null;
+        islandLabelLayerRef.current = null;
+        islandLabelRefreshRef.current = null;
+        map.off('zoomend moveend', refreshIslandLabels);
         waypointMarkerRefs.current = {};
         userLocationMarkerRef.current = null;
         routeLineRef.current = null;
@@ -2289,6 +2327,31 @@ function updatePlannerClusters(
       marker.addTo(map);
     }
   });
+}
+
+function updateIslandLabels(L: any, map: any, layer: any) {
+  if (!layer) return;
+  layer.clearLayers();
+
+  const zoom = map.getZoom();
+  if (zoom < ISLAND_LABEL_MIN_ZOOM) return;
+
+  const bounds = map.getBounds().pad(0.15);
+  ISLAND_LABELS
+    .filter((label) => zoom >= label.minZoom && bounds.contains([label.lat, label.lon]))
+    .forEach((label) => {
+      L.marker([label.lat, label.lon], {
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: -300,
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="plannerIslandLabel">${escapeHtml(label.name)}</div>`,
+          iconSize: [150, 28],
+          iconAnchor: [75, 14]
+        })
+      }).addTo(layer);
+    });
 }
 
 function clusterIcon(L: any, count: number) {

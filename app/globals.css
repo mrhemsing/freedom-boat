@@ -5272,6 +5272,24 @@ hr.soft {
   z-index: -1;
 }
 
+.plannerIslandLabel {
+  width: 150px;
+  color: rgba(28, 45, 55, 0.78);
+  text-align: center;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.86),
+    1px 0 0 rgba(255, 255, 255, 0.74),
+    -1px 0 0 rgba(255, 255, 255, 0.74),
+    0 -1px 0 rgba(255, 255, 255, 0.74);
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
 .plannerPin {
   position: relative;
   width: 40px;
