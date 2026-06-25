@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import 'leaflet/dist/leaflet.css';
 import './globals.css';
 import { SITE_URL } from '../lib/seo-slugs';
@@ -59,6 +60,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd()) }}
         />
         {children}
+        <Analytics />
       </body>
     </html>
   );

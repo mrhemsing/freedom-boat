@@ -18,6 +18,7 @@
     "marinas:validate": "node scripts/validate-marina-refresh.cjs"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "leaflet": "^1.9.4",
     "next": "14.2.35",
     "react": "18.3.1",
