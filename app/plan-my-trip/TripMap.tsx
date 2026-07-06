@@ -697,11 +697,12 @@ export default function TripMap({ marinas }: TripMapProps) {
         marker.bindPopup(marinaPopupHtml(marina, dayIndex, vessel, weeklyOutlooks, tripStopSet.has(marina.id), tripStopOrder.get(marina.id)));
         marker.on('click', () => {
           if (isMobilePlanner()) {
-            rememberListScroll();
-            setSelectedId(marina.id);
+            setSelectedId(null);
+            setForecastFocusMarinaId(marina.id);
             setSelectedLaunchId(null);
-            setMobileMarkerModal(true);
+            setMobileMarkerModal(false);
             setSheetState('collapsed');
+            marker.openPopup();
           } else {
             revealMarinaInList(marina.id);
             marker.openPopup();
