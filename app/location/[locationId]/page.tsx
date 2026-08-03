@@ -73,10 +73,12 @@ export function generateStaticParams() {
 
 export default async function LocationPage({
   params,
-  searchParams
+  searchParams,
+  eyebrowLabel
 }: {
   params: { locationId: string };
   searchParams?: { embed?: string; plannerScore?: string; plannerDay?: string };
+  eyebrowLabel?: { mobile: string; desktop: string };
 }) {
   const id = params.locationId as LocationId;
   const loc = LOCATIONS[id];
@@ -174,7 +176,14 @@ export default async function LocationPage({
       <header className="topbar">
         <div className="headerBrand">
           <div className="locationHeroTitle">
-            <span>Boating Conditions</span>
+            {eyebrowLabel ? (
+              <span>
+                <span className="homeEyebrowMobile">{eyebrowLabel.mobile}</span>
+                <span className="homeEyebrowDesktop">{eyebrowLabel.desktop}</span>
+              </span>
+            ) : (
+              <span>Boating Conditions</span>
+            )}
             <h1>{homeMarina ? loc.name : `${loc.name} Boating Conditions`}</h1>
           </div>
         </div>

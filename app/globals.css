@@ -1330,6 +1330,20 @@ summary:focus-visible,
   text-transform: uppercase;
 }
 
+.homeEyebrowDesktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .homeEyebrowMobile {
+    display: none;
+  }
+
+  .homeEyebrowDesktop {
+    display: inline;
+  }
+}
+
 .locationHeroTitle h1 {
   margin: 0;
   color: #fff;

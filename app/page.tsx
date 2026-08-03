@@ -11,7 +11,13 @@ export default async function HomePage() {
   return (
     <>
       <HomeMarinaRedirect />
-      {await LocationPage({ params: { locationId: 'port-moody' } })}
+      {await LocationPage({
+        params: { locationId: 'port-moody' },
+        eyebrowLabel: {
+          mobile: 'Salish Sea Conditions',
+          desktop: 'Salish Sea Boating Conditions'
+        }
+      })}
     </>
   );
 }
