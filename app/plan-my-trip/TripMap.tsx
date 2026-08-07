@@ -1031,6 +1031,37 @@ export default function TripMap({ marinas }: TripMapProps) {
     setMobileMarkerModal(false);
   }
 
+  function closeSelectedMarinaToMap() {
+    if (!selected || !isMobilePlanner()) {
+      closeSelectedDetail();
+      return;
+    }
+
+    const marina = selected;
+    setSelectedId(null);
+    setForecastFocusMarinaId(marina.id);
+    setSelectedLaunchId(null);
+    setMobileMarkerModal(false);
+    setSheetState('collapsed');
+
+    const centerSelectedMarker = () => {
+      const map = leafletMapRef.current;
+      const marker = markerRefs.current[marina.id];
+      if (!map || !marker) return;
+      map.invalidateSize({ animate: false });
+      marker.openPopup?.();
+      map.setView(
+        [marina.lat, marina.lon],
+        Math.max(map.getZoom(), DEFAULT_MARINA_FOCUS_ZOOM),
+        { animate: true }
+      );
+      clusterRefreshRef.current?.();
+    };
+
+    window.requestAnimationFrame(centerSelectedMarker);
+    window.setTimeout(centerSelectedMarker, 360);
+  }
+
   function rememberListScroll() {
     if (showSheetDetailRef.current) return;
     listScrollTopRef.current = sheetInnerRef.current?.scrollTop ?? 0;
@@ -1386,6 +1417,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                     planOrder={tripStopOrder.get(selected.id)}
                     onToggleTrip={() => toggleTripStop(selected.id)}
                     onBack={closeSelectedDetail}
+                    onClose={closeSelectedMarinaToMap}
                   />
                 ) : selectedLaunch ? (
                   <LaunchDetail
@@ -1432,6 +1464,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               planOrder={tripStopOrder.get(selected.id)}
               onToggleTrip={() => toggleTripStop(selected.id)}
               onBack={closeSelectedDetail}
+              onClose={closeSelectedMarinaToMap}
             />
           ) : showSheetDetail && selectedLaunch ? (
             <LaunchDetail
@@ -1704,7 +1737,8 @@ function MarinaDetail({
   inTrip,
   planOrder,
   onToggleTrip,
-  onBack
+  onBack,
+  onClose
 }: {
   marina: Marina;
   dayIndex: number;
@@ -1715,6 +1749,7 @@ function MarinaDetail({
   planOrder?: number;
   onToggleTrip: () => void;
   onBack: () => void;
+  onClose: () => void;
 }) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
   const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
@@ -1733,7 +1768,7 @@ function MarinaDetail({
           </svg>
           All marinas
         </button>
-        <button className="plannerDetailClose" type="button" aria-label="Close destination detail" onClick={onBack}>
+        <button className="plannerDetailClose" type="button" aria-label="Close destination detail" onClick={onClose}>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden>
             <line x1="6" y1="6" x2="18" y2="18" />
             <line x1="18" y1="6" x2="6" y2="18" />
