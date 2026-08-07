@@ -60,6 +60,21 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     ],
     marineSiteIds: ['06100', '07003', '14305']
   },
+  'comox': {
+    id: 'comox',
+    name: 'Comox Valley',
+    address: 'Comox Harbour, Comox, BC',
+    tidal: true,
+    // Shared local forecast anchor for the adjacent Comox and Courtenay
+    // marinas. Without this anchor they exceed the planner's 45 km nearest-
+    // location limit and fall back to synthetic, marina-ID-based conditions.
+    lat: 49.6748,
+    lon: -124.9495,
+    marineAreas: [
+      'Strait of Georgia - north of Nanaimo'
+    ],
+    marineSiteIds: ['14303']
+  },
   'west-vancouver': {
     id: 'west-vancouver',
     name: 'West Vancouver',

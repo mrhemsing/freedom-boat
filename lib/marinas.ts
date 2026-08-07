@@ -545,7 +545,8 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     lat: 49.682,
     lon: -124.9839,
     area: 'Courtenay',
-    exp: 0.7
+    exp: 0.7,
+    locationId: 'comox'
   },
   {
     id: 64,
@@ -555,7 +556,8 @@ export const ADDITIONAL_PUBLIC_MARINAS: Marina[] = [
     lat: 49.6695,
     lon: -124.9284,
     area: 'Comox',
-    exp: 0.7
+    exp: 0.7,
+    locationId: 'comox'
   },
   {
     id: 65,
