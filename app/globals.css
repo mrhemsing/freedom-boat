@@ -7513,6 +7513,17 @@ hr.soft {
     border-radius: 18px 18px 0 0;
   }
 
+  .plannerSheet .plannerGrab {
+    position: relative;
+    touch-action: none;
+  }
+
+  .plannerSheet .plannerGrab::before {
+    content: '';
+    position: absolute;
+    inset: -12px 0;
+  }
+
   .plannerSheet-half {
     transform: translateY(calc(100% - 176px));
   }

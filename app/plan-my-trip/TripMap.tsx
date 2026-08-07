@@ -186,6 +186,7 @@ export default function TripMap({ marinas }: TripMapProps) {
   const restoreListScrollRef = useRef(false);
   const showSheetDetailRef = useRef(false);
   const grabDragStartYRef = useRef<number | null>(null);
+  const suppressGrabClickRef = useRef(false);
   const pendingListScrollMarinaIdRef = useRef<number | null>(null);
   const pendingListScrollFrameRef = useRef<number | null>(null);
   const initialInteractiveMapHandledRef = useRef(false);
@@ -1159,6 +1160,7 @@ export default function TripMap({ marinas }: TripMapProps) {
 
   function handleGrabPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
     if (!isMobilePlanner() || sheetState === 'collapsed') return;
+    suppressGrabClickRef.current = false;
     grabDragStartYRef.current = event.clientY;
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
@@ -1167,10 +1169,16 @@ export default function TripMap({ marinas }: TripMapProps) {
     const startY = grabDragStartYRef.current;
     grabDragStartYRef.current = null;
     if (startY == null || !isMobilePlanner()) return;
-    if (event.clientY - startY > 24) {
+    if (event.clientY - startY > 14) {
+      event.preventDefault();
       event.stopPropagation();
+      suppressGrabClickRef.current = true;
       setSheetState('collapsed');
     }
+  }
+
+  function handleGrabPointerCancel() {
+    grabDragStartYRef.current = null;
   }
 
   function reorderTripStop(fromIndex: number, toIndex: number) {
@@ -1444,10 +1452,15 @@ export default function TripMap({ marinas }: TripMapProps) {
           aria-label={sheetState === 'collapsed' ? 'Open destination sheet' : 'Collapse destination sheet'}
           onClick={(event) => {
             event.stopPropagation();
+            if (suppressGrabClickRef.current) {
+              suppressGrabClickRef.current = false;
+              return;
+            }
             toggleSheetFromGrab();
           }}
           onPointerDown={handleGrabPointerDown}
           onPointerUp={handleGrabPointerUp}
+          onPointerCancel={handleGrabPointerCancel}
         >
           <span />
         </button>
