@@ -8,11 +8,10 @@ import {
   type Marina
 } from '../../lib/marinas';
 import { snapMarinaList } from '../../lib/marina-snap';
-import { SCORE_BANDS, buildWeeklyOutlook, scoreBand, type DailyOutlook } from '../../lib/outlook';
+import { SCORE_BANDS, scoreBand, type DailyOutlook } from '../../lib/outlook';
 import { degToCardinal } from '../../lib/format';
 import { seoSlugForMarina } from '../../lib/seo-slugs';
 import { CURRENT_PASSES, type CurrentEvent, type CurrentPassForecast } from '../../lib/current-passes';
-import { LOCATIONS } from '../../lib/locations';
 import { HOME_MARINA_STORAGE_KEY, normalizeHomeMarinaId } from '../../lib/home-marina';
 
 type TripMapProps = {
@@ -419,28 +418,19 @@ export default function TripMap({ marinas }: TripMapProps) {
   }, [isFullscreen]);
 
   useEffect(() => {
-    const locationIds = [...new Set(activeMarinas.map(weatherLocationIdFor).filter(Boolean))] as string[];
-    if (!locationIds.length) {
+    if (!activeMarinas.length) {
       setWeeklyOutlooks({});
       return;
     }
 
     let cancelled = false;
-    Promise.all(locationIds.map(async (locationId) => {
-      try {
-        const res = await fetch(`/api/${locationId}/forecast?hours=120`);
-        if (!res.ok) return null;
-        const data = await res.json();
-        return [
-          locationId,
-          buildWeeklyOutlook(data?.forecast ?? [], data?.sunByDay ?? [], 5)
-        ] as const;
-      } catch {
-        return null;
-      }
-    }))
-      .then((entries) => {
-        if (!cancelled) setWeeklyOutlooks(Object.fromEntries(entries.filter((entry): entry is [string, DailyOutlook[]] => entry != null)));
+    fetch('/api/weather/planner-outlooks')
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Planner forecast error: HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!cancelled) setWeeklyOutlooks(data?.outlooks ?? {});
       })
       .catch(() => {
         if (!cancelled) setWeeklyOutlooks({});
@@ -1188,22 +1178,23 @@ export default function TripMap({ marinas }: TripMapProps) {
     if (forecastFocusMarina) return windLabel(conditionsFor(forecastFocusMarina, index, weeklyOutlooks));
     const marinasForWind = visibleMarinas.length ? visibleMarinas : activeMarinas;
     if (!marinasForWind.length) return null;
-    const averageWind = Math.round(marinasForWind.reduce((sum, marina) => {
-      return sum + conditionsFor(marina, index, weeklyOutlooks).wind;
-    }, 0) / marinasForWind.length);
+    const winds = marinasForWind
+      .map((marina) => conditionsFor(marina, index, weeklyOutlooks).wind)
+      .filter(Number.isFinite);
+    if (!winds.length) return '—';
+    const averageWind = Math.round(winds.reduce((sum, wind) => sum + wind, 0) / winds.length);
     return `${averageWind} kt`;
   }
 
   function timebarOutlook(index: number) {
-    if (forecastFocusMarina?.locationId) {
-      const selectedOutlook = weeklyOutlooks[forecastFocusMarina.locationId]?.[index];
+    if (forecastFocusMarina) {
+      const selectedOutlook = outlookFor(forecastFocusMarina, index, weeklyOutlooks);
       if (selectedOutlook) return selectedOutlook;
     }
 
     const marinasForDate = visibleMarinas.length ? visibleMarinas : activeMarinas;
     for (const marina of marinasForDate) {
-      if (!marina.locationId) continue;
-      const outlook = weeklyOutlooks[marina.locationId]?.[index];
+      const outlook = outlookFor(marina, index, weeklyOutlooks);
       if (outlook) return outlook;
     }
 
@@ -1231,7 +1222,7 @@ export default function TripMap({ marinas }: TripMapProps) {
               aria-pressed={dayIndex === index}
               style={{
                 '--day-score': scoreColor(score),
-                '--day-score-width': `${Math.max(8, Math.min(100, score))}%`
+                '--day-score-width': `${Number.isFinite(score) ? Math.max(8, Math.min(100, score)) : 0}%`
               } as CSSProperties}
             >
               <span className="plannerDayTopline">
@@ -1241,8 +1232,8 @@ export default function TripMap({ marinas }: TripMapProps) {
                 </span>
                 <span className="plannerDayIcon" aria-label={condition.label}>{condition.icon}</span>
               </span>
-              <span className="plannerDayScoreValue" aria-label={`${score} boating score`}>{score}</span>
-              <span className="plannerDayScoreBar" aria-label={`${score} boating score`}>
+              <span className="plannerDayScoreValue" aria-label={scoreAriaLabel(score)}>{formatScore(score)}</span>
+              <span className="plannerDayScoreBar" aria-label={scoreAriaLabel(score)}>
                 <span />
               </span>
               <em className="plannerDayWind">
@@ -1660,7 +1651,7 @@ export default function TripMap({ marinas }: TripMapProps) {
                         </span>
                         <span className="plannerRight">
                           <b>{distanceFromHome(marina).toFixed(1)} nm</b>
-                          <span>{score} score - {windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks))} - {verdict(score)}</span>
+                          <span>{formatScore(score)} score - {windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks))} - {verdict(score)}</span>
                         </span>
                       </button>
                       <PlanToggleButton
@@ -1769,7 +1760,7 @@ function MarinaDetail({
         ) : null}
 
         <div className="plannerScoreHero">
-          <div className="plannerScoreRing" style={{ background: scoreColor(score) }}>{score}</div>
+          <div className="plannerScoreRing" style={{ background: scoreColor(score) }}>{formatScore(score)}</div>
           <div>
             <span>Trip score</span>
             <strong>{verdict(score)}</strong>
@@ -2234,7 +2225,7 @@ function StopMetricGrid({ leg }: { leg: StopRouteLeg }) {
 function marinaIcon(L: any, marina: Marina, listIndex: number, tripOrder: number | undefined, selectedId: number | null, inTrip: boolean, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
   const score = marinaScore(marina, dayIndex, vessel, weeklyOutlooks);
   const cls = `${marina.freedomClub ? 'freedom' : ''} ${selectedId === marina.id ? 'sel' : ''} ${inTrip ? 'trip' : ''}`;
-  const title = escapeHtml(`${listIndex}. ${marina.name} - score ${score}`);
+  const title = escapeHtml(`${listIndex}. ${marina.name} - score ${formatScore(score)}`);
   const bubble = inTrip ? tripOrder ?? listIndex : listIndex;
   return L.divIcon({
     className: '',
@@ -2263,7 +2254,7 @@ function marinaPopupHtml(
         <strong>${escapeHtml(marina.name)}</strong>
         ${badge}
       </div>
-      <span>${score} score · ${distance} nm · ${escapeHtml(windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks)))}</span>
+      <span>${formatScore(score)} score · ${distance} nm · ${escapeHtml(windLabel(conditionsFor(marina, dayIndex, weeklyOutlooks)))}</span>
       <div class="plannerPinPopupActions">
         <button type="button" data-planner-pin-action="toggle" data-marina-id="${marina.id}" aria-pressed="${inPlan}">
           ${inPlan ? '✓ In plan' : '+ Add to trip'}
@@ -2434,6 +2425,7 @@ function dayChipDate(offset: number, outlook?: DailyOutlook | null) {
 }
 
 function dayConditionIcon(outlook: DailyOutlook | null | undefined, score: number) {
+  if (!outlook || !Number.isFinite(score)) return { icon: '—', label: 'Forecast unavailable' };
   const precipMm = outlook?.totalPrecipMm ?? 0;
   const precipProb = outlook?.maxPrecipProb ?? 0;
   if (precipMm >= 1.5 || precipProb >= 55) return { icon: '☔', label: 'Rain likely' };
@@ -2525,62 +2517,35 @@ function fitPlannerMap(map: any, bounds: any, isExpanded: boolean, maxZoom = DEF
 function marinaScore(marina: Marina, dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
   const outlook = outlookFor(marina, dayIndex, weeklyOutlooks);
   if (outlook) return outlook.score;
-
-  const conditions = conditionsFor(marina, dayIndex, weeklyOutlooks);
-  const exposure = marina.freedomClub ? 0.7 : 1;
-  const score = 100
-    - conditions.wind * vessel.windK
-    - Math.max(0, conditions.gust - conditions.wind) * vessel.gustK
-    - conditions.wave * vessel.waveK
-    - exposure * 4
-    - (marina.id % 5) * 2;
-  return Math.max(24, Math.min(98, Math.round(score)));
+  return Number.NaN;
 }
 
 function averageScore(marinas: Marina[], dayIndex: number, vessel: VesselProfile, weeklyOutlooks: PlannerOutlooks = {}) {
-  return Math.round(marinas.reduce((sum, marina) => sum + marinaScore(marina, dayIndex, vessel, weeklyOutlooks), 0) / marinas.length);
-}
-
-function windFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks = {}) {
-  const outlook = outlookFor(marina, dayIndex, weeklyOutlooks);
-  if (outlook) return outlook.maxWind;
-
-  return 5 + ((marina.id * 7 + dayIndex * 3) % 12);
+  const scores = marinas
+    .map((marina) => marinaScore(marina, dayIndex, vessel, weeklyOutlooks))
+    .filter(Number.isFinite);
+  return scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : Number.NaN;
 }
 
 function conditionsFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks = {}) {
   const outlook = outlookFor(marina, dayIndex, weeklyOutlooks);
-  const wind = outlook?.maxWind ?? windFor(marina, dayIndex, weeklyOutlooks);
+  if (!outlook) {
+    return { wind: Number.NaN, windDirDeg: undefined, gust: Number.NaN, wave: Number.NaN };
+  }
+  const wind = outlook.maxWind;
   const windDirDeg = outlook?.maxWindDirDeg;
-  const gust = outlook?.maxGust ?? wind + 5 + (marina.id % 4);
+  const gust = outlook.maxGust;
   const exposure = marina.freedomClub ? 0.2 : (marina.exp ?? 0.45);
   const wave = Math.max(0.2, (wind - 5) * 0.05 + exposure * 0.35);
   return { wind, windDirDeg, gust, wave };
 }
 
 function outlookFor(marina: Marina, dayIndex: number, weeklyOutlooks: PlannerOutlooks) {
-  const locationId = weatherLocationIdFor(marina);
-  if (!locationId) return null;
-  return weeklyOutlooks[locationId]?.[dayIndex] ?? null;
-}
-
-const NEAREST_WEATHER_ANCHOR_MAX_KM = 45;
-
-function weatherLocationIdFor(marina: Marina) {
-  if (marina.locationId) return marina.locationId;
-
-  let best: { id: string; distanceKm: number } | null = null;
-  for (const location of Object.values(LOCATIONS)) {
-    const distanceKm = haversine(marina.lat, marina.lon, location.lat, location.lon) / 1000;
-    if (!best || distanceKm < best.distanceKm) {
-      best = { id: location.id, distanceKm };
-    }
-  }
-
-  return best && best.distanceKm <= NEAREST_WEATHER_ANCHOR_MAX_KM ? best.id : null;
+  return weeklyOutlooks[String(marina.id)]?.[dayIndex] ?? null;
 }
 
 function windLabel(conditions: Pick<ReturnType<typeof conditionsFor>, 'wind' | 'windDirDeg'>) {
+  if (!Number.isFinite(conditions.wind)) return 'Forecast unavailable';
   const dir = degToCardinal(conditions.windDirDeg);
   return `${Math.round(conditions.wind)} kt${dir ? ` ${dir}` : ''}`;
 }
@@ -2597,11 +2562,21 @@ function vesselWarning(conditions: ReturnType<typeof conditionsFor>, vessel: Ves
 }
 
 function scoreColor(score: number) {
+  if (!Number.isFinite(score)) return '#94a3b8';
   return scoreBand(score).color;
 }
 
 function verdict(score: number) {
+  if (!Number.isFinite(score)) return 'Unavailable';
   return scoreBand(score).label;
+}
+
+function formatScore(score: number) {
+  return Number.isFinite(score) ? String(Math.round(score)) : '—';
+}
+
+function scoreAriaLabel(score: number) {
+  return Number.isFinite(score) ? `${Math.round(score)} boating score` : 'Boating forecast unavailable';
 }
 
 function distanceFromHome(place: { lat: number; lon: number }) {
@@ -3137,10 +3112,13 @@ function tripSummary(legs: TripLeg[]) {
   const finish = legs[legs.length - 1]?.arrive ?? new Date();
   const start = stops[0]?.arrive ?? finish;
   if (!stops.length) return { score: 50, maxWind: 0, maxWave: 0, finish, distance: 0, durationMinutes: 0 };
+  const scores = stops.map((leg) => leg.score).filter(Number.isFinite);
+  const winds = stops.map((leg) => leg.conditions.wind).filter(Number.isFinite);
+  const waves = stops.map((leg) => leg.conditions.wave).filter(Number.isFinite);
   return {
-    score: Math.round(stops.reduce((sum, leg) => sum + leg.score, 0) / stops.length),
-    maxWind: Math.max(...stops.map((leg) => leg.conditions.wind)),
-    maxWave: Math.max(...stops.map((leg) => leg.conditions.wave)),
+    score: scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : Number.NaN,
+    maxWind: winds.length ? Math.max(...winds) : Number.NaN,
+    maxWave: waves.length ? Math.max(...waves) : Number.NaN,
     finish,
     distance: legs[legs.length - 1]?.cumulativeDistance ?? 0,
     durationMinutes: Math.max(0, Math.round((finish.getTime() - start.getTime()) / 60000))

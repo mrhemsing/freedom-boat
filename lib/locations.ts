@@ -65,9 +65,9 @@ export const LOCATIONS: Record<LocationId, LocationProfile> = {
     name: 'Comox Valley',
     address: 'Comox Harbour, Comox, BC',
     tidal: true,
-    // Shared local forecast anchor for the adjacent Comox and Courtenay
-    // marinas. Without this anchor they exceed the planner's 45 km nearest-
-    // location limit and fall back to synthetic, marina-ID-based conditions.
+    // Shared local forecast anchor for Comox/Courtenay detail pages. The trip
+    // planner independently fetches coordinate-specific forecasts for every
+    // destination.
     lat: 49.6748,
     lon: -124.9495,
     marineAreas: [
