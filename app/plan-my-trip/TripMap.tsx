@@ -676,9 +676,9 @@ export default function TripMap({ marinas }: TripMapProps) {
             pane: 'plannerLandPane',
             interactive: false,
             style: {
-              color: '#d3bd91',
+              color: '#dfe9c9',
               weight: 0,
-              fillColor: '#d8c397',
+              fillColor: '#eef4dc',
               fillOpacity: 1
             }
           }).addTo(map);
