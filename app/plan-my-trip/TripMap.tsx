@@ -658,7 +658,7 @@ export default function TripMap({ marinas }: TripMapProps) {
         return container;
       };
       locateControl.addTo(map);
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
         maxNativeZoom: 19,
         crossOrigin: true,

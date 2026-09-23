@@ -4926,7 +4926,7 @@ hr.soft {
 }
 
 .plannerMap .leaflet-tile-pane {
-  filter: saturate(0.96) contrast(0.98) brightness(1.02);
+  filter: saturate(0.78) contrast(0.94) brightness(1.04);
 }
 
 .plannerMap .leaflet-control-attribution {
