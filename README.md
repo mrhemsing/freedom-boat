@@ -27,7 +27,7 @@ vercel.json                         explicit Next.js project hint
 
 | Data | How it loads | Needs a function? |
 | --- | --- | --- |
-| Map tiles | CARTO Voyager, direct from browser | No |
+| Map tiles | OpenStreetMap standard tiles, direct from browser | No |
 | Forecast | Open-Meteo weather + marine APIs | No |
 | Tides | CHS IWLS via `/api/iwls/*` | Yes, for CORS |
 | Marinas | Curated list, optional OSM via `/api/overpass` | Yes, for caching |

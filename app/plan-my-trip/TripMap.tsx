@@ -658,11 +658,10 @@ export default function TripMap({ marinas }: TripMapProps) {
         return container;
       };
       locateControl.addTo(map);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
-        maxZoom: 20,
-        subdomains: 'abcd',
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
         crossOrigin: true,
-        attribution: '&copy; CARTO &copy; OpenStreetMap'
+        attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
       islandLabelLayerRef.current = L.layerGroup().addTo(map);
       const refreshIslandLabels = () => {
