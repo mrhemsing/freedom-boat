@@ -658,10 +658,17 @@ export default function TripMap({ marinas }: TripMapProps) {
         return container;
       };
       locateControl.addTo(map);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
+        maxNativeZoom: 16,
         crossOrigin: true,
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: 'Tiles &copy; Esri'
+      }).addTo(map);
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        maxNativeZoom: 16,
+        crossOrigin: true,
+        attribution: 'Labels &copy; Esri'
       }).addTo(map);
       islandLabelLayerRef.current = L.layerGroup().addTo(map);
       const refreshIslandLabels = () => {
