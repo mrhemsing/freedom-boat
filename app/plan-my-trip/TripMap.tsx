@@ -96,7 +96,7 @@ out center tags;`;
 const USE_CHS = true;
 const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
-const LAND_GEOJSON_URL = 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_land.geojson';
+const LAND_GEOJSON_URL = 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_land.geojson';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
 const ALL_MARKERS_OVERVIEW_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM + 1;
