@@ -4889,7 +4889,7 @@ hr.soft {
   border-radius: 14px;
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   color: var(--planner-navy);
-  background: #b6dcf0;
+  background: #84cfee;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
 }
 
@@ -4903,7 +4903,7 @@ hr.soft {
   min-height: 0;
   overflow: hidden;
   border-radius: 14px 0 0 14px;
-  background: #b6dcf0;
+  background: #84cfee;
 }
 
 .plannerMap {
@@ -4914,7 +4914,7 @@ hr.soft {
   z-index: 1;
   cursor: grab;
   font-family: inherit;
-  background: #93cce7;
+  background: #7fcdee;
 }
 
 .plannerMap.leaflet-container {
@@ -4926,12 +4926,8 @@ hr.soft {
   cursor: grabbing;
 }
 
-.plannerMap .plannerBaseTiles {
-  filter: grayscale(1) saturate(0) contrast(0.62) brightness(1.18);
-}
-
 .plannerMap .plannerReferenceTiles {
-  filter: saturate(0.72) contrast(1.06) brightness(0.98);
+  filter: saturate(0.75) contrast(1.08) brightness(0.96);
 }
 
 .plannerMap .leaflet-control-attribution {

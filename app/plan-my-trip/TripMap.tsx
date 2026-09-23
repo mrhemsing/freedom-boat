@@ -96,6 +96,7 @@ out center tags;`;
 const USE_CHS = true;
 const IWLS_BASE = '/api/iwls';
 const CHS_REGION = 'PAC';
+const LAND_GEOJSON_URL = 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_land.geojson';
 const MAX_CHS_STATION_KM = 60;
 const DEFAULT_PLANNER_OVERVIEW_ZOOM = 7;
 const ALL_MARKERS_OVERVIEW_ZOOM = DEFAULT_PLANNER_OVERVIEW_ZOOM + 1;
@@ -658,14 +659,33 @@ export default function TripMap({ marinas }: TripMapProps) {
         return container;
       };
       locateControl.addTo(map);
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        maxNativeZoom: 16,
-        opacity: 0.28,
-        crossOrigin: true,
-        attribution: 'Tiles &copy; Esri',
-        className: 'plannerBaseTiles'
-      }).addTo(map);
+      map.createPane('plannerLandPane');
+      const landPane = map.getPane('plannerLandPane');
+      if (landPane) {
+        landPane.style.zIndex = '180';
+        landPane.style.pointerEvents = 'none';
+      }
+      fetch(LAND_GEOJSON_URL)
+        .then((response) => {
+          if (!response.ok) throw new Error('Land geometry unavailable');
+          return response.json();
+        })
+        .then((geojson) => {
+          if (disposed || leafletMapRef.current !== map) return;
+          L.geoJSON(geojson, {
+            pane: 'plannerLandPane',
+            interactive: false,
+            style: {
+              color: '#d3bd91',
+              weight: 0,
+              fillColor: '#d8c397',
+              fillOpacity: 1
+            }
+          }).addTo(map);
+        })
+        .catch(() => {
+          // Keep the water/labels-only map if the optional land shape layer fails.
+        });
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
         maxNativeZoom: 16,
