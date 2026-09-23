@@ -658,11 +658,20 @@ export default function TripMap({ marinas }: TripMapProps) {
         return container;
       };
       locateControl.addTo(map);
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
-        maxNativeZoom: 19,
+        maxNativeZoom: 16,
+        opacity: 0.78,
         crossOrigin: true,
-        attribution: 'Tiles &copy; Esri'
+        attribution: 'Tiles &copy; Esri',
+        className: 'plannerBaseTiles'
+      }).addTo(map);
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        maxNativeZoom: 16,
+        crossOrigin: true,
+        attribution: 'Tiles &copy; Esri',
+        className: 'plannerReferenceTiles'
       }).addTo(map);
       islandLabelLayerRef.current = L.layerGroup().addTo(map);
       const refreshIslandLabels = () => {

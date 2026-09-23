@@ -4914,6 +4914,7 @@ hr.soft {
   z-index: 1;
   cursor: grab;
   font-family: inherit;
+  background: #93cce7;
 }
 
 .plannerMap.leaflet-container {
@@ -4925,8 +4926,8 @@ hr.soft {
   cursor: grabbing;
 }
 
-.plannerMap .leaflet-tile-pane {
-  filter: saturate(0.78) contrast(0.94) brightness(1.04);
+.plannerMap .plannerBaseTiles {
+  filter: saturate(0.42) contrast(0.92) brightness(1.05);
 }
 
 .plannerMap .leaflet-control-attribution {
