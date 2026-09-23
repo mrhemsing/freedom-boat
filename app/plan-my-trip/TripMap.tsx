@@ -661,7 +661,7 @@ export default function TripMap({ marinas }: TripMapProps) {
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
         maxNativeZoom: 16,
-        opacity: 0.78,
+        opacity: 0.28,
         crossOrigin: true,
         attribution: 'Tiles &copy; Esri',
         className: 'plannerBaseTiles'

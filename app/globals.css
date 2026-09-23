@@ -4927,7 +4927,11 @@ hr.soft {
 }
 
 .plannerMap .plannerBaseTiles {
-  filter: saturate(0.42) contrast(0.92) brightness(1.05);
+  filter: grayscale(1) saturate(0) contrast(0.62) brightness(1.18);
+}
+
+.plannerMap .plannerReferenceTiles {
+  filter: saturate(0.72) contrast(1.06) brightness(0.98);
 }
 
 .plannerMap .leaflet-control-attribution {
